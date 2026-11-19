@@ -75,6 +75,14 @@ def point_at_pod(exp: dict[str, Any]) -> dict[str, Any]:
     for key in ("engine", "model"):
         if server.get(key) and pod and pod.get(key) != server[key]:
             raise SystemExit(f"pod serves {key}={pod.get(key)!r}, experiment needs {server[key]!r}")
+    if (
+        pod
+        and "overrides" in server
+        and (pod.get("overrides") or {}) != (server["overrides"] or {})
+    ):
+        raise SystemExit(
+            f"pod overrides {pod.get('overrides')!r}, experiment needs {server['overrides']!r}"
+        )
     return {
         "pod": pod.get("id"),
         "engine": pod.get("engine"),
@@ -260,7 +268,7 @@ async def main() -> int:
         json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     write_report(out_dir, metrics)
-    print(f"sonuç: {out_dir.relative_to(ROOT)}", flush=True)
+    print(f"sonuç: {out_dir}", flush=True)
     return 0
 
 

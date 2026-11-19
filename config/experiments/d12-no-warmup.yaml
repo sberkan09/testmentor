@@ -1,0 +1,8 @@
+name: d12-no-warmup
+question: "D12 Önek ısıtma: paralel çağrıları bekletmeden gönder (varsayım: ilk çağrı öneki işleyene kadar beklet). Taban: d2-qwen."
+variable: prefix_warmup=false
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+pipeline:
+  prefix_warmup: false
+quality: true
+repeat: 2

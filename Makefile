@@ -3,9 +3,9 @@
 SHELL := /bin/bash
 ENV := set -a; [ -f .env ] && . ./.env; set +a;
 PY := uv run python
-UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL))
+UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o))
 
-.PHONY: up down smoke test lint compose volume download download-down status balance local-up local-down
+.PHONY: up down smoke test lint compose volume download download-down reconfigure eval judge status balance local-up local-down
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
 	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) && $(PY) scripts/runpod.py wait
@@ -33,6 +33,15 @@ download:      ## Aynı veri merkezinde CPU pod'u açıp tüm aday ağırlıklar
 
 download-down: ## İndirme pod'unu sil (404 ile doğrulanır)
 	$(ENV) $(PY) scripts/runpod.py download-down
+
+reconfigure:   ## Açık pod'da model/motor/sunucu ayarını değiştir (imaj yeniden çekilmez)
+	$(ENV) $(PY) scripts/runpod.py reconfigure $(UP_ARGS) && $(PY) scripts/runpod.py wait
+
+eval:          ## Deney koş: make eval EXP=d1-vllm
+	$(ENV) $(PY) -m eval.run --config config/experiments/$(EXP).yaml
+
+judge:         ## Hakem (katman 2): make judge RUN=results/<koşu>
+	$(ENV) $(PY) -m eval.judge $(RUN)
 
 status:
 	$(ENV) $(PY) scripts/runpod.py status

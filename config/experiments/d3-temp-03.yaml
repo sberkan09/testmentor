@@ -1,0 +1,7 @@
+name: d3-temp-03
+question: "D3 Örnekleme: test üretiminde sıcaklık 0,3 (varsayım 0,7)."
+variable: generation.temperature=0.3
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+pipeline:
+  generation: {temperature: 0.3}
+quality: true

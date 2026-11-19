@@ -111,7 +111,28 @@ class Runpod:
         return self.req("GET", "/pods").json()["pods"]
 
 
-def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) -> dict[str, Any]:
+def parse_overrides(items: list[str] | None) -> dict[str, Any]:
+    """`key=value` pairs from the command line; numbers become int/float."""
+    out: dict[str, Any] = {}
+    for item in items or []:
+        key, _, value = item.partition("=")
+        if key == "extra_args":
+            out[key] = value.split()
+            continue
+        try:
+            out[key] = int(value)
+        except ValueError:
+            out[key] = float(value)
+    return out
+
+
+def pod_body(
+    engine_key: str,
+    model_key: str,
+    volume_id: str,
+    download: bool,
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     cfg = load_infra()["runpod"]
     engine = load_engines()[engine_key]
     emb = load_embedding_server()
@@ -139,7 +160,11 @@ def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) ->
         "mounts": {"network": [{"volumeId": volume_id, "path": cfg["volume"]["mount_path"]}]},
         "ports": ports,
         "env": env,
-        "entrypoint": ["bash", "-c", render_pod_script(engine_key, model_key, download=download)],
+        "entrypoint": [
+            "bash",
+            "-c",
+            render_pod_script(engine_key, model_key, download=download, overrides=overrides),
+        ],
     }
 
 
@@ -251,7 +276,8 @@ def cmd_up(rp: Runpod, args: argparse.Namespace) -> int:
     vol = rp.find_volume()
     if vol is None:
         raise SystemExit("network volume yok; önce `make volume`")
-    body = pod_body(engine_key, model_key, vol["id"], args.download)
+    overrides = parse_overrides(args.override)
+    body = pod_body(engine_key, model_key, vol["id"], args.download, overrides)
     print(
         f"pod oluşturuluyor: {body['name']} {body['gpu']['id']} {body['dataCenterIds']} "
         f"{rp.cfg['gpu_hourly_usd']} USD/saat"
@@ -271,6 +297,8 @@ def cmd_up(rp: Runpod, args: argparse.Namespace) -> int:
         "llm_port": engine.port,
         "embedding_port": load_embedding_server()["port"],
         "download": args.download,
+        "overrides": overrides,
+        "started_monotonic": time.time(),
     }
     write_state(state)
     print(f"pod: {pod['id']} durum={pod.get('status')} ücret={pod.get('cost')} USD/saat")
@@ -289,7 +317,7 @@ def cmd_wait(rp: Runpod, args: argparse.Namespace) -> int:
         raise SystemExit("kayıtlı pod yok")
     key = ensure_env_secret("LLM_API_KEY")
     url = proxy_url(pod["id"], pod["llm_port"]) + "/v1/models"
-    started = pod["created_monotonic_hint"]
+    started = pod.get("started_monotonic", pod["created_monotonic_hint"])
     deadline = time.time() + args.timeout
     with httpx.Client(timeout=15, headers={"Authorization": f"Bearer {key}"}) as http:
         while time.time() < deadline:
@@ -298,7 +326,7 @@ def cmd_wait(rp: Runpod, args: argparse.Namespace) -> int:
                 if r.status_code == 200:
                     took = time.time() - started
                     served = r.json()["data"][0]["id"]
-                    print(f"hazır: pod oluşturulduktan {took:.0f} sn sonra; {served}")
+                    print(f"hazır: başlatmadan {took:.0f} sn sonra; {served}")
                     state = read_state()
                     state["pod"]["ready_after_s"] = round(took)
                     write_state(state)
@@ -308,6 +336,41 @@ def cmd_wait(rp: Runpod, args: argparse.Namespace) -> int:
             time.sleep(10)
     print("zaman aşımı: servis hazır olmadı")
     return 1
+
+
+def cmd_reconfigure(rp: Runpod, args: argparse.Namespace) -> int:
+    """Change model, engine or server settings of the running pod without deleting it: the
+    entrypoint (and image, ports) are patched, the container restarts on the same machine,
+    so the image is not pulled again."""
+    state = read_state()
+    pod = state.get("pod")
+    if not pod:
+        raise SystemExit("kayıtlı pod yok; önce `make up`")
+    engine_key = args.engine or pod["engine"]
+    model_key = args.model or pod["model"]
+    overrides = parse_overrides(args.override)
+    vol = rp.find_volume()
+    body = pod_body(engine_key, model_key, vol["id"], args.download, overrides)
+    patch = {k: body[k] for k in ("image", "ports", "env", "entrypoint")}
+    r = rp.http.patch(f"/pods/{pod['id']}", json=patch)
+    if r.status_code >= 400:
+        raise SystemExit(f"PATCH başarısız: HTTP {r.status_code} {r.text[:800]}")
+    engine = load_engines()[engine_key]
+    pod |= {
+        "engine": engine_key,
+        "model": model_key,
+        "overrides": overrides,
+        "llm_port": engine.port,
+        "started_monotonic": time.time(),
+        "reconfigured_at": now(),
+    }
+    pod.setdefault("reconfigurations", []).append(
+        {"at": now(), "engine": engine_key, "model": model_key, "overrides": overrides}
+    )
+    state["pod"] = pod
+    write_state(state)
+    print(f"yeniden yapılandırıldı: {pod['id']} → {engine_key}/{model_key} {overrides}")
+    return 0
 
 
 def cmd_status(rp: Runpod, _: argparse.Namespace) -> int:
@@ -367,6 +430,12 @@ def main() -> int:
     up.add_argument("--engine")
     up.add_argument("--model")
     up.add_argument("--download", action="store_true", help="ağırlıkları volume'a indir")
+    up.add_argument("--override", action="append", help="sunucu ayarı, ör. max_num_seqs=64")
+    rc = sub.add_parser("reconfigure")
+    rc.add_argument("--engine")
+    rc.add_argument("--model")
+    rc.add_argument("--download", action="store_true")
+    rc.add_argument("--override", action="append")
     w = sub.add_parser("wait")
     w.add_argument("--timeout", type=float, default=1800)
     sub.add_parser("status")
@@ -383,6 +452,7 @@ def main() -> int:
         "wait": cmd_wait,
         "status": cmd_status,
         "down": cmd_down,
+        "reconfigure": cmd_reconfigure,
         "download": cmd_download,
         "download-down": cmd_download_down,
     }[args.cmd](rp, args)

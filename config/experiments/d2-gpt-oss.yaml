@@ -1,0 +1,5 @@
+name: d2-gpt-oss
+question: "D2 Model: gpt-oss-120b (MXFP4). Düşünme kapatılamaz; kapalı kip reasoning_effort=low."
+variable: model=gpt-oss-120b
+server: {engine: vllm, model: gpt-oss-120b, overrides: {}}
+quality: true

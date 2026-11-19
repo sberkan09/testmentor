@@ -1,0 +1,6 @@
+name: d5-ctx16k
+question: "D5 Bağlam: 16 bin token (varsayım 32 bin). Kalite ve 16/32 eşzamanlı hız."
+variable: context_length=16384
+server: {engine: vllm, model: qwen3.8-27b, overrides: {context_length: 16384}}
+throughput: {concurrency: [16, 32], min_requests: 4}
+quality: true

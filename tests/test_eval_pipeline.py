@@ -138,3 +138,20 @@ def test_deep_merge_and_diff():
     assert layer1_diff(
         {"all": {"a": 1}, "calls": {"x": 1}}, {"all": {"a": 2}, "calls": {"x": 2}}
     ) == ["all.a: 1 → 2"]
+
+
+def test_experiment_files_are_valid():
+    from eval.run import load_experiment
+    from services.settings import load_engines, load_models
+
+    files = sorted((ROOT / "config" / "experiments").glob("*.yaml"))
+    assert files
+    for f in files:
+        exp, cfg = load_experiment(f)
+        assert exp["name"] == f.stem and exp.get("question") and exp.get("variable")
+        assert exp["server"]["engine"] in load_engines()
+        assert exp["server"]["model"] in load_models()
+        assert set(cfg) == set(CFG)  # no misspelled top-level pipeline keys
+        for stage in ("generation", "classification"):
+            assert set(cfg[stage]) == set(CFG[stage])
+        assert exp.get("quality", True) or exp.get("throughput")

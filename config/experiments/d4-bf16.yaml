@@ -1,0 +1,6 @@
+name: d4-bf16
+question: "D4 Ağırlık hassasiyeti: 16 bit (resmî BF16). Varsayım FP8."
+variable: precision=bf16
+server: {engine: vllm, model: qwen3.8-27b-bf16, overrides: {}}
+throughput: {concurrency: [16, 32], min_requests: 4}
+quality: true

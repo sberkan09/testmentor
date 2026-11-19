@@ -1,0 +1,8 @@
+# Hakem (katman 2). Sentetik altın sette Claude Sonnet; gerçek veride yerel modele ya da uzmana geçer.
+model: claude-sonnet-5-5
+effort: medium              # sıcaklık bu modelde verilemez; tekrarlanabilirlik cache ile
+max_tokens: 8000
+rubric_version: r1
+concurrency: 8
+api_key_env: ANTHROPIC_API_KEY
+cache_dir: eval/cache/judge

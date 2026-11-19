@@ -42,22 +42,38 @@ def _fill(template: list[str], values: dict[str, Any]) -> list[str]:
     return [part if part == SECRET_TOKEN else part.format(**values) for part in template]
 
 
-def engine_argv(engine_key: str, model_key: str, config_dir: Path = ROOT / "config") -> list[str]:
+OVERRIDABLE = ("context_length", "max_num_seqs", "gpu_memory_utilization")
+
+
+def engine_argv(
+    engine_key: str,
+    model_key: str,
+    config_dir: Path = ROOT / "config",
+    overrides: dict[str, Any] | None = None,
+) -> list[str]:
+    """Engine command line. `overrides` changes server settings for one experiment (D5)
+    without editing config: context_length, max_num_seqs, gpu_memory_utilization,
+    extra_args (list appended at the end)."""
+    overrides = dict(overrides or {})
+    unknown = set(overrides) - set(OVERRIDABLE) - {"extra_args"}
+    if unknown:
+        raise ValueError(f"unknown overrides: {sorted(unknown)}")
     engine = load_engines(config_dir)[engine_key]
     model = load_models(config_dir)[model_key]
     infra = load_infra(config_dir)
-    argv = _fill(
-        engine.command,
-        {
-            "model": model.repo_id,
-            "served_name": model.served_name,
-            "context_length": model.context_length,
-            "max_num_seqs": model.max_num_seqs,
-            "port": engine.port,
-            "gpu_memory_utilization": model.gpu_memory_utilization or infra["gpu_memory"]["llm"],
-        },
+    values = {
+        "model": model.repo_id,
+        "served_name": model.served_name,
+        "context_length": model.context_length,
+        "max_num_seqs": model.max_num_seqs,
+        "port": engine.port,
+        "gpu_memory_utilization": model.gpu_memory_utilization or infra["gpu_memory"]["llm"],
+    }
+    values |= {k: overrides[k] for k in OVERRIDABLE if k in overrides}
+    argv = _fill(engine.command, values)
+    return (
+        argv + list(model.engine_args.get(engine_key, [])) + list(overrides.get("extra_args", []))
     )
-    return argv + list(model.engine_args.get(engine_key, []))
 
 
 def embedding_argv(config_dir: Path = ROOT / "config") -> list[str]:
@@ -234,6 +250,7 @@ def render_pod_script(
     *,
     download: bool = False,
     config_dir: Path = ROOT / "config",
+    overrides: dict[str, Any] | None = None,
 ) -> str:
     """Bash script that runs as the pod's entrypoint (one container, no Docker inside)."""
     infra = load_infra(config_dir)
@@ -299,7 +316,7 @@ def render_pod_script(
         ]
     lines += [
         'echo "[llm] starting $(date -u +%FT%TZ)"',
-        f'{shell_line(engine_argv(engine_key, model_key, config_dir))} 2>&1 | tee "$LOG/llm.log"',
+        f'{shell_line(engine_argv(engine_key, model_key, config_dir, overrides))} 2>&1 | tee "$LOG/llm.log"',
     ]
     return "\n".join(lines) + "\n"
 

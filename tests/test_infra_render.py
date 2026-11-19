@@ -105,3 +105,17 @@ def test_download_pod_body():
     script = body["entrypoint"][2]
     subprocess.run(["bash", "-n"], input=script, text=True, check=True)
     assert "[download] DONE" in script
+
+
+def test_overrides_change_only_server_settings():
+    from scripts.runpod import parse_overrides
+
+    ov = parse_overrides(["max_num_seqs=64", "context_length=16384", "gpu_memory_utilization=0.85"])
+    assert ov == {"max_num_seqs": 64, "context_length": 16384, "gpu_memory_utilization": 0.85}
+    argv = engine_argv("vllm", "qwen3.8-27b", overrides=ov)
+    assert argv[argv.index("--max-num-seqs") + 1] == "64"
+    assert argv[argv.index("--max-model-len") + 1] == "16384"
+    sg = engine_argv("sglang", "qwen3.8-27b", overrides=ov)
+    assert sg[sg.index("--max-running-requests") + 1] == "64"
+    with pytest.raises(ValueError):
+        engine_argv("vllm", "qwen3.8-27b", overrides={"bogus": 1})

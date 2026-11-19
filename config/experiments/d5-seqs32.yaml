@@ -1,0 +1,6 @@
+name: d5-seqs32
+question: "D5 Eşzamanlılık: sunucu dizi sınırı 32 (varsayım), 32 ve 64 eşzamanlı istekte; karşılaştırma tabanı."
+variable: max_num_seqs=32
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+throughput: {concurrency: [32, 64], min_requests: 4}
+quality: false
