@@ -1,0 +1,51 @@
+# Aday modeller. Depo kimlikleri resmî kuruluş hesaplarından doğrulandı (19 Kasım 2026,
+# Hugging Face API; kaynaklar docs/altyapi.md). Ölçüm paket 1'in işidir (D2, D4, D5).
+models:
+  qwen3.8-27b:
+    repo_id: Qwen/Qwen3.8-27B-FP8      # Qwen'in resmî FP8 sürümü; gated değil
+    served_name: qwen3.8-27b
+    precision: fp8
+    context_length: 32768
+    max_num_seqs: 32
+    approx_size_gb: 30
+    engine_args:
+      vllm: ["--reasoning-parser", "qwen3"]
+      sglang: ["--reasoning-parser", "qwen3"]
+    thinking_on: {chat_template_kwargs: {enable_thinking: true}}
+    thinking_off: {chat_template_kwargs: {enable_thinking: false}}
+    notes: >-
+      Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık.
+      Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek.
+
+  gemma-4-31b:
+    repo_id: google/gemma-4-31B-it     # Google'ın resmî FP8 sürümü yok; BF16 kullanılır
+    served_name: gemma-4-31b
+    precision: bf16
+    context_length: 32768
+    max_num_seqs: 16
+    approx_size_gb: 63
+    engine_args:
+      vllm: ["--reasoning-parser", "gemma4"]
+      sglang: []
+    thinking_on: {chat_template_kwargs: {enable_thinking: true}}
+    thinking_off: {chat_template_kwargs: {enable_thinking: false}}
+    notes: >-
+      Düşünme varsayılan kapalı. FP8 için tek seçenek üçüncü taraf deposu
+      (RedHatAI/...), CLAUDE.md gereği kullanılmaz; anlık FP8 nicemleme D4'te denenebilir.
+
+  gpt-oss-120b:
+    repo_id: openai/gpt-oss-120b
+    served_name: gpt-oss-120b
+    precision: mxfp4
+    context_length: 32768
+    max_num_seqs: 16
+    approx_size_gb: 65
+    engine_args:
+      vllm: ["--kv-cache-dtype", "fp8"]
+      sglang: ["--reasoning-parser", "gpt-oss"]
+    # gpt-oss düşünmeyi kapatmaz; yalnızca çabası ayarlanır.
+    thinking_on: {reasoning_effort: medium}
+    thinking_off: {reasoning_effort: low}
+    notes: >-
+      vLLM tarifi RTX 50 serisi (sm_120) desteğini "sürüyor" diye anıyor; yükleme riski var.
+      --kv-cache-dtype fp8 tarifin attention-sinks önerisidir.

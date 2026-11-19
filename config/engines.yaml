@@ -1,0 +1,84 @@
+# Sunum motorları. Sürüm, bayrak ve parametre adları güncel resmî dokümandan alındı
+# (19 Kasım 2026; kaynaklar docs/altyapi.md). Yer tutucular scripts/infra_render.py ile dolar:
+# {model} {served_name} {context_length} {max_num_seqs} {port} {gpu_memory_utilization}
+# Anahtar komut satırına yazılmaz; konteynerdeki LLM_API_KEY ortam değişkeninden okunur.
+engines:
+  vllm:
+    image: vllm/vllm-openai:v0.34.0
+    port: 8000
+    health_path: /health
+    command:
+      - vllm
+      - serve
+      - "{model}"
+      - --served-model-name
+      - "{served_name}"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "{port}"
+      - --max-model-len
+      - "{context_length}"
+      - --max-num-seqs
+      - "{max_num_seqs}"
+      - --gpu-memory-utilization
+      - "{gpu_memory_utilization}"
+      - --enable-prefix-caching
+      - --enable-prompt-tokens-details
+      - --api-key
+      - "$LLM_API_KEY"
+    extra_body: {}
+
+  sglang:
+    image: lmsysorg/sglang:v0.5.23
+    port: 30000
+    health_path: /health
+    command:
+      - python3
+      - -m
+      - sglang.launch_server
+      - --model-path
+      - "{model}"
+      - --served-model-name
+      - "{served_name}"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "{port}"
+      - --context-length
+      - "{context_length}"
+      - --max-running-requests
+      - "{max_num_seqs}"
+      - --mem-fraction-static
+      - "{gpu_memory_utilization}"
+      - --enable-cache-report
+      - --grammar-backend
+      - xgrammar
+      - --api-key
+      - "$LLM_API_KEY"
+    extra_body: {}
+
+# Embedding servisi motordan bağımsızdır; vLLM imajında pooling kipinde çalışır.
+embedding_server:
+  image: vllm/vllm-openai:v0.34.0
+  port: 8001
+  model: BAAI/bge-m3
+  served_name: bge-m3
+  command:
+    - vllm
+    - serve
+    - "{model}"
+    - --served-model-name
+    - "{served_name}"
+    - --runner
+    - pooling
+    - --convert
+    - embed
+    - --host
+    - 0.0.0.0
+    - --port
+    - "{port}"
+    - --gpu-memory-utilization
+    - "{gpu_memory_utilization}"
+    - --api-key
+    - "$LLM_API_KEY"
