@@ -1,0 +1,1899 @@
+{
+  "version": "v0.1",
+  "projects": [
+    {
+      "key": "KMU",
+      "name": "e-Başvuru Portalı",
+      "domain": "Kamu",
+      "requirements": [
+        {
+          "id": "KMU-001",
+          "language": "tr",
+          "text": "Sistem, vatandaşların e-Devlet Kapısı kimlik doğrulaması ile oturum açmasını sağlayacaktır.",
+          "reference_cluster": "Kimlik doğrulama ve oturum",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Davranış çalıştırılarak gözlenebilir.",
+          "difficulty": "Kolay",
+          "note": ""
+        },
+        {
+          "id": "KMU-002",
+          "language": "tr",
+          "text": "Sistem, 15 dakika boyunca işlem yapılmayan oturumu sonlandıracak ve kullanıcıyı oturum açma sayfasına yönlendirecektir.",
+          "reference_cluster": "Kimlik doğrulama ve oturum",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Süre eşiği ölçülebilir.",
+          "difficulty": "Orta",
+          "note": "Sınır değer: eşiğin hemen altı ve hemen üstü denenmeli."
+        },
+        {
+          "id": "KMU-003",
+          "language": "tr",
+          "text": "Sistem, kurum personelinin yönetim paneline kullanıcı adı ve parola ile girişinde, art arda 5 başarısız denemeden sonra hesabı 30 dakika süreyle kilitleyecektir.",
+          "reference_cluster": "Kimlik doğrulama ve oturum",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Sayaç ve süre çalıştırılarak doğrulanır.",
+          "difficulty": "Orta",
+          "note": "İki sınır var: deneme sayısı ve kilit süresi. Araya giren başarılı giriş sayacı sıfırlar."
+        },
+        {
+          "id": "KMU-004",
+          "language": "tr",
+          "text": "Kullanıcı, başvuru formuna her biri en fazla 10 MB olan PDF, JPEG veya PNG biçiminde en çok 5 ek dosya yükleyebilecektir.",
+          "reference_cluster": "Başvuru işlemleri",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Girdi sınırları çalıştırılarak doğrulanır.",
+          "difficulty": "Orta",
+          "note": "Üç ayrı kısıt: boyut, biçim, adet."
+        },
+        {
+          "id": "KMU-005",
+          "language": "tr",
+          "text": "Sistem, tamamlanan her başvuru için benzersiz bir takip numarası üretecek ve bu numarayı kullanıcıya e-posta ile bildirecektir.",
+          "reference_cluster": "Başvuru işlemleri",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Çıktı gözlenebilir.",
+          "difficulty": "Orta",
+          "note": "Bileşik gereksinim: üretim ve bildirim ayrı ayrı doğrulanmalı."
+        },
+        {
+          "id": "KMU-006",
+          "language": "tr",
+          "text": "Sistem, yarım bırakılan başvuruyu taslak olarak saklayacak ve kullanıcının 30 gün içinde kaldığı yerden devam etmesine izin verecektir.",
+          "reference_cluster": "Başvuru işlemleri",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Davranış ve süre çalıştırılarak doğrulanır.",
+          "difficulty": "Orta",
+          "note": "30 günlük sınır sistem saati ilerletilerek denenir."
+        },
+        {
+          "id": "KMU-007",
+          "language": "tr",
+          "text": "Kullanıcı arayüzü, WCAG 2.1 AA düzeyi erişilebilirlik ölçütlerini karşılayacaktır.",
+          "reference_cluster": "Erişilebilirlik ve veri yerleşimi",
+          "verification_methods": [
+            "İnceleme",
+            "Test"
+          ],
+          "method_rationale": "Ölçütlerin bir kısmı araçla ve kullanımla test edilir, kalanı uzman incelemesi gerektirir.",
+          "difficulty": "Zor",
+          "note": "Çoklu yöntem. Yalnızca otomatik tarama yeterli sayılmamalı."
+        },
+        {
+          "id": "KMU-008",
+          "language": "tr",
+          "text": "Kişisel veriler, kurumun veri yerleşimi politikası gereği yalnızca Türkiye sınırları içindeki sunucularda saklanacaktır.",
+          "reference_cluster": "Erişilebilirlik ve veri yerleşimi",
+          "verification_methods": [
+            "İnceleme"
+          ],
+          "method_rationale": "Dağıtım mimarisi, barındırma sözleşmesi ve yapılandırma belgeleri incelenerek doğrulanır.",
+          "difficulty": "Zor",
+          "note": "Tuzak: test durumu beklenmez. Model test uydurursa hata sayılır."
+        }
+      ],
+      "test_cases": [
+        {
+          "id": "TC-KMU-01",
+          "title": "e-Devlet ile başarılı oturum açma",
+          "covers": [
+            "KMU-001"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "Test ortamında e-Devlet kimlik doğrulama benzetimi çalışmaktadır.",
+          "test_inputs": "Geçerli bir test kullanıcısı.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Portal ana sayfasında e-Devlet ile giriş seçilir.",
+              "expected": "Kullanıcı e-Devlet kimlik doğrulama sayfasına yönlendirilir."
+            },
+            {
+              "no": 2,
+              "action": "Geçerli test kullanıcısı ile doğrulama tamamlanır.",
+              "expected": "Kullanıcı portala döner ve oturum açmış olarak adı görüntülenir."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-02",
+          "title": "Kimlik doğrulamanın iptal edilmesi",
+          "covers": [
+            "KMU-001"
+          ],
+          "type": "Hata",
+          "priority": "Orta",
+          "preconditions": "Test ortamında e-Devlet kimlik doğrulama benzetimi çalışmaktadır.",
+          "test_inputs": "",
+          "assumptions": "Başvurularım sayfası oturum gerektiren bir sayfadır.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "e-Devlet ile giriş seçilir.",
+              "expected": "Kimlik doğrulama sayfası açılır."
+            },
+            {
+              "no": 2,
+              "action": "Kimlik doğrulama sayfasında işlem iptal edilir.",
+              "expected": "Kullanıcı bilgilendirme iletisiyle giriş sayfasına döner; oturum açılmaz."
+            },
+            {
+              "no": 3,
+              "action": "Başvurularım sayfasının adresi doğrudan açılır.",
+              "expected": "Sayfa görüntülenmez ve kullanıcı giriş sayfasına yönlendirilir."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-03",
+          "title": "Hareketsizlik sonrası oturumun sonlanması",
+          "covers": [
+            "KMU-002"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "Kullanıcı oturum açmıştır.",
+          "test_inputs": "Bekleme süreleri: 14 dakika 50 saniye ve 15 dakika 10 saniye.",
+          "assumptions": "Hareketsizlik süresi, sunucuya ulaşan son istekten itibaren ölçülür.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "14 dakika 50 saniye boyunca işlem yapılmaz, ardından bir sayfa açılır.",
+              "expected": "Oturum açık kalır ve sayfa görüntülenir."
+            },
+            {
+              "no": 2,
+              "action": "15 dakika 10 saniye boyunca işlem yapılmaz, ardından bir sayfa açılır.",
+              "expected": "Oturum sonlanmıştır; kullanıcı oturum açma sayfasına yönlendirilir."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-04",
+          "title": "Başarısız denemeler sonrası hesap kilidi",
+          "covers": [
+            "KMU-003"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "Yönetim panelinde etkin ve kilitli olmayan bir personel hesabı vardır.",
+          "test_inputs": "Geçerli kullanıcı adı, doğru parola, yanlış parola.",
+          "assumptions": "Başarılı giriş başarısız deneme sayacını sıfırlar; gereksinim bunu açıkça belirtmez.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Yanlış parola ile 4 kez giriş denenir.",
+              "expected": "Dört deneme de reddedilir; hesap kilitlenmez."
+            },
+            {
+              "no": 2,
+              "action": "Doğru parola ile giriş yapılır ve çıkılır.",
+              "expected": "Giriş başarılıdır."
+            },
+            {
+              "no": 3,
+              "action": "Yanlış parola ile art arda 5 kez giriş denenir.",
+              "expected": "Beş deneme de reddedilir; beşinciden sonra hesabın kilitlendiği bildirilir."
+            },
+            {
+              "no": 4,
+              "action": "Doğru parola ile giriş denenir.",
+              "expected": "Giriş reddedilir; hesap kilitlidir."
+            },
+            {
+              "no": 5,
+              "action": "Kilitlenmeden 30 dakika sonra doğru parola ile giriş denenir.",
+              "expected": "Giriş başarılıdır."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-05",
+          "title": "Ek dosya boyutu ve adet sınırı",
+          "covers": [
+            "KMU-004"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "Kullanıcı başvuru formunun ek dosya adımındadır.",
+          "test_inputs": "10 MB'lık bir PDF; 10,1 MB'lık bir PDF; 1 MB'lık dört geçerli dosya (PDF, JPEG ve PNG karışık); 1 MB'lık bir PDF daha.",
+          "assumptions": "1 MB, 1.048.576 bayt olarak alınır.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "10 MB'lık PDF yüklenir.",
+              "expected": "Dosya kabul edilir."
+            },
+            {
+              "no": 2,
+              "action": "10,1 MB'lık PDF yüklenir.",
+              "expected": "Dosya reddedilir ve boyut sınırı bildirilir; ek sayısı değişmez."
+            },
+            {
+              "no": 3,
+              "action": "Dört geçerli dosya eklenir.",
+              "expected": "Dosyaların tümü kabul edilir; toplam ek sayısı 5 olur."
+            },
+            {
+              "no": 4,
+              "action": "Altıncı dosya eklenmeye çalışılır.",
+              "expected": "Dosya reddedilir ve adet sınırı bildirilir."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-06",
+          "title": "Desteklenmeyen dosya biçimi",
+          "covers": [
+            "KMU-004"
+          ],
+          "type": "Hata",
+          "priority": "Orta",
+          "preconditions": "Kullanıcı başvuru formunun ek dosya adımındadır.",
+          "test_inputs": "Bir .docx dosyası; uzantısı .pdf yapılmış, PDF olmayan bir dosya; geçerli bir JPEG; geçerli bir PNG.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Dosya .docx yüklenmeye çalışılır.",
+              "expected": "Dosya reddedilir ve desteklenen biçimler bildirilir."
+            },
+            {
+              "no": 2,
+              "action": "Uzantısı .pdf yapılmış dosya yüklenmeye çalışılır.",
+              "expected": "Dosya reddedilir; biçim denetimi yalnızca uzantıya dayanmaz."
+            },
+            {
+              "no": 3,
+              "action": "JPEG dosyası yüklenir.",
+              "expected": "Dosya kabul edilir."
+            },
+            {
+              "no": 4,
+              "action": "PNG dosyası yüklenir.",
+              "expected": "Dosya kabul edilir."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-07",
+          "title": "Takip numarası üretimi ve e-posta bildirimi",
+          "covers": [
+            "KMU-005"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "Kullanıcı oturum açmıştır ve erişilebilir bir test e-posta adresi kayıtlıdır.",
+          "test_inputs": "İki geçerli başvuru verisi.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Birinci başvuru tamamlanıp gönderilir.",
+              "expected": "Ekranda bir takip numarası gösterilir."
+            },
+            {
+              "no": 2,
+              "action": "İkinci başvuru tamamlanıp gönderilir.",
+              "expected": "Birincisinden farklı bir takip numarası gösterilir."
+            },
+            {
+              "no": 3,
+              "action": "Kullanıcının e-posta kutusu kontrol edilir.",
+              "expected": "Her başvuru için, ilgili takip numarasını içeren birer e-posta ulaşmıştır."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-08",
+          "title": "Taslağa devam etme ve 30 gün sınırı",
+          "covers": [
+            "KMU-006"
+          ],
+          "type": "Sınır",
+          "priority": "Orta",
+          "preconditions": "Kullanıcı oturum açmıştır; test ortamında sistem saati ayarlanabilir.",
+          "test_inputs": "Formun ilk iki bölümü için geçerli veriler.",
+          "assumptions": "30 günlük süre taslağın ilk kaydedildiği andan başlar ve taslağı açmak süreyi uzatmaz.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Formun ilk iki bölümü doldurulur ve gönderilmeden oturum kapatılır.",
+              "expected": "Başvuru taslak olarak saklanır."
+            },
+            {
+              "no": 2,
+              "action": "Yeniden oturum açılıp taslak açılır.",
+              "expected": "Girilen veriler korunmuştur; kullanıcı üçüncü bölümden devam eder."
+            },
+            {
+              "no": 3,
+              "action": "Sistem saati taslak tarihinden 30 gün sonrasına alınır ve taslak açılır.",
+              "expected": "Taslak açılır ve veriler korunmuştur."
+            },
+            {
+              "no": 4,
+              "action": "Sistem saati taslak tarihinden 31 gün sonrasına alınır ve taslak açılmaya çalışılır.",
+              "expected": "Taslağa devam edilemez."
+            }
+          ]
+        },
+        {
+          "id": "TC-KMU-09",
+          "title": "Klavye ve ekran okuyucu ile başvuru akışı",
+          "covers": [
+            "KMU-007"
+          ],
+          "type": "Normal",
+          "priority": "Orta",
+          "preconditions": "Ekran okuyucu ve otomatik erişilebilirlik denetim aracı kuruludur.",
+          "test_inputs": "Geçerli bir başvuru verisi.",
+          "assumptions": "Bu test WCAG 2.1 AA ölçütlerinin tümünü kapsamaz; kalan ölçütler uzman incelemesiyle doğrulanır.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Başvuru akışı yalnızca klavye kullanılarak baştan sona tamamlanır.",
+              "expected": "Tüm etkileşimli öğelere klavyeyle ulaşılır, odak her adımda görünürdür ve başvuru gönderilir."
+            },
+            {
+              "no": 2,
+              "action": "Aynı akış ekran okuyucu açıkken tekrarlanır.",
+              "expected": "Form alanları, düğmeler ve hata iletileri anlamlı biçimde okunur."
+            },
+            {
+              "no": 3,
+              "action": "Akıştaki sayfalar otomatik denetim aracıyla taranır.",
+              "expected": "Araç AA düzeyinde ihlal raporlamaz."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "KK",
+      "name": "Durum Görüntüleme Yazılımı",
+      "domain": "Komuta kontrol",
+      "requirements": [
+        {
+          "id": "KK-001",
+          "language": "tr",
+          "text": "Yazılım, sensörlerden gelen iz güncellemelerini alındıktan sonra en geç 1 saniye içinde harita üzerinde gösterecektir.",
+          "reference_cluster": "İz görüntüleme",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Gecikme ölçülebilir.",
+          "difficulty": "Orta",
+          "note": "Ölçüm için saat eşzamanlaması ön koşuldur."
+        },
+        {
+          "id": "KK-002",
+          "language": "tr",
+          "text": "Yazılım, aynı anda en az 2.000 izi görüntüleyebilecek ve bu yük altında ekran yenileme hızı 10 Hz'in altına düşmeyecektir.",
+          "reference_cluster": "İz görüntüleme",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Yük uygulanarak ölçülür.",
+          "difficulty": "Zor",
+          "note": "Yük ve ölçüm birlikte; süre ve güncelleme sıklığı tanımlanmalı."
+        },
+        {
+          "id": "KK-003",
+          "language": "tr",
+          "text": "Operatör, harita üzerinde seçtiği izin kimlik, hız, yön ve son güncelleme zamanı bilgilerini görüntüleyebilecektir.",
+          "reference_cluster": "İz görüntüleme",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Gösterilen değerler gönderilenlerle karşılaştırılır.",
+          "difficulty": "Kolay",
+          "note": ""
+        },
+        {
+          "id": "KK-004",
+          "language": "tr",
+          "text": "Yazılım, 30 saniye boyunca güncelleme alınmayan izi \"eskimiş\" olarak işaretleyecek, 120 saniye sonunda görüntüden kaldıracaktır.",
+          "reference_cluster": "İz görüntüleme",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "İki süre eşiği çalıştırılarak doğrulanır.",
+          "difficulty": "Orta",
+          "note": "İki eşik ve geri dönüş durumu (eskimiş ize yeni güncelleme)."
+        },
+        {
+          "id": "KK-005",
+          "language": "tr",
+          "text": "Yazılım, tanımlı bir bölgeye giren iz için operatöre görsel ve sesli uyarı verecektir.",
+          "reference_cluster": "Uyarı ve mesajlaşma",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Olay tetiklenerek gözlenir.",
+          "difficulty": "Orta",
+          "note": "Negatif durum da beklenir: girmeyen iz uyarı üretmez."
+        },
+        {
+          "id": "KK-006",
+          "language": "tr",
+          "text": "Operatörler arası metin mesajları, gönderildikten sonra en geç 2 saniye içinde alıcıya iletilecek ve iletim durumu gönderene gösterilecektir.",
+          "reference_cluster": "Uyarı ve mesajlaşma",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Süre ve durum gözlenebilir.",
+          "difficulty": "Orta",
+          "note": "Bileşik gereksinim: süre ve durum bildirimi."
+        },
+        {
+          "id": "KK-007",
+          "language": "tr",
+          "text": "Yazılım, tüm operatör işlemlerini zaman damgası ve kullanıcı kimliği ile değiştirilemez biçimde kaydedecektir.",
+          "reference_cluster": "Kayıt ve süreklilik",
+          "verification_methods": [
+            "Test",
+            "İnceleme"
+          ],
+          "method_rationale": "Kayıt içeriği test edilir; değiştirilemezlik mekanizması tasarım incelemesiyle de doğrulanır.",
+          "difficulty": "Zor",
+          "note": "Çoklu yöntem. \"Tüm işlemler\" kapsamı örneklemle test edilir."
+        },
+        {
+          "id": "KK-008",
+          "language": "tr",
+          "text": "Birincil sunucunun arızalanması durumunda yedek sunucu görevi en geç 10 saniye içinde devralacak ve bu sırada iz verisi kaybolmayacaktır.",
+          "reference_cluster": "Kayıt ve süreklilik",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Arıza benzetilerek süre ve veri bütünlüğü ölçülür.",
+          "difficulty": "Zor",
+          "note": "Arıza enjeksiyonu gerekir; iki ayrı ölçüt var."
+        }
+      ],
+      "test_cases": [
+        {
+          "id": "TC-KK-01",
+          "title": "İz güncellemesinin gösterilme gecikmesi",
+          "covers": [
+            "KK-001"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "Sensör benzetimcisi bağlıdır; benzetimci ile yazılımın saatleri eşzamanlıdır.",
+          "test_inputs": "Zaman damgalı 100 iz güncellemesi.",
+          "assumptions": "Süre, güncellemenin yazılıma ulaştığı an ile haritada çizildiği an arasında ölçülür.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Benzetimciden 100 iz güncellemesi gönderilir.",
+              "expected": "Güncellemelerin tümü harita üzerinde gösterilir."
+            },
+            {
+              "no": 2,
+              "action": "Her güncelleme için alınma ve gösterilme zamanları karşılaştırılır.",
+              "expected": "Hiçbir güncellemede süre 1 saniyeyi aşmaz."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-02",
+          "title": "2.000 iz altında yenileme hızı",
+          "covers": [
+            "KK-002"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "Sensör benzetimcisi bağlıdır; ekran yenileme hızı ölçüm aracı etkindir.",
+          "test_inputs": "Her biri saniyede bir güncellenen 2.000 iz; ölçüm süresi 10 dakika.",
+          "assumptions": "Gereksinim iz güncelleme sıklığını ve ölçüm süresini tanımlamaz; saniyede bir güncelleme ve 10 dakika varsayılmıştır.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Benzetimciden 2.000 iz beslenir.",
+              "expected": "2.000 izin tümü harita üzerinde görüntülenir."
+            },
+            {
+              "no": 2,
+              "action": "10 dakika boyunca ekran yenileme hızı ölçülür.",
+              "expected": "Yenileme hızı hiçbir anda 10 Hz'in altına düşmez."
+            },
+            {
+              "no": 3,
+              "action": "Ölçüm sürerken harita kaydırılır ve yakınlaştırılır.",
+              "expected": "Yenileme hızı 10 Hz'in altına düşmez."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-03",
+          "title": "Tam yük altında gösterilme gecikmesi",
+          "covers": [
+            "KK-001",
+            "KK-002"
+          ],
+          "type": "Sınır",
+          "priority": "Orta",
+          "preconditions": "TC-KK-02'deki 2.000 izlik yük uygulanmaktadır; benzetimci ile yazılımın saatleri eşzamanlıdır.",
+          "test_inputs": "Zaman damgalı 100 iz güncellemesi.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Yük altındayken 100 iz güncellemesi gönderilir.",
+              "expected": "Güncellemelerin tümü harita üzerinde gösterilir."
+            },
+            {
+              "no": 2,
+              "action": "Her güncelleme için alınma ve gösterilme zamanları karşılaştırılır.",
+              "expected": "Hiçbir güncellemede süre 1 saniyeyi aşmaz."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-04",
+          "title": "Seçilen izin ayrıntılarının görüntülenmesi",
+          "covers": [
+            "KK-003"
+          ],
+          "type": "Normal",
+          "priority": "Orta",
+          "preconditions": "Sensör benzetimcisi bağlıdır.",
+          "test_inputs": "Kimliği T-1001, hızı 250 kt, yönü 045° olan bir iz.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Benzetimciden iz gönderilir.",
+              "expected": "İz harita üzerinde görünür."
+            },
+            {
+              "no": 2,
+              "action": "İz harita üzerinde seçilir.",
+              "expected": "Kimlik T-1001, hız 250 kt, yön 045° ve son güncelleme zamanı gösterilir; değerler gönderilenlerle aynıdır."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-05",
+          "title": "Güncellenmeyen izin eskimesi ve kaldırılması",
+          "covers": [
+            "KK-004"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "Sensör benzetimcisi bağlıdır.",
+          "test_inputs": "Gözlem anları: 29., 31., 119. ve 121. saniye.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Bir iz için güncelleme gönderilir ve güncellemeler durdurulur.",
+              "expected": "İz normal durumda görüntülenir."
+            },
+            {
+              "no": 2,
+              "action": "29. saniyede izin durumu gözlenir.",
+              "expected": "İz normal durumdadır."
+            },
+            {
+              "no": 3,
+              "action": "31. saniyede izin durumu gözlenir.",
+              "expected": "İz eskimiş olarak işaretlidir."
+            },
+            {
+              "no": 4,
+              "action": "119. saniyede izin durumu gözlenir.",
+              "expected": "İz hâlâ görüntüdedir ve eskimiş olarak işaretlidir."
+            },
+            {
+              "no": 5,
+              "action": "121. saniyede izin durumu gözlenir.",
+              "expected": "İz görüntüden kaldırılmıştır."
+            },
+            {
+              "no": 6,
+              "action": "Yeni bir iz için ilk adım tekrarlanır ve 40. saniyede yeni bir güncelleme gönderilir.",
+              "expected": "İz eskimiş durumdan normal duruma döner."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-06",
+          "title": "Bölgeye giren iz için uyarı",
+          "covers": [
+            "KK-005"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "Harita üzerinde bir uyarı bölgesi tanımlıdır; konsolun ses çıkışı açıktır.",
+          "test_inputs": "Bölge dışında başlayıp bölgeye giren bir iz rotası.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Bölge dışında bir iz oluşturulur.",
+              "expected": "Uyarı üretilmez."
+            },
+            {
+              "no": 2,
+              "action": "İz, bölge sınırından içeri hareket ettirilir.",
+              "expected": "Sınır geçildiğinde görsel uyarı gösterilir ve sesli uyarı çalınır; uyarı ilgili izi ve bölgeyi belirtir."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-07",
+          "title": "Bölgeye girmeyen iz uyarı üretmez",
+          "covers": [
+            "KK-005"
+          ],
+          "type": "Hata",
+          "priority": "Orta",
+          "preconditions": "Harita üzerinde bir uyarı bölgesi tanımlıdır.",
+          "test_inputs": "Sınıra yakın geçen ama bölgeye girmeyen bir rota; bölge içinde kalan bir rota.",
+          "assumptions": "Uyarı yalnızca bölgeye giriş anında üretilir; bölge içindeki hareket yeni uyarı gerektirmez.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Bir iz, bölge dışından sınıra yakın geçirilir.",
+              "expected": "Uyarı üretilmez."
+            },
+            {
+              "no": 2,
+              "action": "Bölge içinde bulunan bir iz bölge içinde hareket ettirilir.",
+              "expected": "Yeni bir giriş uyarısı üretilmez."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-08",
+          "title": "Operatörler arası mesajın iletimi",
+          "covers": [
+            "KK-006"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "A ve B operatör konsolları açıktır ve saatleri eşzamanlıdır.",
+          "test_inputs": "Kısa bir metin mesajı.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "A konsolundan B operatörüne mesaj gönderilir ve gönderim zamanı kaydedilir.",
+              "expected": "Mesaj en geç 2 saniye içinde B konsolunda görünür."
+            },
+            {
+              "no": 2,
+              "action": "A konsolunda mesajın iletim durumu gözlenir.",
+              "expected": "Mesajın iletildiği gösterilir."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-09",
+          "title": "Alıcıya ulaşmayan mesajın durumu",
+          "covers": [
+            "KK-006"
+          ],
+          "type": "Hata",
+          "priority": "Orta",
+          "preconditions": "A ve B operatör konsolları açıktır.",
+          "test_inputs": "Kısa bir metin mesajı.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "B konsolunun ağ bağlantısı kesilir.",
+              "expected": "B konsolu ağa bağlı değildir."
+            },
+            {
+              "no": 2,
+              "action": "A konsolundan B operatörüne mesaj gönderilir.",
+              "expected": "A konsolunda mesajın iletilemediği gösterilir; iletildi durumu görünmez."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-10",
+          "title": "Operatör işlemlerinin kaydı ve kaydın korunması",
+          "covers": [
+            "KK-007"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "Bir operatör hesabı ve kayıt bütünlüğü denetim aracı mevcuttur.",
+          "test_inputs": "Üç işlem: iz seçme, uyarı onaylama, mesaj gönderme.",
+          "assumptions": "\"Tüm operatör işlemleri\" bu testte üç işlemlik örneklemle temsil edilir; tam liste incelemeyle doğrulanır.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Operatör oturum açar ve üç işlemi yapar.",
+              "expected": "İşlemler tamamlanır."
+            },
+            {
+              "no": 2,
+              "action": "İşlem kaydı görüntülenir.",
+              "expected": "Oturum açma dahil her işlem için zaman damgası ve kullanıcı kimliği içeren bir kayıt vardır."
+            },
+            {
+              "no": 3,
+              "action": "Kayıt deposundaki bir satır yönetici yetkisiyle doğrudan değiştirilmeye çalışılır.",
+              "expected": "Değişiklik engellenir; engellenmezse bir sonraki adımda saptanır."
+            },
+            {
+              "no": 4,
+              "action": "Kayıt bütünlüğü denetimi çalıştırılır.",
+              "expected": "Denetim, kayıtların değişmediğini ya da değiştirilen kaydı raporlar."
+            }
+          ]
+        },
+        {
+          "id": "TC-KK-11",
+          "title": "Birincil sunucu arızasında yedeğe geçiş",
+          "covers": [
+            "KK-008"
+          ],
+          "type": "Hata",
+          "priority": "Yüksek",
+          "preconditions": "Birincil ve yedek sunucu çalışmaktadır.",
+          "test_inputs": "Saniyede bir güncellenen 500 iz.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Benzetimciden 500 iz beslenir ve iz listesi kaydedilir.",
+              "expected": "500 iz görüntülenir."
+            },
+            {
+              "no": 2,
+              "action": "Birincil sunucu kapatılır ve zaman kaydedilir.",
+              "expected": "Konsol en geç 10 saniye içinde yeniden güncel iz verisi gösterir."
+            },
+            {
+              "no": 3,
+              "action": "Geçiş sonrası iz listesi öncekiyle karşılaştırılır.",
+              "expected": "Geçişten önce bulunan izlerin tümü mevcuttur."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "AI",
+      "name": "Document Classification Service",
+      "domain": "Yapay zekâ",
+      "requirements": [
+        {
+          "id": "AI-001",
+          "language": "en",
+          "text": "The service shall classify each submitted document into exactly one of the 12 defined categories and shall return a confidence score between 0 and 1.",
+          "reference_cluster": "Classification behaviour",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Output is observable per request.",
+          "difficulty": "Kolay",
+          "note": ""
+        },
+        {
+          "id": "AI-002",
+          "language": "en",
+          "text": "The classification model shall achieve a macro-averaged F1 score of at least 0.90 on the held-out evaluation set.",
+          "reference_cluster": "Model quality",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Measured by running the model on a labelled set.",
+          "difficulty": "Orta",
+          "note": "The evaluation set must not overlap the training data."
+        },
+        {
+          "id": "AI-003",
+          "language": "en",
+          "text": "Documents whose confidence score is below 0.60 shall be routed to a human review queue instead of being classified automatically.",
+          "reference_cluster": "Classification behaviour",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Routing is observable; threshold is exact.",
+          "difficulty": "Orta",
+          "note": "Boundary: 0.60 itself is not below the threshold."
+        },
+        {
+          "id": "AI-004",
+          "language": "en",
+          "text": "The service shall return a classification result within 500 ms for the 95th percentile of requests at a load of 50 requests per second.",
+          "reference_cluster": "Serving and monitoring",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Measured under generated load.",
+          "difficulty": "Zor",
+          "note": "Percentile and load must both appear in the test."
+        },
+        {
+          "id": "AI-005",
+          "language": "en",
+          "text": "The service shall record the model version, the input hash and the predicted category for every request.",
+          "reference_cluster": "Serving and monitoring",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Records can be queried and compared.",
+          "difficulty": "Orta",
+          "note": ""
+        },
+        {
+          "id": "AI-006",
+          "language": "en",
+          "text": "The service shall raise an alert when the weekly distribution of predicted categories deviates from the baseline with a population stability index greater than 0.2.",
+          "reference_cluster": "Serving and monitoring",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Triggered with replayed synthetic traffic.",
+          "difficulty": "Zor",
+          "note": "Needs data on both sides of the threshold."
+        },
+        {
+          "id": "AI-007",
+          "language": "en",
+          "text": "For each classification, the service shall provide the three text passages that contributed most to the decision.",
+          "reference_cluster": "Classification behaviour",
+          "verification_methods": [
+            "Test",
+            "Analiz"
+          ],
+          "method_rationale": "Presence and provenance of passages are testable; whether they contributed most needs analysis of the attribution method.",
+          "difficulty": "Zor",
+          "note": "Tuzak: 'contributed most' is not defined. A good answer flags the ambiguity."
+        },
+        {
+          "id": "AI-008",
+          "language": "en",
+          "text": "The model shall not show a difference greater than 5 percentage points in recall between documents written in Turkish and documents written in English.",
+          "reference_cluster": "Model quality",
+          "verification_methods": [
+            "Analiz",
+            "Test"
+          ],
+          "method_rationale": "Computed from evaluation results split by language; subset sizes need statistical judgement.",
+          "difficulty": "Zor",
+          "note": "Çoklu yöntem."
+        }
+      ],
+      "test_cases": [
+        {
+          "id": "TC-AI-01",
+          "title": "Single category and confidence score per document",
+          "covers": [
+            "AI-001"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "The service is deployed with the 12-category model.",
+          "test_inputs": "Twelve sample documents, one for each category.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Submit the twelve documents.",
+              "expected": "Every request is answered without error."
+            },
+            {
+              "no": 2,
+              "action": "Inspect each response.",
+              "expected": "Each response holds exactly one category from the defined list and a confidence score between 0 and 1 inclusive."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-02",
+          "title": "Empty or unsupported input",
+          "covers": [
+            "AI-001"
+          ],
+          "type": "Hata",
+          "priority": "Orta",
+          "preconditions": "The service is deployed.",
+          "test_inputs": "An empty document; a file in an unsupported format.",
+          "assumptions": "The requirement does not state the behaviour for invalid input; a validation error is assumed.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Submit the empty document.",
+              "expected": "The service returns a validation error and no category."
+            },
+            {
+              "no": 2,
+              "action": "Submit the file in the unsupported format.",
+              "expected": "The service returns a validation error and no category."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-03",
+          "title": "Macro-averaged F1 on the held-out set",
+          "covers": [
+            "AI-002"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "A labelled held-out evaluation set exists and shares no documents with the training data.",
+          "test_inputs": "The full held-out evaluation set.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Run the model on the evaluation set.",
+              "expected": "A prediction is produced for every document."
+            },
+            {
+              "no": 2,
+              "action": "Compute F1 for each category and the macro average.",
+              "expected": "The macro-averaged F1 score is at least 0.90 and the report lists F1 for every category."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-04",
+          "title": "Routing at the confidence threshold",
+          "covers": [
+            "AI-003"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "The model is stubbed to return a set score, or documents with known scores are available.",
+          "test_inputs": "Three documents with confidence scores of 0.59, 0.60 and 0.61.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Submit the document that scores 0.59.",
+              "expected": "The document appears in the human review queue and is not classified automatically."
+            },
+            {
+              "no": 2,
+              "action": "Submit the document that scores 0.60.",
+              "expected": "The document is classified automatically and does not appear in the queue."
+            },
+            {
+              "no": 3,
+              "action": "Submit the document that scores 0.61.",
+              "expected": "The document is classified automatically and does not appear in the queue."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-05",
+          "title": "Response time at 50 requests per second",
+          "covers": [
+            "AI-004"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "A production-equivalent environment and a load generator are available.",
+          "test_inputs": "50 requests per second for 15 minutes, with representative document sizes.",
+          "assumptions": "The requirement gives no measurement duration; 15 minutes is assumed.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Apply the load and record the response time of every request.",
+              "expected": "No request fails because of the load."
+            },
+            {
+              "no": 2,
+              "action": "Compute the 95th percentile of the response times.",
+              "expected": "The 95th percentile is at most 500 ms."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-06",
+          "title": "Request record content",
+          "covers": [
+            "AI-005"
+          ],
+          "type": "Normal",
+          "priority": "Orta",
+          "preconditions": "Access to the request records is available.",
+          "test_inputs": "Three documents, two of them identical.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Submit the three documents.",
+              "expected": "Each request is answered with a category."
+            },
+            {
+              "no": 2,
+              "action": "Query the request records.",
+              "expected": "There are three records, each holding the model version, the input hash and the predicted category; the two identical documents have the same hash."
+            },
+            {
+              "no": 3,
+              "action": "Deploy a new model version and submit one more document.",
+              "expected": "The new record shows the new model version."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-07",
+          "title": "Drift alert around the PSI threshold",
+          "covers": [
+            "AI-006"
+          ],
+          "type": "Sınır",
+          "priority": "Orta",
+          "preconditions": "A baseline category distribution is recorded and a week of synthetic requests can be replayed.",
+          "test_inputs": "A week of requests that gives a PSI of about 0.15; a week that gives a PSI of about 0.25.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Replay the week that gives a PSI of about 0.15.",
+              "expected": "No alert is raised."
+            },
+            {
+              "no": 2,
+              "action": "Replay the week that gives a PSI of about 0.25.",
+              "expected": "An alert is raised and it states the measured PSI."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-08",
+          "title": "Three supporting passages per classification",
+          "covers": [
+            "AI-007"
+          ],
+          "type": "Normal",
+          "priority": "Orta",
+          "preconditions": "The service is deployed.",
+          "test_inputs": "A document of several paragraphs; a document that holds fewer than three passages.",
+          "assumptions": "The requirement does not define how contribution is measured; this test checks presence and provenance only.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Submit the document of several paragraphs.",
+              "expected": "The response lists three passages."
+            },
+            {
+              "no": 2,
+              "action": "Compare the three passages with the document.",
+              "expected": "Each passage is found verbatim in the document."
+            },
+            {
+              "no": 3,
+              "action": "Submit the short document.",
+              "expected": "The request is answered without error and lists the passages that exist."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-09",
+          "title": "Recall gap between Turkish and English",
+          "covers": [
+            "AI-008"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "The evaluation set carries a language label and both languages have a comparable category mix.",
+          "test_inputs": "The Turkish and the English subsets of the evaluation set.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Compute recall on each subset.",
+              "expected": "Recall is reported for each subset together with the subset size."
+            },
+            {
+              "no": 2,
+              "action": "Compute the absolute difference between the two values.",
+              "expected": "The difference is at most 5 percentage points."
+            }
+          ]
+        },
+        {
+          "id": "TC-AI-10",
+          "title": "Low-confidence requests are recorded too",
+          "covers": [
+            "AI-003",
+            "AI-005"
+          ],
+          "type": "Normal",
+          "priority": "Düşük",
+          "preconditions": "Access to the request records is available.",
+          "test_inputs": "A document that scores below 0.60.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Submit the document.",
+              "expected": "The document is routed to the human review queue."
+            },
+            {
+              "no": 2,
+              "action": "Query the request records.",
+              "expected": "A record with the model version, the input hash and the predicted category exists for the request."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "MED",
+      "name": "Field Triage Tablet Application",
+      "domain": "Savunma-sağlık",
+      "requirements": [
+        {
+          "id": "MED-001",
+          "language": "en",
+          "text": "The application shall allow a medic to create a casualty record containing an identifier, a triage category, an injury description and the time of injury.",
+          "reference_cluster": "Casualty records",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Record content is observable.",
+          "difficulty": "Kolay",
+          "note": ""
+        },
+        {
+          "id": "MED-002",
+          "language": "en",
+          "text": "The application shall support the four triage categories Immediate, Delayed, Minimal and Expectant, and shall display each with a distinct colour.",
+          "reference_cluster": "Casualty records",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Categories and colours are observable.",
+          "difficulty": "Kolay",
+          "note": ""
+        },
+        {
+          "id": "MED-003",
+          "language": "en",
+          "text": "The application shall record vital signs (heart rate, respiratory rate, blood pressure and SpO2) with a timestamp and shall reject values outside the plausible ranges defined in the configuration.",
+          "reference_cluster": "Casualty records",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Input validation is exercised directly.",
+          "difficulty": "Orta",
+          "note": "Boundary and invalid-input cases for each vital sign."
+        },
+        {
+          "id": "MED-004",
+          "language": "en",
+          "text": "The application shall remain fully functional without network connectivity and shall store at least 500 casualty records locally.",
+          "reference_cluster": "Offline operation and synchronisation",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Exercised with connectivity disabled.",
+          "difficulty": "Orta",
+          "note": "Bileşik: offline function and capacity."
+        },
+        {
+          "id": "MED-005",
+          "language": "en",
+          "text": "When connectivity is restored, the application shall synchronise local records with the server and shall resolve conflicting edits by keeping both versions for manual review.",
+          "reference_cluster": "Offline operation and synchronisation",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Exercised with two devices editing the same record.",
+          "difficulty": "Zor",
+          "note": "Conflict case needs two devices."
+        },
+        {
+          "id": "MED-006",
+          "language": "en",
+          "text": "All casualty data stored on the device shall be encrypted with AES-256.",
+          "reference_cluster": "Security and device",
+          "verification_methods": [
+            "İnceleme",
+            "Test"
+          ],
+          "method_rationale": "Algorithm and key length are confirmed by design and configuration inspection; unreadability of storage is tested.",
+          "difficulty": "Zor",
+          "note": "Çoklu yöntem. A test alone cannot prove the algorithm."
+        },
+        {
+          "id": "MED-007",
+          "language": "en",
+          "text": "The application shall be operable by a user wearing surgical gloves.",
+          "reference_cluster": "Security and device",
+          "verification_methods": [
+            "Gösterim"
+          ],
+          "method_rationale": "Shown by a user performing the main tasks with gloves on.",
+          "difficulty": "Orta",
+          "note": "Tuzak: test durumu beklenmez. 'Operable' has no measurable criterion; a good answer says so."
+        },
+        {
+          "id": "MED-008",
+          "language": "en",
+          "text": "The tablet running the application shall operate for at least 8 hours on a single battery charge under the defined usage profile.",
+          "reference_cluster": "Security and device",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Endurance run with the usage profile.",
+          "difficulty": "Orta",
+          "note": ""
+        }
+      ],
+      "test_cases": [
+        {
+          "id": "TC-MED-01",
+          "title": "Create a casualty record",
+          "covers": [
+            "MED-001"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "A medic is signed in to the application.",
+          "test_inputs": "Identifier C-014; triage category Delayed; injury description 'left forearm fracture'; time of injury 10:42.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Open a new casualty record.",
+              "expected": "An empty record form is shown."
+            },
+            {
+              "no": 2,
+              "action": "Enter the four values and save.",
+              "expected": "The record is saved without error."
+            },
+            {
+              "no": 3,
+              "action": "Reopen the record.",
+              "expected": "The four fields show the entered values."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-02",
+          "title": "Four triage categories with distinct colours",
+          "covers": [
+            "MED-002"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "A medic is signed in to the application.",
+          "test_inputs": "",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Open the triage category selector.",
+              "expected": "Exactly the categories Immediate, Delayed, Minimal and Expectant are offered."
+            },
+            {
+              "no": 2,
+              "action": "Create four records, one in each category.",
+              "expected": "The four records are saved."
+            },
+            {
+              "no": 3,
+              "action": "View the casualty list.",
+              "expected": "Each category is displayed in a colour that differs from the other three."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-03",
+          "title": "Record vital signs with a timestamp",
+          "covers": [
+            "MED-003"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "A casualty record exists.",
+          "test_inputs": "Two sets of vital signs within the configured ranges.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Enter the first set and save.",
+              "expected": "The set is stored with the time of entry."
+            },
+            {
+              "no": 2,
+              "action": "Five minutes later enter the second set and save.",
+              "expected": "The second set is stored with its own timestamp and both sets are listed in time order."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-04",
+          "title": "Vital signs at and beyond the configured limits",
+          "covers": [
+            "MED-003"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "A casualty record exists; the configured minimum and maximum of each vital sign are known.",
+          "test_inputs": "For each vital sign: the configured minimum and maximum, a value one unit below the minimum, a value one unit above the maximum, and the text 'abc'.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "For each vital sign enter the minimum, then the maximum.",
+              "expected": "The values are accepted and stored."
+            },
+            {
+              "no": 2,
+              "action": "For each vital sign enter the value below the minimum.",
+              "expected": "The value is rejected with a message that names the field and nothing is stored."
+            },
+            {
+              "no": 3,
+              "action": "For each vital sign enter the value above the maximum.",
+              "expected": "The value is rejected with a message that names the field and nothing is stored."
+            },
+            {
+              "no": 4,
+              "action": "Enter 'abc' in each field.",
+              "expected": "The value is rejected and nothing is stored."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-05",
+          "title": "Full function without connectivity",
+          "covers": [
+            "MED-004"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "The application is installed and a medic is signed in.",
+          "test_inputs": "",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Disable all network connectivity on the tablet.",
+              "expected": "The application stays open and usable."
+            },
+            {
+              "no": 2,
+              "action": "Create a casualty record and record vital signs.",
+              "expected": "Both are saved without a network error."
+            },
+            {
+              "no": 3,
+              "action": "Change the triage category and reopen the record.",
+              "expected": "The record shows the new category."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-06",
+          "title": "500 records stored locally",
+          "covers": [
+            "MED-004"
+          ],
+          "type": "Sınır",
+          "priority": "Orta",
+          "preconditions": "Network connectivity is disabled; a script that creates casualty records is available.",
+          "test_inputs": "500 generated casualty records.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Create the 500 records.",
+              "expected": "All records are created without error."
+            },
+            {
+              "no": 2,
+              "action": "Restart the application.",
+              "expected": "All 500 records are listed."
+            },
+            {
+              "no": 3,
+              "action": "Open the first, the 250th and the 500th record.",
+              "expected": "Each opened record is complete."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-07",
+          "title": "Synchronisation after connectivity returns",
+          "covers": [
+            "MED-005"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "The tablet has synchronised at least one record with the server.",
+          "test_inputs": "Two new records and one edit to an existing record.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Disable connectivity; create the two records and make the edit.",
+              "expected": "The changes are saved locally."
+            },
+            {
+              "no": 2,
+              "action": "Restore connectivity.",
+              "expected": "The tablet shows the records as synchronised."
+            },
+            {
+              "no": 3,
+              "action": "Inspect the records on the server.",
+              "expected": "The server holds the two new records and the edit."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-08",
+          "title": "Conflicting edits are both kept",
+          "covers": [
+            "MED-005"
+          ],
+          "type": "Hata",
+          "priority": "Yüksek",
+          "preconditions": "Tablets A and B hold the same synchronised casualty record.",
+          "test_inputs": "Triage category Immediate on A; triage category Delayed on B.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Disable connectivity on both tablets.",
+              "expected": "Both tablets still show the record."
+            },
+            {
+              "no": 2,
+              "action": "Set the triage category on A and on B.",
+              "expected": "Each tablet saves its own edit locally."
+            },
+            {
+              "no": 3,
+              "action": "Restore connectivity on A, then on B.",
+              "expected": "Neither edit is discarded; both versions are kept and the record is marked for manual review."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-09",
+          "title": "Stored casualty data is not readable in clear text",
+          "covers": [
+            "MED-006"
+          ],
+          "type": "Hata",
+          "priority": "Yüksek",
+          "preconditions": "A test tablet whose storage can be extracted is available.",
+          "test_inputs": "The marker string TRIAGE-MARKER-7731.",
+          "assumptions": "This test shows that data is not stored in clear text; the algorithm and key length are confirmed by inspection.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Create casualty records that contain the marker string.",
+              "expected": "The records are saved."
+            },
+            {
+              "no": 2,
+              "action": "Extract the application's storage files from the tablet.",
+              "expected": "The files are obtained."
+            },
+            {
+              "no": 3,
+              "action": "Search the files for the marker string and try to open them as a plain database.",
+              "expected": "The marker string is not found and the files cannot be opened as a plain database."
+            }
+          ]
+        },
+        {
+          "id": "TC-MED-10",
+          "title": "Eight hours on one battery charge",
+          "covers": [
+            "MED-008"
+          ],
+          "type": "Normal",
+          "priority": "Orta",
+          "preconditions": "The battery is fully charged; a script that runs the usage profile is available.",
+          "test_inputs": "The defined usage profile.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Start the usage profile from a full charge.",
+              "expected": "The profile runs on the tablet."
+            },
+            {
+              "no": 2,
+              "action": "Record the time until the tablet shuts down or reports a critical battery level.",
+              "expected": "The recorded time is at least 8 hours."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "SW",
+      "name": "API Ağ Geçidi Platformu",
+      "domain": "Yazılım teknolojileri",
+      "requirements": [
+        {
+          "id": "SW-001",
+          "language": "tr",
+          "text": "Ağ geçidi, geçerli bir OAuth 2.0 erişim belirteci taşımayan istekleri HTTP 401 yanıtıyla reddedecektir.",
+          "reference_cluster": "Erişim denetimi",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Yanıt kodu gözlenebilir.",
+          "difficulty": "Kolay",
+          "note": "Geçersizliğin birden çok türü var: yok, süresi dolmuş, bozuk."
+        },
+        {
+          "id": "SW-002",
+          "language": "en",
+          "text": "The gateway shall enforce role-based access so that a client may call only the endpoints assigned to its role, and shall return HTTP 403 otherwise.",
+          "reference_cluster": "Erişim denetimi",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Response codes are observable.",
+          "difficulty": "Orta",
+          "note": ""
+        },
+        {
+          "id": "SW-003",
+          "language": "tr",
+          "text": "Ağ geçidi, istemci başına dakikada 600 istek sınırını uygulayacak ve sınırı aşan istekleri HTTP 429 yanıtı ve Retry-After başlığı ile yanıtlayacaktır.",
+          "reference_cluster": "Trafik yönetimi",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Sınır çalıştırılarak doğrulanır.",
+          "difficulty": "Orta",
+          "note": "Sınır istemci başınadır; ikinci istemci etkilenmemeli."
+        },
+        {
+          "id": "SW-004",
+          "language": "en",
+          "text": "The gateway shall add no more than 20 ms of latency at the 99th percentile under a load of 2,000 requests per second.",
+          "reference_cluster": "Trafik yönetimi",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Measured against a direct-to-backend baseline.",
+          "difficulty": "Zor",
+          "note": "Added latency needs a baseline measurement."
+        },
+        {
+          "id": "SW-005",
+          "language": "tr",
+          "text": "Arka uç servisi 5 saniye içinde yanıt vermezse ağ geçidi isteği sonlandıracak ve HTTP 504 dönecektir.",
+          "reference_cluster": "Trafik yönetimi",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Gecikmesi ayarlanabilir arka uçla doğrulanır.",
+          "difficulty": "Orta",
+          "note": "Sınır değer."
+        },
+        {
+          "id": "SW-006",
+          "language": "en",
+          "text": "Configuration changes shall take effect without restarting the gateway and without dropping in-flight requests.",
+          "reference_cluster": "İşletim ve gözlemlenebilirlik",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Exercised under load with long-running requests.",
+          "difficulty": "Zor",
+          "note": "Bileşik: no restart and no dropped requests."
+        },
+        {
+          "id": "SW-007",
+          "language": "tr",
+          "text": "Ağ geçidi, her istek için izleme kimliği, istemci kimliği, uç nokta, yanıt kodu ve süre bilgisini yapılandırılmış günlük olarak kaydedecektir.",
+          "reference_cluster": "İşletim ve gözlemlenebilirlik",
+          "verification_methods": [
+            "Test"
+          ],
+          "method_rationale": "Günlük kayıtları okunup karşılaştırılır.",
+          "difficulty": "Orta",
+          "note": "Reddedilen istekler de 'her istek' kapsamındadır."
+        },
+        {
+          "id": "SW-008",
+          "language": "en",
+          "text": "The platform shall provide a monthly availability of at least 99.95%, excluding planned maintenance windows.",
+          "reference_cluster": "İşletim ve gözlemlenebilirlik",
+          "verification_methods": [
+            "Analiz"
+          ],
+          "method_rationale": "Shown by availability modelling and operational records; it cannot be established by a single test run.",
+          "difficulty": "Zor",
+          "note": "Tuzak: test durumu beklenmez."
+        }
+      ],
+      "test_cases": [
+        {
+          "id": "TC-SW-01",
+          "title": "Belirteçsiz ve geçersiz belirteçli istekler",
+          "covers": [
+            "SW-001"
+          ],
+          "type": "Hata",
+          "priority": "Yüksek",
+          "preconditions": "Ağ geçidinin arkasında istekleri sayan bir test servisi çalışmaktadır.",
+          "test_inputs": "Authorization başlığı olmayan bir istek; süresi dolmuş bir belirteç; imzası bozulmuş bir belirteç.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Authorization başlığı olmadan istek gönderilir.",
+              "expected": "HTTP 401 döner ve istek arka uç servisine ulaşmaz."
+            },
+            {
+              "no": 2,
+              "action": "Süresi dolmuş belirteçle istek gönderilir.",
+              "expected": "HTTP 401 döner ve istek arka uç servisine ulaşmaz."
+            },
+            {
+              "no": 3,
+              "action": "İmzası bozulmuş belirteçle istek gönderilir.",
+              "expected": "HTTP 401 döner ve istek arka uç servisine ulaşmaz."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-02",
+          "title": "Geçerli belirteçle istek",
+          "covers": [
+            "SW-001"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "Ağ geçidinin arkasında bir test servisi çalışmaktadır.",
+          "test_inputs": "Geçerli bir OAuth 2.0 erişim belirteci.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Geçerli belirteçle istek gönderilir.",
+              "expected": "İstek arka uç servisine iletilir ve servisin yanıtı döner."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-03",
+          "title": "Role-based access to endpoints",
+          "covers": [
+            "SW-002"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "The role 'reader' is assigned GET /orders only.",
+          "test_inputs": "A valid token that carries the role 'reader'.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Call GET /orders.",
+              "expected": "The call is forwarded to the backend and succeeds."
+            },
+            {
+              "no": 2,
+              "action": "Call POST /orders.",
+              "expected": "HTTP 403 is returned and the call is not forwarded."
+            },
+            {
+              "no": 3,
+              "action": "Call GET /admin/users.",
+              "expected": "HTTP 403 is returned and the call is not forwarded."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-04",
+          "title": "İstemci başına hız sınırı",
+          "covers": [
+            "SW-003"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "İki ayrı istemci kimliği tanımlıdır.",
+          "test_inputs": "Birinci istemciden 601 istek; ikinci istemciden 1 istek.",
+          "assumptions": "Dakika sabit pencere olarak sayılır; kayan pencere uygulanıyorsa son adımdaki bekleme Retry-After değerine göre yapılır.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Birinci istemciden bir dakika içinde 600 istek gönderilir.",
+              "expected": "İsteklerin tümü kabul edilir."
+            },
+            {
+              "no": 2,
+              "action": "Aynı dakika içinde 601. istek gönderilir.",
+              "expected": "HTTP 429 ve Retry-After başlığı döner."
+            },
+            {
+              "no": 3,
+              "action": "Aynı dakika içinde ikinci istemciden bir istek gönderilir.",
+              "expected": "İstek kabul edilir."
+            },
+            {
+              "no": 4,
+              "action": "Retry-After süresi kadar beklenir ve birinci istemciden yeni bir istek gönderilir.",
+              "expected": "İstek kabul edilir."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-05",
+          "title": "Added latency at 2,000 requests per second",
+          "covers": [
+            "SW-004"
+          ],
+          "type": "Normal",
+          "priority": "Yüksek",
+          "preconditions": "A backend stub with a fixed response time and a load generator are available.",
+          "test_inputs": "2,000 requests per second for 15 minutes.",
+          "assumptions": "The requirement gives no measurement duration; 15 minutes is assumed.",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Measure the 99th-percentile response time when calling the stub directly.",
+              "expected": "The baseline value is recorded."
+            },
+            {
+              "no": 2,
+              "action": "Measure the 99th-percentile response time through the gateway at the same load.",
+              "expected": "The value exceeds the baseline by at most 20 ms."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-06",
+          "title": "Arka uç zaman aşımı",
+          "covers": [
+            "SW-005"
+          ],
+          "type": "Sınır",
+          "priority": "Yüksek",
+          "preconditions": "Yanıt süresi ayarlanabilen bir arka uç test servisi çalışmaktadır.",
+          "test_inputs": "Arka uç yanıt süreleri: 4,8 saniye ve 6 saniye.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Arka uç 4,8 saniyede yanıt verecek şekilde ayarlanır ve bir istek gönderilir.",
+              "expected": "Arka ucun yanıtı döner."
+            },
+            {
+              "no": 2,
+              "action": "Arka uç 6 saniyede yanıt verecek şekilde ayarlanır ve bir istek gönderilir.",
+              "expected": "İstek yaklaşık 5. saniyede sonlandırılır ve HTTP 504 döner."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-07",
+          "title": "Configuration change under load",
+          "covers": [
+            "SW-006"
+          ],
+          "type": "Normal",
+          "priority": "Orta",
+          "preconditions": "A steady load of 500 requests per second is applied, including requests that take 10 seconds each.",
+          "test_inputs": "A configuration change that adds a new route.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Record the gateway process identifier.",
+              "expected": "The identifier is recorded."
+            },
+            {
+              "no": 2,
+              "action": "Add the new route to the configuration and apply it.",
+              "expected": "The change is applied and the process identifier is unchanged."
+            },
+            {
+              "no": 3,
+              "action": "Call the new route.",
+              "expected": "The new route answers."
+            },
+            {
+              "no": 4,
+              "action": "Check the requests that were in flight during the change.",
+              "expected": "No request failed or was reset."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-08",
+          "title": "İstek başına yapılandırılmış günlük kaydı",
+          "covers": [
+            "SW-007"
+          ],
+          "type": "Normal",
+          "priority": "Orta",
+          "preconditions": "Günlük kayıtlarına erişim vardır.",
+          "test_inputs": "Bilinen bir istemci kimliğiyle başarılı bir istek ve HTTP 404 dönen bir istek.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "İki istek gönderilir.",
+              "expected": "Biri başarılı yanıt, diğeri HTTP 404 alır."
+            },
+            {
+              "no": 2,
+              "action": "Günlük kayıtları okunur.",
+              "expected": "Her istek için izleme kimliği, istemci kimliği, uç nokta, yanıt kodu ve süre alanlarını içeren, makinece ayrıştırılabilir bir kayıt vardır; değerler gönderilen isteklerle tutarlıdır."
+            }
+          ]
+        },
+        {
+          "id": "TC-SW-09",
+          "title": "Reddedilen istekler de günlüğe yazılır",
+          "covers": [
+            "SW-003",
+            "SW-007"
+          ],
+          "type": "Normal",
+          "priority": "Düşük",
+          "preconditions": "Günlük kayıtlarına erişim vardır; hız sınırı etkindir.",
+          "test_inputs": "Hız sınırını aşan bir istek.",
+          "assumptions": "",
+          "steps": [
+            {
+              "no": 1,
+              "action": "Hız sınırı aşılacak şekilde istek gönderilir.",
+              "expected": "HTTP 429 döner."
+            },
+            {
+              "no": 2,
+              "action": "Günlük kayıtları okunur.",
+              "expected": "Yanıt kodu 429 olan bir günlük kaydı vardır."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
