@@ -10,7 +10,7 @@ Her çıktı (öbek, test durumu, matris satırı) girdilerinin hash'iyle adresl
 
 Temel kararlar:
 
-1. Eski Gradio uygulaması taşınmaz, sistem sıfırdan kurulur. Eski koddan yalnızca prompt'lar ve alan bilgisi alınır.
+1. Eski Gradio uygulaması taşınmaz, sistem sıfırdan kurulur. Eski koddan ve eski kurulumdan bir şey taşınmaz; güncel en iyi model ve yöntemle başlanır.
 2. Öbekleme embedding ve kümeleme ile yapılır. Model yalnızca öbeğe ad ve kısa gerekçe yazar.
 3. Test durumları öbek başına paralel üretilir ve JSON şemasına bağlı çıktı verir.
 4. Doğrulama yöntemi gereksinim başına ayrı sınıflandırılır, öbek düzenlemelerinden etkilenmez.
@@ -27,7 +27,7 @@ Kapsam dışı: gereksinim yönetim araçlarıyla entegrasyon ve model ince ayar
 
 Varsayımlar ve teyit edilenler:
 
-- Donanım tek RTX PRO 6000 96 GB'tir, bulut kullanılmaz ve veri sunucudan çıkmaz.
+- Üretim donanımı tek RTX PRO 6000 96 GB'tir ve gerçek proje verisi bu sunucudan çıkmaz. Geliştirme ve deneyler Runpod'da, yalnızca sentetik altın setle yapılır.
 - Sunucu yalnızca bu uygulamaya ayrılmıştır (teyit edildi). İleride eklenecek modüller için aşamalar eklenti olarak tasarlanır.
 - Gereksinimler Türkçe ya da İngilizce olabilir (teyit edildi). Modeller ve embedding çok dilli seçilir, altın set iki dili de içerir.
 - Set büyüklüğü ve biçimi projeden projeye değişir (teyit edildi). İçe alma, kolon eşleme adımıyla esnek tutulur; tasarım 2.000 gereksinime kadar ölçeklenir.
@@ -104,19 +104,12 @@ Her aşama otomatik ya da onaylı modda çalışır. Onaylı modda alt aşamanı
 
 Sunum motoru, model ve ayarların hiçbiri baştan sabit değildir; hepsi deney planıyla, kendi gereksinimlerinizden kurulan altın set üzerinde ölçülerek seçilir. Ölçüm bitene kadar çalışma varsayımı vLLM ve Qwen3.8-27B'dir.
 
-### Önce teşhis: Gemma 4 neden yetersiz kaldı
-
-Yetersizliğin bir kısmı modelden değil kurulumdan geliyor olabilir. Hangisi olduğu varsayılmaz; D0 deneyinde şu iki değişken ölçülür:
-
-- **Hangi boyut çalışıyor.** Gemma 4 ailesi E2B'den 31B'ye uzanıyor ([model kartı](https://ai.google.dev/gemma/docs/core/model_card_4)). `ollama list` küçük bir varyant gösteriyorsa şikâyetin kaynağı büyük ölçüde budur.
-- **Bağlam penceresi.** Ollama'nın varsayılan bağlamı küçüktür ve aşan prompt'u hata vermeden keser ([açıklama](https://particula.tech/blog/ollama-num-ctx-silent-prompt-truncation)). Bir öbeğin gereksinimleri ve bilgi havuzu parçaları bu sınırı kolayca aşar; model prompt'un bir kısmını hiç görmemiş olabilir.
-
 ### Sunum motoru adayları
 
 - vLLM aynı anda gelen istekleri tek batch'te işler, ortak prompt önekini bir kez hesaplar ([prefix caching](https://www.mintlify.com/vllm-project/vllm/features/prefix-caching)) ve çıktıyı JSON şemasına zorlar ([structured outputs](https://docs.vllm.ai/features/structured_outputs.html)).
 - Ocak 2026 tarihli bir kıyaslamada, RTX PRO 6000 Blackwell üzerinde Llama 3.1 8B ile vLLM en yüksek 8.033 token/sn, SGLang 6.395, Ollama 484 verdi; Ollama 128 eşzamanlı istekte çöktü ([kaynak](https://joshua8.ai/llm-inference-benchmark/)).
 - Aynı kartta Gemma 4 31B (FP8, vLLM 0.20) ortalama 823 token/sn toplam, 380 token/sn çıktı verdi; ortalama 13,7 istek aynı anda işlendi, ilk token medyanı 0,73 sn ([kaynak](https://huggingface.co/blog/hexgridcloud/gemma-4-31b-vllm-on-rtx-6000-pro)).
-- SGLang ve doğru ayarlanmış Ollama aynı altın sette vLLM ile karşılaştırılır (D1).
+- SGLang aynı altın sette vLLM ile karşılaştırılır (D1).
 - Uygulama modele yalnızca OpenAI uyumlu API üzerinden, tek bir `LLMClient` arayüzüyle erişir. Motor ya da model değiştirmek ayar değişikliğidir.
 - Başlangıç ayarları: FP8 ağırlıklar, prefix caching açık, 16–32 eşzamanlı dizi, 16–32 bin token bağlam, GPU belleğinin %80'i. Kesin değerler ölçümle belirlenir.
 
@@ -125,7 +118,7 @@ Yetersizliğin bir kısmı modelden değil kurulumdan geliyor olabilir. Hangisi 
 | Model | Yapı | Lisans | 96 GB'ta durum | Neden aday |
 | --- | --- | --- | --- | --- |
 | [Qwen3.8-27B](https://github.com/QwenLM/Qwen3.8) | 27B yoğun | Apache 2.0 | 8 bitte yaklaşık 29 GB, kalanı eşzamanlılığa kalır | Ağustos 2026 çıkışlı, tek GPU için en sık önerilen model; 201 dil ve lehçe desteği beyan ediyor |
-| [Gemma 4 31B](https://ai.google.dev/gemma/docs/core/model_card_4) | 31B yoğun | Apache 2.0 | FP8 ile bu kartta ölçülmüş | Mevcut modelin doğru kurulumla taban çizgisi |
+| [Gemma 4 31B](https://ai.google.dev/gemma/docs/core/model_card_4) | 31B yoğun | Apache 2.0 | FP8 ile bu kartta ölçülmüş | Google'ın güncel açık modeli; bu kartta ölçülmüş hızı biliniyor |
 | gpt-oss-120b | 120B MoE | Apache 2.0 | 4 bitte yaklaşık 61 GB, eşzamanlılık payı daralır | Büyük modelin kalite farkı var mı sorusunun cevabı |
 
 Bu üçlü, tek GPU'lu kurumsal sunucu için yayımlanmış bir [kısa listeyle](https://sysart.consulting/insights/best-open-weight-llms-2026/) örtüşüyor. Boyut rakamları [buradan](https://www.modemguides.com/blogs/ai-infrastructure/best-local-ai-models-by-vram) ve [buradan](https://www.databasemart.com/blog/vllm-gpu-benchmark-pro6000). Yayımlanmış kıyaslamaların çoğu kodlama odaklıdır ve Türkçe test durumu yazma kalitesi hakkında bir şey söylemez.
@@ -141,6 +134,22 @@ Altın set, doğru cevabı önceden bilinen küçük bir sınav kâğıdıdır: 
 - Qwen3.8-27B'de düşünme modu varsayılan olarak açıktır ve istek başına kapatılabilir ([haber](https://www.eweek.com/news/alibaba-qwen3-8-27b-license-apac-china/)). Sınıflandırmada kapalı, test üretiminde iki hali de ölçülür.
 - Altın set kalıcıdır: her prompt ve model değişikliği aynı setle yeniden ölçülür.
 
+### Puanlama
+
+Test kalitesi üç katmanda ölçülür; ucuz olan her koşuda, pahalı olan yalnızca finalde çalışır. Ölçüt tanımları `docs/paketler/paket-1-olcum.md` içindedir.
+
+| Katman | Ne ölçer | Nasıl | Ne zaman |
+| --- | --- | --- | --- |
+| 1. Kural denetimi | şema geçerliliği; her adımda işlem ve beklenen sonuç; kapsama; yöntemi Test olmayana test yazılmaması; yöntem kümesinin referansla eşleşmesi; öbek uyumu | kod, model çağrısı yok | her koşu |
+| 2. Hakem model | referans testteki her denetimin (adım ve beklenen sonuç çifti) üretilen testlerde karşılığı var mı; gereksinimde olmayan uydurma içerik var mı; sınır ve hata durumları yakalanmış mı; belirsizlik varsayım olarak yazılmış mı | sabit hakem model, sabit rubrik, sıcaklık 0 | her deney |
+| 3. Uzman | kör ikili karşılaştırma, 1–5 puan | test mühendisi, 10 öbeklik örneklem | yalnızca en iyi iki aday için ve hakemi ayarlarken |
+
+- Hakem, sentetik altın sette Claude Sonnet'tir: adaylardan bağımsızdır ve veri hassas değildir. Gerçek proje verisi sete girdiğinde hakem yerel modele ya da uzmana geçer.
+- Hakemin ana ölçütü denetim yakalama oranıdır: referanstaki denetimlerin yüzde kaçı üretilen testlerde var. Üslup puanlanmaz.
+- Referansı da hakemi de Claude yazdığı için Claude'a benzeyen çıktılar kayırılabilir. D0 deneyi hakem puanını uzman puanıyla karşılaştırır; uyum düşükse rubrik düzeltilir.
+- Karar kuralı: aday önce katman 1 eşiklerini geçer (şema %99, onarım sonrası kapsama %100, adım yapısı %100). Geçenler denetim yakalama oranına göre sıralanır, eşitlikte hızlı olan öne geçer. İlk iki adayı uzman karşılaştırır.
+- Tek bir toplam puan üretilmez; rapor ölçütleri ayrı sütunlarda verir.
+
 ### Embedding modeli
 
 Varsayılan BGE-M3'tür: çok dillidir, tek modelden hem yoğun hem seyrek vektör verir ve Türkçe embedding kıyaslamalarında taban model olarak kullanılır ([örnek](https://arxiv.org/pdf/2601.16018)). Ayrı küçük bir servis olarak aynı GPU'da çalışır ve 3–5 GB yer tutar. Model sürümü embedding'in hash'ine girer.
@@ -151,9 +160,9 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 
 | No | Soru | Denenenler | Ölçüt | Çalışma varsayımı |
 | --- | --- | --- | --- | --- |
-| D0 | Gemma 4 şikâyeti modelden mi kurulumdan mı | mevcut kurulum olduğu gibi; aynı model tam bağlamla; Gemma 4 31B | altın set puanı | bilinmiyor |
-| D1 | Sunum motoru | vLLM, SGLang, doğru ayarlı Ollama | 1, 8, 16 ve 32 eşzamanlı istekte token/sn, ilk token süresi, hata oranı, şema geçerliliği | vLLM |
-| D2 | Model | Qwen3.8-27B, Gemma 4 31B, gpt-oss-120b | uzman puanı, kapsama, yöntem doğruluğu; Türkçe ve İngilizce ayrı raporlanır | Qwen3.8-27B |
+| D0 | Otomatik hakem puanı uzman puanıyla uyuşuyor mu | hakem modelin puanı ile test mühendisinin puanı, 10 öbeklik örneklemde | sıra uyumu ve puan farkı | hakem güvenilir sayılır |
+| D1 | Sunum motoru | vLLM, SGLang | 1, 8, 16 ve 32 eşzamanlı istekte token/sn, ilk token süresi, hata oranı, şema geçerliliği | vLLM |
+| D2 | Model | Qwen3.8-27B, Gemma 4 31B, gpt-oss-120b | denetim yakalama oranı, kapsama, yöntem doğruluğu; Türkçe ve İngilizce ayrı raporlanır | Qwen3.8-27B |
 | D3 | Düşünme modu ve örnekleme | düşünme açık ve kapalı; sıcaklık 0 ile 0,7 arası | kalite farkı ve süre | sınıflandırmada kapalı |
 | D4 | Ağırlık hassasiyeti | 16 bit, FP8, 4 bit | kalite kaybı ve eşzamanlılık kazancı | FP8 |
 | D5 | Eşzamanlılık ve bağlam | dizi sınırı 8 ile 64 arası; bağlam 8, 16, 32 bin token | toplam token/sn ve öncelikli işin ilk token süresi | 16–32 dizi |
@@ -163,13 +172,14 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 | D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok |
 | D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek |
 | D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 |
+| D12 | Önek ısıtma | paralel çağrıları ilk çağrı öneki işleyene kadar bekletmek ve bekletmemek | ilk üretimin toplam süresi ve önek cache isabet oranı | bekletmek |
 
 Kurallar:
 
 - Her deney `eval/` koşucusunda tek komutla tekrar edilebilir ve sonucu bu tabloya Sonuç sütunu olarak işlenir.
 - Bir deneyde tek değişken değişir; diğerleri çalışma varsayımında kalır.
 - Ölçülebilir fark yoksa daha basit olan seçenek kalır.
-- Sıra: D0, D1, D2, sonra D3–D5. D6–D10 ilgili aşama yazıldığında, D11 arayüz kullanılır hale geldiğinde koşulur.
+- Sıra: D1, D2, sonra D3–D5 ve D12. D0 test mühendisi hazır olduğunda koşulur. D6–D10 ilgili aşama yazıldığında, D11 arayüz kullanılır hale geldiğinde koşulur.
 - Kod, çalışma varsayımlarını ayar dosyasından okur; deney sonucu bir satırlık değişiklikle uygulanır.
 
 ## Cache, geçersiz kılma ve iş kuyruğu
@@ -355,9 +365,32 @@ Aynı projedeki diğer kullanıcıların seçimi ve düzenlediği öğeler ekran
 
 Önce öbek görünümü, denetçi ve aşama çubuğu; sonra matris görünümü; en son katman görünümü. İlk iki görünüm 3B olmadan da eksiksiz kullanılabilir olmalıdır.
 
+## Claude Code'dan alınan yöntemler
+
+Claude Code'un verimliliği üç fikre dayanır ve üçü de yerel modelle çalışan bu uygulamaya taşınabilir: önek cache'ini bozmamak, bağlamı küçük tutmak ve her üretimi doğrulamak. Ayrıntılı not: [`docs/arastirma/claude-code-yontemleri.md`](arastirma/claude-code-yontemleri.md).
+
+| Yöntem | Claude Code'da | Bu uygulamada | Durum |
+| --- | --- | --- | --- |
+| Kararlıdan değişkene önek sırası | sistem prompt'u, proje bağlamı, konuşma | sistem talimatı, proje kartı, şema, parçalar, gereksinimler | tasarımda vardı |
+| Durum değişikliğini öneke değil sona yazmak | güncellemeler sistem prompt'una değil sonraki mesaja eklenir | kullanıcı düzeltmeleri, sabit testler ve ek talimatlar prompt'un sonuna eklenir; önek değişmez | eklendi |
+| Oturum ortasında model değiştirmemek | cache model başınadır; değişim tüm cache'i yeniden kurar | tüm aşamalar tek modelle çalışır; küçük yardımcı model kullanılmaz | eklendi |
+| Yan işlemler ana öneki paylaşır | özetleme çağrısı ana konuşmanın önekini aynen kullanır | öbek adı, doğrulama yöntemi ve onarım çağrıları test üretimiyle aynı sistem talimatını ve proje kartını kullanır | eklendi |
+| Yelpaze açılırken ısıtma | aynı önekli ajanların ilki cache'i yazana kadar diğerleri kısa süre bekletilir | bir projenin ilk çağrısı öneki işleyene kadar paralel çağrılar bekletilir | D12 deneyi |
+| Cache isabet oranını izlemek | oran düşüşü olay sayılır, olası neden gösterilir | sunum motorunun önek cache ölçümleri proje ve aşama bazında izlenir; düşüş uyarı üretir | eklendi |
+| Bağlamı küçük tutmak | fazla token hatırlamayı zayıflatır; eski araç çıktıları önce temizlenir | öbek sınırı ve parça sayısı sınırlıdır; artımlı prompt'ta mevcut testler tam metin yerine başlık ve kapsama özetiyle verilir | D7, D8, D9 |
+| Ayrı bağlamda çalışıp özet döndürmek | alt ajanlar kendi bağlamında çalışır, yalnızca özet döner | her öbek ayrı çağrıdır ve yalnızca yapılandırılmış sonuç döner | tasarımda vardı |
+| Gerektiğinde yükleme | beceriler ve araç şemaları yalnızca kullanılınca yüklenir | aşama talimatları yalnızca o aşamanın prompt'una girer; belge içeriği aramayla gelir | tasarımda vardı |
+| Ön işlemeyi koda bırakmak | kancalar veriyi model görmeden önce süzer | içe almada tekrar eden kalıp metin ve biçim artıkları kodla temizlenir | eklendi |
+| Topla, uygula, doğrula döngüsü | her işin sonunda sonucu sınayacak bir hedef verilir | her üretimi kod doğrular (şema, kapsama, adım yapısı); yalnızca hatalı kısım için onarım çağrısı yapılır | tasarımda vardı |
+| Pahalı işten önce plan | plan kipi yanlış yöne giden pahalı işi önler | onaylı modda öbekler görülmeden test üretimi başlamaz | tasarımda vardı |
+| Geri sarma cache'e döner | önceki tura dönüş zaten cache'lenmiş öneke döner | geri alma içerik adresli cache'ten anında gelir | tasarımda vardı |
+| Kullanım dökümü | token kullanımı kaynağa göre dökülür | aşama ve proje başına token, iptal edilen çağrı ve cache isabeti kaydedilir | eklendi |
+
+Aynı yöntemlerin geliştirme sürecine uygulanışı deponun `CLAUDE.md` dosyasında kurala bağlandı: paket başına tek oturum ve tek model, kısa `CLAUDE.md`, gürültülü çıktılar alt ajana, karmaşık paketlerde önce plan.
+
 ## Geliştirme planı
 
-İş on pakete bölünür; tasarım kararı içeren paketleri Opus, tanımı net uygulama işlerini Sonnet yapar.
+İş on pakete bölünür; tasarım kararı içeren paketleri Opus, tanımı net uygulama işlerini Sonnet yapar. Paket görev tanımları `docs/paketler/` altındadır.
 
 | No | Paket | Model | Bitti ölçütü |
 | --- | --- | --- | --- |
@@ -403,7 +436,7 @@ Cevaplanan sorular:
 | --- | --- | --- |
 | Gereksinimler hangi dilde? | Türkçe ya da İngilizce | Çok dilli modeller; altın set iki dilde |
 | Tipik set büyüklüğü ve biçimi? | Değişebilir | Kolon eşlemeli esnek içe alma |
-| Ollama'daki Gemma 4 hangi boyut ve bağlamla çalışıyor? | Bilinmiyor, deneyle bulunacak | D0 deneyi |
+| Eski kurulum (Ollama, Gemma 4) incelenecek mi? | Hayır; geçmiş bırakıldı, güncel en iyi seçenek deneyle bulunacak | D1 ve D2 deneyleri |
 | Test durumu şablonu sabit mi? | Sabit, ayrıntısı sonra | Şema ayar dosyasından okunur |
 | Bir gereksinime birden çok doğrulama yöntemi atanabilir mi? | Evet; liste proje bazında değişebilir ve proje belgelerinde tanımlıdır | Yöntem listesi proje kartında, çıktı çoklu değer |
 | Kaç kullanıcı, aynı projede aynı anda mı? | Sayı belirsiz; eşzamanlı çalışma planlanmalı | Çok kullanıcılı çalışma bölümü |

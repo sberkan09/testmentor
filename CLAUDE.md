@@ -1,0 +1,65 @@
+# testmentor: çalışma talimatı
+
+Gereksinim setinden test durumlarına ve gereksinim-test matrisine giden, yerel modelle çalışan stüdyo uygulaması. Kod henüz yok; iş paketler halinde ilerler.
+
+## Önce oku
+
+- `docs/tasarim.md` tek doğruluk kaynağıdır. Koda başlamadan önce Özet bölümünü ve üzerinde çalıştığın paketle ilgili bölümleri oku.
+- Paket görev tanımları `docs/paketler/` altındadır. Yalnızca verilen paketin kapsamında çalış.
+- Tasarımdan sapman gerekiyorsa önce `docs/tasarim.md` dosyasını güncelle (ayrı commit), sonra kodu yaz. Sessizce sapma.
+- Bir kararı tahminle verme: `docs/tasarim.md` içindeki Deney planı tablosunda karşılığı varsa çalışma varsayımını kullan ve deneyi işaretle.
+
+## Depo düzeni
+
+- `core/`: grafik, hash, aşamalar, prompt şablonları. Saf Python.
+- `services/`: `LLMClient`, embedding ve arama istemcileri.
+- `worker/`: iş kuyruğu. `api/`: REST ve WebSocket. `web/`: React uygulaması.
+- `eval/`: altın set ve ölçüm koşucusu. `config/`: tüm ayarlar. `infra/`: Docker Compose.
+- `docs/`: tasarım, paket tanımları, deney raporları, araştırma notları.
+
+## Kod kuralları
+
+- Python 3.12, `uv`, `ruff`, `pytest`, `pydantic` v2. Ön yüzde TypeScript katı kip.
+- Kod ve tanımlayıcılar İngilizce; dokümanlar, kullanıcıya görünen metinler ve commit mesajları Türkçe.
+- `core/` HTTP, veritabanı sürücüsü ya da model istemcisi içe aktarmaz. Birim testleri model çağırmaz.
+- Model çağrıları yalnızca `services/llm_client.py` üzerinden, OpenAI uyumlu API ile yapılır. Motor ve model adı kodda geçmez.
+- Ayarlanabilir her değer (model, motor, eşikler, öbek sınırı, bekleme süresi, çıktı şeması, doğrulama yöntemi listesi) `config/` altında durur. Deney sonucu tek satırlık ayar değişikliğiyle uygulanabilmelidir.
+- Önce arayüz ve test, sonra uygulama. Paketin bitti ölçütü `docs/tasarim.md` içindedir; ölçüt geçmeden paket bitmiş sayılmaz.
+
+## Prompt kuralları
+
+Önek cache'i tam eşleşmeyle çalışır; önekte tek karakter değişirse sonrası yeniden hesaplanır.
+
+- Sıra: sistem talimatı, proje kartı, çıktı şeması ve örnekler, getirilen parçalar, gereksinimler.
+- İlk üç katmana tarih, sayaç, kullanıcı adı ya da rastgele sıralı liste yazma. Listeleri deterministik sırala.
+- Durum değişikliklerini (kullanıcı düzeltmeleri, sabit testler, ek talimat) prompt'un sonuna ekle, öneki değiştirme.
+- Tüm aşamalar aynı sistem talimatını ve proje kartını paylaşır. Yardımcı çağrılar (öbek adı, onarım) ayrı bir sistem prompt'u kullanmaz.
+- Her prompt şablonu sürüm numarası taşır ve sürüm `input_hash` hesabına girer.
+- Çıktı JSON şemasına bağlıdır ve şema `pydantic` modelinden türetilir. Her test adımının kendi beklenen sonucu vardır. Ön koşul, test girdisi ve varsayım gerekmiyorsa boş kalır.
+
+## Veri ve Runpod
+
+- Gerçek proje verisi bu depoya ve Runpod'a girmez. Deneyler yalnızca `eval/golden/` altındaki sentetik setle yapılır.
+- Model ağırlıklarını yalnızca modelin resmî kuruluş hesabından indir; benzer adlı depolar vardır.
+- Ücret doğuran bir kaynak oluşturmadan önce saatlik fiyatını yaz. Yeten en ucuz GPU'yu seç.
+- Ağırlıkları kalıcı diskte tut, her oturumda yeniden indirme.
+- İş bitince pod'u durdur. Oturumu kapatmadan önce çalışan kaynak kalmadığını listeleyerek doğrula.
+- Anahtarlar `.env` dosyasında durur ve depoya girmez.
+
+## Claude Code ile çalışma
+
+- Bir paket bir oturumdur. Paketler arasında `/clear` kullan.
+- Modeli oturum başında seç, ortasında değiştirme: her değişim prompt cache'ini sıfırlar. Tasarım (Opus) ve uygulama (Sonnet) ayrı oturumlardır.
+- Paket 2, 3 ve 5'e plan kipinde başla; planı `docs/paketler/` altındaki dosyaya yaz.
+- Gürültülü işleri (test koşusu, uzun günlük, doküman tarama) alt ajana ver; ana oturuma yalnızca özet dönsün.
+- Test çıktısını kısa tut: `pytest -q --tb=short`. Uzun çıktıyı dosyaya yaz ve yalnızca hata satırlarını oku.
+- Komut satırı aracı varsa onu kullan (`git`, `gh`, `docker`, `runpodctl`).
+- Doğrulama olmadan iş bitirme: her değişiklik için geçen bir test ya da komut çıktısı göster.
+
+## Özetleme talimatı
+
+Oturum özetlenirken şunlar korunur: üzerinde çalışılan paket ve bitti ölçütü, değiştirilen dosyalar, başarısız testler ve nedenleri, tasarımdan sapma kararları, çalışan Runpod kaynakları.
+
+## Komutlar
+
+Henüz yok. Paket 0 `make up`, `make smoke`, `make test`, paket 1 `make eval` hedeflerini ekler ve bu bölümü günceller.
