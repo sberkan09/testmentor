@@ -187,6 +187,7 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 Kurallar:
 
 - Her deney `eval/` koşucusunda tek komutla tekrar edilebilir ve sonucu bu tabloya Sonuç sütunu olarak işlenir.
+- Paket 1 deneylerinde (D1–D5, D12) test üretimi referans öbek ve referans doğrulama yöntemleriyle beslenir. Böylece üretim kalitesi öbekleme ve sınıflandırma hatalarından ayrılır. Öbekleme uyumu (ARI, D6) ve yöntem doğruluğu aynı koşuda ayrı ölçütler olarak raporlanır. Uçtan uca ölçüm için `generation_inputs: predicted` ayarı vardır.
 - Bir deneyde tek değişken değişir; diğerleri çalışma varsayımında kalır.
 - Ölçülebilir fark yoksa daha basit olan seçenek kalır.
 - Sıra: D1, D2, sonra D3–D5 ve D12. D0 test mühendisi hazır olduğunda koşulur. D6–D10 ilgili aşama yazıldığında, D11 arayüz kullanılır hale geldiğinde koşulur.
