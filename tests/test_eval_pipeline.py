@@ -102,7 +102,7 @@ async def test_pipeline_end_to_end(tmp_path):
     assert m["all"]["coverage_rate"] == 1.0
     assert m["all"]["coverage_rate_before_repair"] < 1.0  # KK skipped one, repaired
     assert m["all"]["method_exact_match"] == 0.8  # 32 of 40 are Test only
-    assert m["all"]["no_test_violations"] == 3  # 3 refs have no Test method
+    assert m["all"]["no_test_violations"] == 0  # generation uses reference methods
     assert m["all"]["step_structure_rate"] == 1.0
     assert any(c.kind == "repair" for c in res.calls)
     assert m["calls"]["prefix_cache_hit_rate"] == 0.5
@@ -120,14 +120,17 @@ async def test_embedding_cache_without_service(tmp_path):
     assert await offline.get(["ab", "c"]) == first
 
 
-async def test_reference_clusters_mode(tmp_path):
+async def test_predicted_inputs_mode(tmp_path):
+    """End to end: classification errors (all Test) flow into generation."""
     fake = FakeModel()
-    golden = load_golden(projects=["AI"])
-    cache = EmbeddingCache(tmp_path / "e.json", "v", None)  # never called
+    golden = load_golden()
+    cache = EmbeddingCache(tmp_path / "e.json", "v", fake_embed)
+    cfg = deep_merge(CFG, {"generation_inputs": "predicted"})
     async with LLMClient(settings(), transport=httpx.MockTransport(fake.handle)) as client:
-        res = await Pipeline(client, cache, CFG, EXAMPLES, clusters="reference").run(golden)
+        res = await Pipeline(client, cache, cfg, EXAMPLES).run(golden)
     m = layer1(res.outcomes, golden.refs(), res.calls, res.wall_s, CFG["test_method"])
-    assert m["cluster_ari"] == 1.0
+    assert m["all"]["no_test_violations"] == 3  # 3 refs have no Test method
+    assert m["all"]["coverage_rate"] == 1.0
 
 
 def test_deep_merge_and_diff():

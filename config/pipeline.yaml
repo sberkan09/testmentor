@@ -1,6 +1,9 @@
 # Pipeline çalışma varsayımları (docs/tasarim.md Deney planı, son sütun).
 # Deney dosyaları (config/experiments/) yalnızca değişen tek değeri burada ezer.
 prompt_version: p1
+# reference: üretim altın setin öbek ve yöntemleriyle beslenir (üretim kalitesi öbekleme ve
+# sınıflandırmadan ayrı ölçülür); predicted: uçtan uca (docs/tasarim.md, Deney planı kuralları).
+generation_inputs: reference
 
 methods:                    # proje kartındaki doğrulama yöntemi listesi (varsayılan)
   - name: Test

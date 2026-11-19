@@ -7,7 +7,6 @@ Experiment file keys:
     name, question, variable           report metadata
     server: {engine, model}            what the running pod must serve (checked)
     pipeline: {...}                    deep-merged over config/pipeline.yaml
-    clusters: predicted | reference    clustering under test or reference clusters
     quality: true|false                run the golden-set pipeline
     repeat: N                          quality runs; layer 1 differences are reported
     throughput: {concurrency: [1, 8, 16, 32], requests_per_level: 32}

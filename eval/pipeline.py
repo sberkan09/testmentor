@@ -75,10 +75,11 @@ class Pipeline:
         embeddings: EmbeddingCache,
         cfg: dict[str, Any],
         examples: dict[str, Any],
-        clusters: str = "predicted",
     ) -> None:
         self.llm, self.embeddings, self.cfg, self.examples = llm, embeddings, cfg, examples
-        self.clusters_mode = clusters
+        # reference: generation gets the golden clusters and methods, so its quality is measured
+        # apart from clustering (D6) and classification; predicted: end to end.
+        self.generation_inputs = cfg.get("generation_inputs", "reference")
         self.methods = tuple(m["name"] for m in cfg["methods"])
         self.case_model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]))
         self.method_model = method_batch_model(self.methods)
@@ -172,8 +173,6 @@ class Pipeline:
     # Stages ---------------------------------------------------------------------------------
 
     async def cluster(self, p: GoldenProject) -> list[list[str]]:
-        if self.clusters_mode == "reference":
-            return p.reference_clusters()
         c = self.cfg["clustering"]
         vectors = await self.embeddings.get([r.text for r in p.requirements])
         tree = build_tree([r.id for r in p.requirements], vectors, method=c["linkage"])
@@ -296,13 +295,22 @@ class Pipeline:
 
     async def run_project(self, p: GoldenProject) -> ProjectOutcome:
         clusters, methods = await asyncio.gather(self.cluster(p), self.classify(p))
-        tests, covered = await self.generate(p, clusters, methods)
+        if self.generation_inputs == "reference":
+            gen_clusters = p.reference_clusters()
+            gen_methods = {
+                r["id"]: sorted(r["verification_methods"]) for r in p.raw["requirements"]
+            }
+        else:
+            gen_clusters, gen_methods = clusters, methods
+        tests, covered = await self.generate(p, gen_clusters, gen_methods)
         self.records.append(
             {
                 "type": "project",
                 "project": p.key,
                 "clusters": clusters,
                 "methods": methods,
+                "generation_inputs": self.generation_inputs,
+                "generation_clusters": gen_clusters,
                 "test_cases": tests,
                 "covered_before_repair": sorted(covered),
             }
