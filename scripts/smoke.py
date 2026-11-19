@@ -86,12 +86,15 @@ def pick_cluster(golden: dict) -> tuple[dict, list[dict], dict]:
     return project, reqs, example
 
 
-def build_messages(project: dict, reqs: list[dict], example: dict, marker: str = "") -> list:
+def build_messages(
+    project: dict, reqs: list[dict], example: dict | list[dict], marker: str = ""
+) -> list:
     """Prompt order from CLAUDE.md: system, project card, schema and example, (retrieved
     passages: none in smoke), requirements. `marker` is only used by the cache probe."""
     card = f"Project: {project['name']} ({project['key']}). Domain: {project['domain']}."
     schema = json.dumps(SmokeOutput.model_json_schema(), ensure_ascii=False, sort_keys=True)
-    ex = json.dumps({"test_cases": [example]}, ensure_ascii=False, sort_keys=True)
+    examples = example if isinstance(example, list) else [example]
+    ex = json.dumps({"test_cases": examples}, ensure_ascii=False, sort_keys=True)
     prefix = f"{marker}{SYSTEM}" if marker else SYSTEM
     user = "\n".join(
         f"{r['id']} [{r['language']}]: {r['text']}" for r in sorted(reqs, key=lambda r: r["id"])
@@ -130,21 +133,25 @@ def summarize(m) -> dict:
 
 
 async def cache_probe(client: LLMClient, project, reqs, example, args) -> dict:
+    """Same prefix twice, different tail. The prefix carries every reference test case of the
+    project as examples so that it spans several cache blocks: engines cache whole blocks only
+    (Qwen3.8 hybrid on vLLM 0.34: 832 tokens), a shorter prefix can never hit."""
+    examples = sorted(project["test_cases"], key=lambda tc: tc["id"])
+
+    async def call(marker: str, tail: list[dict]):
+        return await client.chat(
+            build_messages(project, tail, examples, marker),
+            schema=SmokeOutput,
+            max_tokens=args.probe_max_tokens,
+            temperature=0.0,
+            thinking=False,
+        )
+
+    # Warm-up with an unrelated prefix so that one-off compilation does not skew the probe.
+    await call(f"[warmup {uuid.uuid4().hex[:12]}] ", reqs[:1])
     marker = f"[run {uuid.uuid4().hex[:12]}] "
-    first = await client.chat(
-        build_messages(project, reqs[:1], example, marker),
-        schema=SmokeOutput,
-        max_tokens=args.probe_max_tokens,
-        temperature=0.0,
-        thinking=False,
-    )
-    second = await client.chat(
-        build_messages(project, reqs[1:2] or reqs[:1], example, marker),
-        schema=SmokeOutput,
-        max_tokens=args.probe_max_tokens,
-        temperature=0.0,
-        thinking=False,
-    )
+    first = await call(marker, reqs[:1])
+    second = await call(marker, reqs[1:2] or reqs[:1])
     out = {"first": summarize(first.metrics), "second": summarize(second.metrics)}
     t1, t2 = first.metrics.ttft_s, second.metrics.ttft_s
     if t1 and t2:

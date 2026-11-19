@@ -267,18 +267,20 @@ def render_pod_script(
             "  echo 'create_main_cluster = false' > /etc/postgresql-common/createcluster.d/no-main.conf",
             "  apt-get install -y -qq postgresql-$V postgresql-$V-pgvector >/dev/null",
             "  BIN=/usr/lib/postgresql/$V/bin",
-            f"  PGDATA={mount}/pgdata/$V",
-            "  mkdir -p $PGDATA $LOG/pg && chown -R postgres:postgres $(dirname $PGDATA) $LOG/pg",
+            # The network volume (MooseFS) refuses chown, so data lives on the container disk.
+            "  PGDATA=/var/lib/postgresql/$V/testmentor",
+            "  mkdir -p $PGDATA /var/log/testmentor-pg && chown -R postgres:postgres $PGDATA /var/log/testmentor-pg",
             "  chmod 700 $PGDATA",
             "  if [ ! -f $PGDATA/PG_VERSION ]; then",
-            "    install -o postgres -m 600 /dev/null /tmp/pgpw",
-            "    printf '%s' \"$POSTGRES_PASSWORD\" > /tmp/pgpw",
-            '    su postgres -s /bin/bash -c "$BIN/initdb -D $PGDATA -A scram-sha-256'
-            ' --pwfile=/tmp/pgpw"',
-            "    rm -f /tmp/pgpw",
+            # Not directly in /tmp: with protected_regular, root cannot write a file owned by
+            # another user in a sticky directory.
+            "    PWDIR=$(mktemp -d) && printf '%s' \"$POSTGRES_PASSWORD\" > $PWDIR/pw",
+            "    chown -R postgres $PWDIR && chmod 700 $PWDIR",
+            '    su postgres -s /bin/bash -c "$BIN/initdb -D $PGDATA -A scram-sha-256 --pwfile=$PWDIR/pw"',
+            "    rm -rf $PWDIR",
             "    echo 'host all all 0.0.0.0/0 scram-sha-256' >> $PGDATA/pg_hba.conf",
             "  fi",
-            '  su postgres -s /bin/bash -c "$BIN/pg_ctl -D $PGDATA -l $LOG/pg/postgres.log'
+            '  su postgres -s /bin/bash -c "$BIN/pg_ctl -D $PGDATA -l /var/log/testmentor-pg/postgres.log'
             f' -o \\"-c listen_addresses=* -p {port}\\" -w start"',
             '  export PGPASSWORD="$POSTGRES_PASSWORD"',
             f'  PSQL="psql -h 127.0.0.1 -p {port} -U postgres -v ON_ERROR_STOP=1"',
