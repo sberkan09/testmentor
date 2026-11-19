@@ -87,8 +87,17 @@ class Runpod:
         }
         return self.req("POST", "/network-volumes", json=body).json()
 
-    def create_pod(self, body: dict[str, Any]) -> dict[str, Any]:
-        return self.req("POST", "/pods", json=body).json()
+    def create_pod(self, body: dict[str, Any], retries: int = 0, wait_s: float = 30) -> dict:
+        """Create a pod; on "no instances available" retry `retries` times (stock is volatile)."""
+        for attempt in range(retries + 1):
+            r = self.http.post("/pods", json=body)
+            if r.status_code < 400:
+                return r.json()
+            if "no longer any instances available" not in r.text or attempt == retries:
+                raise SystemExit(f"Runpod POST /pods: HTTP {r.status_code} {r.text[:1000]}")
+            print(f"stok yok, {wait_s:.0f} sn sonra yeniden ({attempt + 1}/{retries})", flush=True)
+            time.sleep(wait_s)
+        raise AssertionError("unreachable")
 
     def get_pod(self, pod_id: str) -> httpx.Response:
         return self.req("GET", f"/pods/{pod_id}")
@@ -247,7 +256,9 @@ def cmd_up(rp: Runpod, args: argparse.Namespace) -> int:
         f"pod oluşturuluyor: {body['name']} {body['gpu']['id']} {body['dataCenterIds']} "
         f"{rp.cfg['gpu_hourly_usd']} USD/saat"
     )
-    pod = rp.create_pod(body)
+    pod = rp.create_pod(
+        body, retries=rp.cfg.get("create_retries", 0), wait_s=rp.cfg.get("create_retry_s", 30)
+    )
     engine = load_engines()[engine_key]
     state["pod"] = {
         "id": pod["id"],

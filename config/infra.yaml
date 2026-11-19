@@ -10,6 +10,8 @@ runpod:
   min_cuda_version: "13.0"              # imajlar CUDA 13; pod oluştuktan sonra denetlenir
   container_disk_gb: 40
   min_balance_usd: 5.0                  # make up bu bakiyenin altında pod açmaz
+  create_retries: 40                    # stok yoksa yeniden deneme sayısı (stok anlık değişiyor)
+  create_retry_s: 30
   pod_name: testmentor-p0
   hf_token_secret: "{{ RUNPOD_SECRET_HF_TOKEN }}"
   volume:

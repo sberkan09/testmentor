@@ -33,6 +33,8 @@ class ModelSpec(BaseModel):
     thinking_on: dict[str, Any] = Field(default_factory=dict)
     thinking_off: dict[str, Any] = Field(default_factory=dict)
     gated: bool = False
+    # Overrides config/infra.yaml gpu_memory.llm for this model (large weights leave little KV).
+    gpu_memory_utilization: float | None = None
     # Repo files not needed for serving (e.g. duplicate checkpoints), skipped when downloading.
     download_ignore: list[str] = Field(default_factory=list)
     approx_size_gb: float | None = None

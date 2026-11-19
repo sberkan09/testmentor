@@ -54,7 +54,7 @@ def engine_argv(engine_key: str, model_key: str, config_dir: Path = ROOT / "conf
             "context_length": model.context_length,
             "max_num_seqs": model.max_num_seqs,
             "port": engine.port,
-            "gpu_memory_utilization": infra["gpu_memory"]["llm"],
+            "gpu_memory_utilization": model.gpu_memory_utilization or infra["gpu_memory"]["llm"],
         },
     )
     return argv + list(model.engine_args.get(engine_key, []))

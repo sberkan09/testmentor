@@ -29,7 +29,7 @@ from pydantic import BaseModel, ConfigDict, Field
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from scripts.runpod_state import base_urls_from_state  # noqa: E402
+from scripts.runpod_state import base_urls_from_state, read_state  # noqa: E402
 from services.llm_client import ChatResult, LLMClient, LLMError  # noqa: E402
 
 GOLDEN = ROOT / "eval" / "golden" / "altin-set-v0.json"
@@ -221,6 +221,10 @@ async def main() -> int:
         urls = base_urls_from_state()
         if urls:
             os.environ["LLM_BASE_URL"] = urls["llm"]
+            # Talk to the running pod with its own engine and model settings.
+            pod = read_state()["pod"]
+            os.environ.setdefault("LLM_ENGINE", pod["engine"])
+            os.environ.setdefault("LLM_MODEL", pod["model"])
     golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
     project, reqs, example = pick_cluster(golden)
 

@@ -24,6 +24,9 @@ models:
     context_length: 32768
     max_num_seqs: 16
     approx_size_gb: 63
+    # BF16 ağırlıklar 59 GB; %80'de KV'ye 15,1 GB kalıyor, 32k'lık tek dizi 15,8 GB istiyor
+    # (19 Kasım, vLLM 0.34 hata mesajı). Embedding pratikte 2,1 GB kullandığı için %88 sığar.
+    gpu_memory_utilization: 0.88
     engine_args:
       vllm: ["--reasoning-parser", "gemma4"]
       sglang: []

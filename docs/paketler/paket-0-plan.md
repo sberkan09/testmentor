@@ -50,3 +50,12 @@ Bakiye yükseltildikten sonra (ücretli):
 12. Pod silinir, `get-pod` 404 ve `list-pods` ile doğrulanır; doğrulama defteri doldurulur; PR açılır.
 
 Her GPU oturumundan önce bakiye kontrol edilir; birikimli harcama 24 USD'ye ulaşırsa durulur.
+
+## Gerçekleşen (19 Kasım 2026, oturum sonu)
+
+- Bakiye ilk okumada 13,04 USD idi; kod pod kapalıyken yazılırken 43,04 USD'ye yükseldi ve Runpod adımlarına geçildi.
+- US-PA-1 ve US-NC-3 network volume desteklemiyor. Kullanıcı kararıyla veri merkezi **EU-RO-1** oldu (kart stokta, CPU pod'u var).
+- Volume: `testmentor-models` (`x5ts7eol5f`), 200 GB STANDARD. Ağırlıklar 4 vCPU'luk CPU pod'uyla 10 dakikadan kısa sürede indi; volume'da 153 GB.
+- GPU: beş pod, toplam yaklaşık 0,95 saat (vLLM Qwen ×2, SGLang Qwen, vLLM Gemma, vLLM gpt-oss).
+- Harcama: **2,34 USD** (bakiye 43,04 → 40,70; volume dahil). Tahmin 17 USD idi; Runpod adımları hiç tekrar gerektirmeden ilerlediği için çok altında kaldı.
+- Ayrıntı: `docs/altyapi.md` doğrulama defteri.
