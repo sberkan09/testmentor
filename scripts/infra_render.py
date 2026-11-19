@@ -167,6 +167,44 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
     return header + yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=1000)
 
 
+def download_lines(config_dir: Path = ROOT / "config") -> list[str]:
+    """Download every candidate model and the embedding model into the HF cache on the volume."""
+    models = load_models(config_dir)
+    emb = load_embedding_server(config_dir)
+    repos = sorted({m.repo_id for m in models.values()} | {emb["model"]})
+    return [
+        "export HF_HUB_OFFLINE=0 HF_XET_HIGH_PERFORMANCE=1",
+        "python3 - <<'PY'",
+        "import os, time",
+        "from huggingface_hub import snapshot_download",
+        f"for repo in {repos!r}:",
+        "    t = time.time()",
+        "    snapshot_download(repo, token=os.environ.get('HF_TOKEN') or None, max_workers=16)",
+        "    print(f'[download] {repo} {time.time() - t:.0f}s', flush=True)",
+        "PY",
+        "du -sh $HF_HOME/hub/* || true",
+    ]
+
+
+def render_download_script(config_dir: Path = ROOT / "config") -> str:
+    """Entrypoint of the CPU download pod: fetch weights, report, then idle until deleted."""
+    infra = load_infra(config_dir)
+    hf_home = infra["paths"]["hf_home"]
+    lines = [
+        "#!/bin/bash",
+        "set -euo pipefail",
+        f"export HF_HOME={hf_home}",
+        f"mkdir -p {hf_home}",
+        "pip install -q --root-user-action=ignore 'huggingface_hub[hf_xet]'",
+        'echo "[download] start $(date -u +%FT%TZ)"',
+        *download_lines(config_dir),
+        "df -h $HF_HOME || true",
+        'echo "[download] DONE $(date -u +%FT%TZ)"',
+        "sleep infinity",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 # Runpod pod start script --------------------------------------------------------------------
 
 
@@ -179,8 +217,6 @@ def render_pod_script(
 ) -> str:
     """Bash script that runs as the pod's entrypoint (one container, no Docker inside)."""
     infra = load_infra(config_dir)
-    models = load_models(config_dir)
-    emb = load_embedding_server(config_dir)
     pg = infra["postgres"]
     hf_home = infra["paths"]["hf_home"]
     mount = infra["runpod"]["volume"]["mount_path"]
@@ -194,19 +230,7 @@ def render_pod_script(
         'echo "[start] $(date -u +%FT%TZ)"',
     ]
     if download:
-        repos = sorted({m.repo_id for m in models.values()} | {emb["model"]})
-        lines += [
-            "export HF_HUB_OFFLINE=0 HF_HUB_ENABLE_HF_TRANSFER=0",
-            "python3 - <<'PY'",
-            "import os, time",
-            "from huggingface_hub import snapshot_download",
-            f"for repo in {repos!r}:",
-            "    t = time.time()",
-            "    snapshot_download(repo, token=os.environ.get('HF_TOKEN'))",
-            "    print(f'[download] {repo} {time.time() - t:.0f}s', flush=True)",
-            "PY",
-            "du -sh $HF_HOME/hub/* || true",
-        ]
+        lines += download_lines(config_dir)
     # From here on nothing may be downloaded: a recreated pod must start from the volume.
     lines.append("export HF_HUB_OFFLINE=1")
     if infra["runpod"].get("postgres_mode") == "in_gpu_pod":

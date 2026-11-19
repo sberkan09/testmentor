@@ -5,7 +5,7 @@ ENV := set -a; [ -f .env ] && . ./.env; set +a;
 PY := uv run python
 UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL))
 
-.PHONY: up down smoke test lint compose volume download status balance local-up local-down
+.PHONY: up down smoke test lint compose volume download download-down status balance local-up local-down
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
 	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) && $(PY) scripts/runpod.py wait
@@ -28,8 +28,11 @@ compose:       ## infra/compose.yaml dosyasını config/ altından yeniden üret
 volume:        ## Network volume'u oluştur (yoksa; ücretli)
 	$(ENV) $(PY) scripts/runpod.py volume
 
-download:      ## Pod'u indirme kipinde aç: tüm aday ağırlıkları volume'a indirir, sonra sunar
-	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) --download && $(PY) scripts/runpod.py wait --timeout 5400
+download:      ## Aynı veri merkezinde CPU pod'u açıp tüm aday ağırlıkları volume'a indirir
+	$(ENV) $(PY) scripts/runpod.py download
+
+download-down: ## İndirme pod'unu sil (404 ile doğrulanır)
+	$(ENV) $(PY) scripts/runpod.py download-down
 
 status:
 	$(ENV) $(PY) scripts/runpod.py status

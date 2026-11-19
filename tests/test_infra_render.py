@@ -61,7 +61,7 @@ def test_pod_body_shape(tmp_path, monkeypatch):
     monkeypatch.setattr(st, "ENV_PATH", tmp_path / ".env")
     body = pod_body("vllm", "qwen3.8-27b", "vol123", download=True)
     assert body["gpu"]["id"] == "NVIDIA RTX PRO 6000 Blackwell Server Edition"
-    assert body["cloud"] == "SECURE" and body["dataCenterIds"] == ["US-PA-1"]
+    assert body["cloud"] == "SECURE" and body["dataCenterIds"] == ["EU-RO-1"]
     assert body["mounts"]["network"] == [{"volumeId": "vol123", "path": "/models"}]
     assert body["env"]["HF_TOKEN"] == "{{ RUNPOD_SECRET_HF_TOKEN }}"
     assert "8000/http" in body["ports"] and "8001/http" in body["ports"]
@@ -93,3 +93,15 @@ def test_no_engine_or_model_names_in_python_code():
         for word in banned:
             assert word.lower() not in text, f"{word} in {path}"
     assert os.path.exists(ROOT / "config" / "models.yaml")
+
+
+def test_download_pod_body():
+    from scripts.runpod import download_body
+
+    body = download_body("vol1")
+    assert body["cpu"]["id"] and body["cpu"]["vcpuCount"] in (2, 4, 8, 16, 32)
+    assert "gpu" not in body
+    assert body["env"]["HF_TOKEN"] == "{{ RUNPOD_SECRET_HF_TOKEN }}"
+    script = body["entrypoint"][2]
+    subprocess.run(["bash", "-n"], input=script, text=True, check=True)
+    assert "[download] DONE" in script

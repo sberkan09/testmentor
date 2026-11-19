@@ -27,7 +27,12 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from scripts.infra_render import load_embedding_server, load_infra, render_pod_script  # noqa: E402
+from scripts.infra_render import (  # noqa: E402
+    load_embedding_server,
+    load_infra,
+    render_download_script,
+    render_pod_script,
+)
 from scripts.runpod_state import (  # noqa: E402
     ensure_env_secret,
     proxy_url,
@@ -125,6 +130,72 @@ def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) ->
         "env": env,
         "entrypoint": ["bash", "-c", render_pod_script(engine_key, model_key, download=download)],
     }
+
+
+def download_body(volume_id: str) -> dict[str, Any]:
+    cfg = load_infra()["runpod"]
+    d = cfg["download_pod"]
+    return {
+        "name": d["name"],
+        "image": d["image"],
+        "cloud": cfg["cloud"],
+        "dataCenterIds": [cfg["data_center"]],
+        "cpu": {"id": d["cpu_flavor"], "vcpuCount": d["vcpu"]},
+        "disk": d["container_disk_gb"],
+        "mounts": {"network": [{"volumeId": volume_id, "path": cfg["volume"]["mount_path"]}]},
+        "env": {"HF_TOKEN": cfg["hf_token_secret"]},
+        "entrypoint": ["bash", "-c", render_download_script()],
+    }
+
+
+def cmd_download(rp: Runpod, _: argparse.Namespace) -> int:
+    state = read_state()
+    if state.get("download_pod"):
+        raise SystemExit(f"kayıtlı indirme pod'u var: {state['download_pod']['id']}")
+    vol = rp.find_volume()
+    if vol is None:
+        raise SystemExit("network volume yok; önce `make volume`")
+    pod = rp.create_pod(download_body(vol["id"]))
+    state["download_pod"] = {
+        "id": pod["id"],
+        "created_at": now(),
+        "created_monotonic_hint": time.time(),
+        "cost_per_hr": pod.get("cost"),
+    }
+    write_state(state)
+    print(f"indirme pod'u: {pod['id']} ücret={pod.get('cost')} USD/saat")
+    return 0
+
+
+def cmd_download_down(rp: Runpod, _: argparse.Namespace) -> int:
+    state = read_state()
+    pod = state.get("download_pod")
+    if not pod:
+        print("kayıtlı indirme pod'u yok")
+        return 0
+    rp.delete_pod(pod["id"])
+    for _ in range(30):
+        if rp.get_pod(pod["id"]).status_code == 404:
+            break
+        time.sleep(2)
+    code = rp.get_pod(pod["id"]).status_code
+    hours = (time.time() - pod["created_monotonic_hint"]) / 3600
+    cost = hours * float(pod.get("cost_per_hr") or 0)
+    print(f"silindi: {pod['id']} get-pod HTTP {code}; {hours:.2f} saat, yaklaşık {cost:.2f} USD")
+    if code != 404:
+        raise SystemExit("indirme pod'u hâlâ görünüyor")
+    state.setdefault("history", []).append(
+        {
+            **pod,
+            "kind": "download",
+            "deleted_at": now(),
+            "hours": round(hours, 3),
+            "approx_cost_usd": round(cost, 2),
+        }
+    )
+    state.pop("download_pod")
+    write_state(state)
+    return 0
 
 
 def cmd_balance(rp: Runpod, _: argparse.Namespace) -> int:
@@ -278,6 +349,8 @@ def main() -> int:
     w.add_argument("--timeout", type=float, default=1800)
     sub.add_parser("status")
     sub.add_parser("down")
+    sub.add_parser("download")
+    sub.add_parser("download-down")
     args = ap.parse_args()
     rp = Runpod()
     return {
@@ -287,6 +360,8 @@ def main() -> int:
         "wait": cmd_wait,
         "status": cmd_status,
         "down": cmd_down,
+        "download": cmd_download,
+        "download-down": cmd_download_down,
     }[args.cmd](rp, args)
 
 
