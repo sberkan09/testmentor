@@ -113,12 +113,21 @@ Sunum motoru, model ve ayarların hiçbiri baştan sabit değildir; hepsi deney 
 - Uygulama modele yalnızca OpenAI uyumlu API üzerinden, tek bir `LLMClient` arayüzüyle erişir. Motor ya da model değiştirmek ayar değişikliğidir.
 - Başlangıç ayarları: FP8 ağırlıklar, prefix caching açık, 16–32 eşzamanlı dizi, 16–32 bin token bağlam, GPU belleğinin %80'i. Kesin değerler ölçümle belirlenir.
 
+### Ölçüm ortamı (Runpod) ve üretim dağıtımı
+
+Paket 0'da eklendi (19 Kasım 2026).
+
+- Üretim sunucusu ve yerel çalışma Docker Compose kullanır (`infra/compose.yaml`). Runpod pod'u tek bir konteynerdir ve içinde Compose çalışmaz ([Runpod dokümanı](https://docs.runpod.io/pods/overview)). Bu yüzden ölçüm pod'unda motor, embedding servisi ve Postgres aynı konteynerde ayrı süreçler olarak başlar.
+- İki dağıtım aynı ayar dosyalarından üretilir (`scripts/infra_render.py`): motor komut satırı tek kaynaktan gelir, iki ortam birbirinden kopamaz.
+- Embedding servisi vLLM imajında pooling kipinde çalışır. TEI'nin Blackwell imajı deneysel olarak işaretli, BGE-M3 desteği de belgelenmemiş. SGLang profilinde embedding servisi pod'da başlamaz: embedding motor seçiminden bağımsızdır ve vLLM profilinde ölçülür.
+- Veri merkezi EU-RO-1'dir. Kartın stokta olduğu US-PA-1 ve US-NC-3 network volume desteklemez (19 Kasım 2026, `list-data-centers`). Ağırlıklar aynı veri merkezindeki ucuz bir CPU pod'uyla volume'a indirilir. Postgres GPU pod'unda ayrı bir süreç olarak çalışır, verisi volume'da durur.
+
 ### Model adayları
 
 | Model | Yapı | Lisans | 96 GB'ta durum | Neden aday |
 | --- | --- | --- | --- | --- |
 | [Qwen3.8-27B](https://github.com/QwenLM/Qwen3.8) | 27B yoğun | Apache 2.0 | 8 bitte yaklaşık 29 GB, kalanı eşzamanlılığa kalır | Ağustos 2026 çıkışlı, tek GPU için en sık önerilen model; 201 dil ve lehçe desteği beyan ediyor |
-| [Gemma 4 31B](https://ai.google.dev/gemma/docs/core/model_card_4) | 31B yoğun | Apache 2.0 | FP8 ile bu kartta ölçülmüş | Google'ın güncel açık modeli; bu kartta ölçülmüş hızı biliniyor |
+| [Gemma 4 31B](https://ai.google.dev/gemma/docs/core/model_card_4) | 31B yoğun | Apache 2.0 | FP8 ile bu kartta ölçülmüş; Google'ın resmî FP8 sürümü olmadığından BF16 (yaklaşık 63 GB) ile başlanır | Google'ın güncel açık modeli; bu kartta ölçülmüş hızı biliniyor |
 | gpt-oss-120b | 120B MoE | Apache 2.0 | 4 bitte yaklaşık 61 GB, eşzamanlılık payı daralır | Büyük modelin kalite farkı var mı sorusunun cevabı |
 
 Bu üçlü, tek GPU'lu kurumsal sunucu için yayımlanmış bir [kısa listeyle](https://sysart.consulting/insights/best-open-weight-llms-2026/) örtüşüyor. Boyut rakamları [buradan](https://www.modemguides.com/blogs/ai-infrastructure/best-local-ai-models-by-vram) ve [buradan](https://www.databasemart.com/blog/vllm-gpu-benchmark-pro6000). Yayımlanmış kıyaslamaların çoğu kodlama odaklıdır ve Türkçe test durumu yazma kalitesi hakkında bir şey söylemez.

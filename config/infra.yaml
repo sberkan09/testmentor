@@ -1,0 +1,47 @@
+# Altyapı. GPU ve fiyat 19 Kasım 2026'da list-gpu-types ile doğrulandı.
+runpod:
+  api_base: https://api.runpod.io/v2    # REST v2; RUNPOD_API_BASE ile değiştirilebilir
+  cloud: SECURE
+  # US-PA-1 ve US-NC-3 network volume desteklemiyor (list-data-centers, 19 Kasım 2026).
+  # Kullanıcı kararıyla EU-RO-1: kart stokta, STANDARD volume ve CPU pod'u var.
+  data_center: EU-RO-1
+  gpu_type_id: NVIDIA RTX PRO 6000 Blackwell Server Edition
+  gpu_hourly_usd: 2.69
+  min_cuda_version: "13.0"              # imajlar CUDA 13; pod oluştuktan sonra denetlenir
+  container_disk_gb: 40
+  min_balance_usd: 5.0                  # make up bu bakiyenin altında pod açmaz
+  create_retries: 40                    # stok yoksa yeniden deneme sayısı (stok anlık değişiyor)
+  create_retry_s: 30
+  pod_name: testmentor-p0
+  hf_token_secret: "{{ RUNPOD_SECRET_HF_TOKEN }}"
+  volume:
+    name: testmentor-models
+    size_gb: 200
+    type: STANDARD
+    mount_path: /models
+  # Postgres GPU pod'unda ayrı bir süreç olarak çalışır, verisi volume'da durur
+  # (ayrı CPU pod'u ve ağ yapılandırması gerektirmez). Seçenekler: in_gpu_pod | off
+  postgres_mode: in_gpu_pod
+  # 5432/tcp genel IP'li makine ister ve stoğu daraltır (19 Kasım: açıkken pod oluşturulamadı).
+  postgres_expose_tcp: false
+  # Ağırlıklar aynı veri merkezindeki ucuz CPU pod'uyla indirilir (make download).
+  download_pod:
+    name: testmentor-p0-download
+    image: python:3.12-slim
+    cpu_flavor: cpu3c               # 0,03 USD/vCPU/saat (list-cpu-types)
+    vcpu: 4
+    container_disk_gb: 20
+
+gpu_memory:
+  llm: 0.80             # tasarımdaki başlangıç ayarı
+  embedding: 0.08       # BGE-M3, yaklaşık 7,5 GB
+
+paths:
+  hf_home: /models/hf   # ağırlıklar volume'da HF önbelleği olarak durur
+
+postgres:
+  image: pgvector/pgvector:0.8.7-pg18
+  major: 18            # pod içi kurulum da aynı ana sürümü kullanır (PGDG)
+  db: testmentor
+  user: testmentor
+  port: 5432

@@ -1,0 +1,22 @@
+# Etkin motor ve model. Motor ya da model değişimi yalnızca bu dosyada (ya da LLM_ENGINE,
+# LLM_MODEL ortam değişkenlerinde) yapılır; LLMClient kullanan kod değişmez.
+llm:
+  engine: vllm            # çalışma varsayımı (D1)
+  model: qwen3.8-27b      # çalışma varsayımı (D2)
+  base_url: "http://localhost:{port}/v1"   # Runpod'da LLM_BASE_URL ya da infra/.runpod-state.json
+  api_key_env: LLM_API_KEY
+  request_timeout_s: 900
+  connect_timeout_s: 15
+  default_max_tokens: 4096
+  default_temperature: null
+
+embedding:
+  base_url: "http://localhost:8001/v1"
+  model: bge-m3
+  model_version: BAAI/bge-m3            # embedding hash'ine girer
+  batch_size: 32
+  api_key_env: LLM_API_KEY
+  request_timeout_s: 120
+
+database:
+  url_env: DATABASE_URL                 # postgresql://testmentor:...@localhost:5432/testmentor
