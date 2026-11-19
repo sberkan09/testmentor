@@ -120,7 +120,7 @@ Paket 0'da eklendi (19 Kasım 2026).
 - Üretim sunucusu ve yerel çalışma Docker Compose kullanır (`infra/compose.yaml`). Runpod pod'u tek bir konteynerdir ve içinde Compose çalışmaz ([Runpod dokümanı](https://docs.runpod.io/pods/overview)). Bu yüzden ölçüm pod'unda motor, embedding servisi ve Postgres aynı konteynerde ayrı süreçler olarak başlar.
 - İki dağıtım aynı ayar dosyalarından üretilir (`scripts/infra_render.py`): motor komut satırı tek kaynaktan gelir, iki ortam birbirinden kopamaz.
 - Embedding servisi vLLM imajında pooling kipinde çalışır. TEI'nin Blackwell imajı deneysel olarak işaretli, BGE-M3 desteği de belgelenmemiş. SGLang profilinde embedding servisi pod'da başlamaz: embedding motor seçiminden bağımsızdır ve vLLM profilinde ölçülür.
-- US-PA-1'de CPU pod'u yoktur. Bu yüzden ağırlıklar GPU pod'unun kendisiyle indirilir, Postgres de GPU pod'unda çalışır ve verisi volume'da durur.
+- Veri merkezi EU-RO-1'dir. Kartın stokta olduğu US-PA-1 ve US-NC-3 network volume desteklemez (19 Kasım 2026, `list-data-centers`). Ağırlıklar aynı veri merkezindeki ucuz bir CPU pod'uyla volume'a indirilir. Postgres GPU pod'unda ayrı bir süreç olarak çalışır, verisi volume'da durur.
 
 ### Model adayları
 
