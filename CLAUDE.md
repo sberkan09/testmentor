@@ -41,10 +41,16 @@ Gereksinim setinden test durumlarına ve gereksinim-test matrisine giden, yerel 
 
 - Gerçek proje verisi bu depoya ve Runpod'a girmez. Deneyler yalnızca `eval/golden/` altındaki sentetik setle yapılır.
 - Model ağırlıklarını yalnızca modelin resmî kuruluş hesabından indir; benzer adlı depolar vardır.
-- Ücret doğuran bir kaynak oluşturmadan önce saatlik fiyatını yaz. Yeten en ucuz GPU'yu seç.
-- Ağırlıkları kalıcı diskte tut, her oturumda yeniden indirme.
-- İş bitince pod'u durdur. Oturumu kapatmadan önce çalışan kaynak kalmadığını listeleyerek doğrula.
-- Anahtarlar `.env` dosyasında durur ve depoya girmez.
+- Krediyi yalnızca gerektiği kadar harca. Ücret doğuran bir kaynak oluşturmadan önce GPU'yu ve saatlik fiyatını `list-gpu-types` çıktısından yaz; paketin bütçesini aşma.
+- GPU pod'unu yalnızca model yükleme ve ölçüm için aç. Kod ve birim testleri pod kapalıyken yazılır.
+- Kalıcılık network volume ile sağlanır (pod ile aynı veri merkezi, yalnızca Secure Cloud). Durdurulmuş pod'a güvenme: yerel diskli pod yalnızca aynı makinede yeniden başlar ve GPU o arada gidebilir.
+- İş bitince pod'u sil, durdurmakla yetinme. `get-pod` (404) ve `list-pods` ile doğrula; süre çarpı fiyatı raporla.
+- Uzun bir koşudan önce hesap bakiyesini kontrol et. Bakiye sıfırlanınca pod durur ve çalışan iş kaybolur.
+- Hesaptaki başka projelere ait kaynaklara (pod, volume, endpoint) dokunma.
+- Hugging Face anahtarı Runpod Secret olarak durur ve `{{ RUNPOD_SECRET_HF_TOKEN }}` ile verilir. Anahtarı isteme, yazdırma, depoya koyma.
+- Pod'da genel amaçlı komut çalıştıran bir uç nokta açma. Dışarı açılan her uç nokta anahtar korumalı olur. Runpod HTTP vekili yaklaşık 125 saniyede zaman aşımına uğrar; uzun üretimde akış kullan.
+- Her Runpod koşusundan sonra `docs/altyapi.md` içindeki doğrulama defterini güncelle: GPU, imaj etiketi, süre, bellek tepe değeri, maliyet, karşılaşılan tuzaklar.
+- Diğer anahtarlar `.env` dosyasında durur ve depoya girmez.
 
 ## Claude Code ile çalışma
 
