@@ -238,9 +238,7 @@ async def main() -> int:
             if exp.get("quality", True):
                 repeats = args.repeat or int(exp.get("repeat", 1))
                 for rep in range(repeats):
-                    pipe = Pipeline(
-                        client, cache, cfg, examples, clusters=exp.get("clusters", "predicted")
-                    )
+                    pipe = Pipeline(client, cache, cfg, examples)
                     res = await pipe.run(golden)
                     m = layer1(
                         res.outcomes, golden.refs(), res.calls, res.wall_s, cfg["test_method"]

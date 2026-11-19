@@ -20,7 +20,7 @@ from typing import Any
 
 from core.schemas import Requirement
 
-TEMPLATE_VERSION = "t1"
+TEMPLATE_VERSION = "t2"  # t2: test_cases has at least one item
 
 SYSTEM = (
     "You are a senior test engineer working on safety- and mission-critical software. "

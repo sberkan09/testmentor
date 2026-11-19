@@ -51,10 +51,12 @@ def case_set_model(types: tuple[str, ...], priorities: tuple[str, ...]) -> type[
         assumptions=(str, ...),
         steps=(list[Step], Field(min_length=1)),
     )
+    # At least one test: generation is only called for clusters that need tests, and an empty
+    # list let the model skip a cluster entirely (paket 1, D2 first runs).
     return create_model(
         "TestCaseSet",
         __config__=ConfigDict(extra="forbid"),
-        test_cases=(list[test_case], ...),  # type: ignore[valid-type]
+        test_cases=(list[test_case], Field(min_length=1)),  # type: ignore[valid-type]
     )
 
 

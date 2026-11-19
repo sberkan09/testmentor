@@ -157,3 +157,10 @@ def test_layer1_metrics():
     assert m["cluster_ari"] == 1.0
     assert m["calls"]["schema_valid_rate"] == 0.5
     assert m["calls"]["tokens_per_second"] == 30.0
+
+
+def test_empty_test_case_set_rejected():
+    model = case_set_model(TYPES, PRIOS)
+    with pytest.raises(ValidationError):
+        model.model_validate({"test_cases": []})
+    assert model.model_json_schema()["properties"]["test_cases"]["minItems"] == 1
