@@ -9,13 +9,44 @@ models:
     max_num_seqs: 32
     approx_size_gb: 30
     engine_args:
-      vllm: ["--reasoning-parser", "qwen3"]
+      vllm: ["--reasoning-parser", "qwen3", "--language-model-only"]
       sglang: ["--reasoning-parser", "qwen3"]
     thinking_on: {chat_template_kwargs: {enable_thinking: true}}
     thinking_off: {chat_template_kwargs: {enable_thinking: false}}
     notes: >-
       Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık.
       Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek.
+
+  # D4 kolları: aynı model, farklı hassasiyet. Resmî 4 bit depo yok.
+  qwen3.8-27b-bf16:
+    repo_id: Qwen/Qwen3.8-27B          # resmî BF16; gated değil
+    served_name: qwen3.8-27b
+    precision: bf16
+    context_length: 32768
+    max_num_seqs: 32
+    approx_size_gb: 54
+    gpu_memory_utilization: 0.88
+    engine_args:
+      vllm: ["--reasoning-parser", "qwen3", "--language-model-only"]
+      sglang: ["--reasoning-parser", "qwen3"]
+    thinking_on: {chat_template_kwargs: {enable_thinking: true}}
+    thinking_off: {chat_template_kwargs: {enable_thinking: false}}
+
+  qwen3.8-27b-mxfp4:
+    repo_id: Qwen/Qwen3.8-27B          # BF16 ağırlıktan çalışma anında MXFP4 (W4A16, Marlin)
+    served_name: qwen3.8-27b
+    precision: mxfp4-online
+    context_length: 32768
+    max_num_seqs: 32
+    approx_size_gb: 54
+    engine_args:
+      vllm: ["--reasoning-parser", "qwen3", "--language-model-only",
+             "--quantization", "mxfp4", "--linear-backend", "marlin"]
+    thinking_on: {chat_template_kwargs: {enable_thinking: true}}
+    thinking_off: {chat_template_kwargs: {enable_thinking: false}}
+    notes: >-
+      vLLM 0.34'te bitsandbytes çekirdekten çıkarıldı; BF16'dan 4 bit için resmî yol
+      --quantization mxfp4. Qwen3.8 hibrit mimaride denenmemiş (deney).
 
   gemma-4-31b:
     repo_id: google/gemma-4-31B-it     # Google'ın resmî FP8 sürümü yok; BF16 kullanılır
@@ -28,7 +59,7 @@ models:
     # (19 Kasım, vLLM 0.34 hata mesajı). Embedding pratikte 2,1 GB kullandığı için %88 sığar.
     gpu_memory_utilization: 0.88
     engine_args:
-      vllm: ["--reasoning-parser", "gemma4"]
+      vllm: ["--reasoning-parser", "gemma4", "--language-model-only"]
       sglang: []
     thinking_on: {chat_template_kwargs: {enable_thinking: true}}
     thinking_off: {chat_template_kwargs: {enable_thinking: false}}

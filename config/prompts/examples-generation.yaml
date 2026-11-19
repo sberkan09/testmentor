@@ -1,0 +1,36 @@
+# Test üretimi örnekleri (D10: 2–3 örnek). Altın setten bağımsız, sentetik.
+# Altın setten örnek almak referans cevabı sızdırır; bu yüzden ayrı yazıldı.
+requirements:
+  - id: EX-001
+    language: tr
+    text: "Sistem, art arda beş başarısız giriş denemesinden sonra hesabı 15 dakika kilitleyecektir."
+    methods: [Test]
+  - id: EX-002
+    language: en
+    text: "The system shall document its data retention policy in the operator manual."
+    methods: [İnceleme]
+output:
+  test_cases:
+    - id: TC-1
+      title: "Beşinci başarısız denemede hesabın kilitlenmesi"
+      covers: [EX-001]
+      type: Sınır
+      priority: Yüksek
+      preconditions: "Kilitli olmayan bir test hesabı vardır."
+      test_inputs: "Geçerli kullanıcı adı, yanlış parola."
+      assumptions: ""
+      steps:
+        - {"no": 1, action: "Yanlış parolayla dört kez giriş denenir.", expected: "Her denemede hata mesajı gösterilir, hesap açık kalır."}
+        - {"no": 2, action: "Beşinci kez yanlış parolayla giriş denenir.", expected: "Hesabın 15 dakika kilitlendiği bildirilir."}
+        - {"no": 3, action: "Doğru parolayla hemen giriş denenir.", expected: "Giriş reddedilir, kilit süresi gösterilir."}
+    - id: TC-2
+      title: "Kilit süresi dolunca girişin açılması"
+      covers: [EX-001]
+      type: Normal
+      priority: Orta
+      preconditions: "Hesap beş başarısız deneme sonucu kilitlenmiştir."
+      test_inputs: ""
+      assumptions: "Sistem saati ileri alınabilmektedir."
+      steps:
+        - {"no": 1, action: "Sistem saati 15 dakika ileri alınır.", expected: "Hesap durumu açık olarak görünür."}
+        - {"no": 2, action: "Doğru parolayla giriş yapılır.", expected: "Kullanıcı oturum açar."}

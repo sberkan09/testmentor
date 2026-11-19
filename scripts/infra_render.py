@@ -180,7 +180,7 @@ def download_lines(config_dir: Path = ROOT / "config", clean: list[str] | None =
     plan = dict(sorted(plan.items()))
     lines = [
         # Xet chunk cache on the container disk, not on the volume.
-        "export HF_HUB_OFFLINE=0 HF_XET_HIGH_PERFORMANCE=1 HF_XET_CACHE=/tmp/xet-cache",
+        "export HF_HUB_OFFLINE=0 HF_XET_CACHE=/tmp/xet-cache",
     ]
     if clean:
         lines.append('rm -rf "$HF_HOME/xet"')  # old chunk cache from an earlier run, if any

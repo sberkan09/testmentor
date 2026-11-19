@@ -28,7 +28,7 @@ runpod:
   download_pod:
     name: testmentor-p0-download
     image: python:3.12-slim
-    cpu_flavor: cpu3c               # 0,03 USD/vCPU/saat (list-cpu-types)
+    cpu_flavor: cpu3g               # 0,04 USD/vCPU/saat, 4 GB/vCPU (cpu3c 8 GB RAM ile BF16 indirmesinde döngüye girdi)
     vcpu: 4
     container_disk_gb: 20
 
