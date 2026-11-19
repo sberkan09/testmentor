@@ -22,6 +22,7 @@ class JudgeSettings:
     concurrency: int
     api_key_env: str
     cache_dir: str
+    base_url: str = "https://api.anthropic.com"
 
     @classmethod
     def load(cls, config_dir: str | Path = "config") -> JudgeSettings:
@@ -48,7 +49,10 @@ class JudgeClient:
                 raise JudgeUnavailable(
                     f"{settings.api_key_env} tanımlı değil: hakem Claude API anahtarı ister"
                 )
-            client = anthropic.AsyncAnthropic(api_key=os.environ[settings.api_key_env])
+            # base_url is explicit: an inherited ANTHROPIC_BASE_URL must not receive this key.
+            client = anthropic.AsyncAnthropic(
+                api_key=os.environ[settings.api_key_env], base_url=settings.base_url
+            )
         self.client = client
 
     async def judge(self, system: str, user: str, output: type[BaseModel]) -> JudgeReply:

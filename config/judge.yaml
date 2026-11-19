@@ -4,5 +4,6 @@ effort: medium              # sıcaklık bu modelde verilemez; tekrarlanabilirli
 max_tokens: 8000
 rubric_version: r1
 concurrency: 8
-api_key_env: ANTHROPIC_API_KEY
+api_key_env: AF_ANTHROPIC_API_KEY
+base_url: https://api.anthropic.com   # ortamdaki ANTHROPIC_BASE_URL bu oturuma ait; açıkça verilir
 cache_dir: eval/cache/judge

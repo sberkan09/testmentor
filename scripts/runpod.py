@@ -320,6 +320,22 @@ def cmd_wait(rp: Runpod, args: argparse.Namespace) -> int:
     started = pod.get("started_monotonic", pod["created_monotonic_hint"])
     deadline = time.time() + args.timeout
     with httpx.Client(timeout=15, headers={"Authorization": f"Bearer {key}"}) as http:
+        if pod.get("awaiting_restart"):
+            # After a reconfigure the old server may still answer for a moment; wait until it
+            # goes down so that "ready" means the new configuration.
+            down_deadline = time.time() + 180
+            while time.time() < down_deadline:
+                try:
+                    if http.get(url).status_code != 200:
+                        break
+                except httpx.HTTPError:
+                    break
+                time.sleep(3)
+            else:
+                print("uyarı: eski sunucu 180 sn içinde kapanmadı")
+            state = read_state()
+            state["pod"].pop("awaiting_restart", None)
+            write_state(state)
         while time.time() < deadline:
             try:
                 r = http.get(url)
@@ -363,6 +379,7 @@ def cmd_reconfigure(rp: Runpod, args: argparse.Namespace) -> int:
         "llm_port": engine.port,
         "started_monotonic": time.time(),
         "reconfigured_at": now(),
+        "awaiting_restart": True,
     }
     pod.setdefault("reconfigurations", []).append(
         {"at": now(), "engine": engine_key, "model": model_key, "overrides": overrides}
