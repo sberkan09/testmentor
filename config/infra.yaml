@@ -7,7 +7,7 @@ runpod:
   data_center: EU-RO-1
   gpu_type_id: NVIDIA RTX PRO 6000 Blackwell Server Edition
   gpu_hourly_usd: 2.69
-  min_cuda_version: "13.0"              # vLLM 0.34 ve SGLang 0.5.23 imajları CUDA 13
+  min_cuda_version: "13.0"              # imajlar CUDA 13; pod oluştuktan sonra denetlenir
   container_disk_gb: 40
   min_balance_usd: 5.0                  # make up bu bakiyenin altında pod açmaz
   pod_name: testmentor-p0
@@ -20,6 +20,8 @@ runpod:
   # Postgres GPU pod'unda ayrı bir süreç olarak çalışır, verisi volume'da durur
   # (ayrı CPU pod'u ve ağ yapılandırması gerektirmez). Seçenekler: in_gpu_pod | off
   postgres_mode: in_gpu_pod
+  # 5432/tcp genel IP'li makine ister ve stoğu daraltır (19 Kasım: açıkken pod oluşturulamadı).
+  postgres_expose_tcp: false
   # Ağırlıklar aynı veri merkezindeki ucuz CPU pod'uyla indirilir (make download).
   download_pod:
     name: testmentor-p0-download

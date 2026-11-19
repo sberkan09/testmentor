@@ -110,7 +110,7 @@ def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) ->
     ports = [f"{engine.port}/http"]
     if engine_key == "vllm":
         ports.append(f"{emb['port']}/http")
-    if cfg.get("postgres_mode") == "in_gpu_pod":
+    if cfg.get("postgres_mode") == "in_gpu_pod" and cfg.get("postgres_expose_tcp"):
         ports.append(f"{pg_port}/tcp")
     env = {
         "LLM_API_KEY": ensure_env_secret("LLM_API_KEY"),
@@ -123,7 +123,9 @@ def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) ->
         "image": engine.image,
         "cloud": cfg["cloud"],
         "dataCenterIds": [cfg["data_center"]],
-        "gpu": {"id": cfg["gpu_type_id"], "count": 1, "minCudaVersion": cfg["min_cuda_version"]},
+        # minCudaVersion is not sent: with it the API answered "no instances available" while
+        # stock existed (19 Nov 2026). The host CUDA version is checked after creation instead.
+        "gpu": {"id": cfg["gpu_type_id"], "count": 1},
         "disk": cfg["container_disk_gb"],
         "mounts": {"network": [{"volumeId": volume_id, "path": cfg["volume"]["mount_path"]}]},
         "ports": ports,
@@ -198,6 +200,10 @@ def cmd_download_down(rp: Runpod, _: argparse.Namespace) -> int:
     return 0
 
 
+def _version(v: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in v.split("."))
+
+
 def cmd_balance(rp: Runpod, _: argparse.Namespace) -> int:
     print(f"bakiye: {rp.balance():.2f} USD")
     return 0
@@ -257,6 +263,11 @@ def cmd_up(rp: Runpod, args: argparse.Namespace) -> int:
     }
     write_state(state)
     print(f"pod: {pod['id']} durum={pod.get('status')} ücret={pod.get('cost')} USD/saat")
+    cuda = rp.get_pod(pod["id"]).json().get("cudaVersion")
+    if cuda and _version(cuda) < _version(rp.cfg["min_cuda_version"]):
+        print(f"host CUDA {cuda} < {rp.cfg['min_cuda_version']}; pod siliniyor")
+        return cmd_down(rp, args)
+    print(f"host CUDA: {cuda}")
     print(f"LLM: {proxy_url(pod['id'], engine.port)}/v1")
     return 0
 
