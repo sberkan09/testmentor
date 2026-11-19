@@ -132,7 +132,7 @@ def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) ->
     }
 
 
-def download_body(volume_id: str) -> dict[str, Any]:
+def download_body(volume_id: str, clean: list[str] | None = None) -> dict[str, Any]:
     cfg = load_infra()["runpod"]
     d = cfg["download_pod"]
     return {
@@ -144,18 +144,18 @@ def download_body(volume_id: str) -> dict[str, Any]:
         "disk": d["container_disk_gb"],
         "mounts": {"network": [{"volumeId": volume_id, "path": cfg["volume"]["mount_path"]}]},
         "env": {"HF_TOKEN": cfg["hf_token_secret"]},
-        "entrypoint": ["bash", "-c", render_download_script()],
+        "entrypoint": ["bash", "-c", render_download_script(clean=clean)],
     }
 
 
-def cmd_download(rp: Runpod, _: argparse.Namespace) -> int:
+def cmd_download(rp: Runpod, args: argparse.Namespace) -> int:
     state = read_state()
     if state.get("download_pod"):
         raise SystemExit(f"kayıtlı indirme pod'u var: {state['download_pod']['id']}")
     vol = rp.find_volume()
     if vol is None:
         raise SystemExit("network volume yok; önce `make volume`")
-    pod = rp.create_pod(download_body(vol["id"]))
+    pod = rp.create_pod(download_body(vol["id"], args.clean))
     state["download_pod"] = {
         "id": pod["id"],
         "created_at": now(),
@@ -349,7 +349,8 @@ def main() -> int:
     w.add_argument("--timeout", type=float, default=1800)
     sub.add_parser("status")
     sub.add_parser("down")
-    sub.add_parser("download")
+    dl = sub.add_parser("download")
+    dl.add_argument("--clean", action="append", default=[], help="önce silinecek repo önbelleği")
     sub.add_parser("download-down")
     args = ap.parse_args()
     rp = Runpod()

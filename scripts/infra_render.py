@@ -167,26 +167,44 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
     return header + yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=1000)
 
 
-def download_lines(config_dir: Path = ROOT / "config") -> list[str]:
-    """Download every candidate model and the embedding model into the HF cache on the volume."""
+def download_lines(config_dir: Path = ROOT / "config", clean: list[str] | None = None) -> list[str]:
+    """Download every candidate model and the embedding model into the HF cache on the volume.
+
+    `clean` lists repo ids whose cache directory is removed first (one-off repair after a
+    download that pulled files now listed in `download_ignore`).
+    """
     models = load_models(config_dir)
     emb = load_embedding_server(config_dir)
-    repos = sorted({m.repo_id for m in models.values()} | {emb["model"]})
-    return [
-        "export HF_HUB_OFFLINE=0 HF_XET_HIGH_PERFORMANCE=1",
+    plan = {m.repo_id: list(m.download_ignore) for m in models.values()}
+    plan.setdefault(emb["model"], [])
+    plan = dict(sorted(plan.items()))
+    lines = [
+        # Xet chunk cache on the container disk, not on the volume.
+        "export HF_HUB_OFFLINE=0 HF_XET_HIGH_PERFORMANCE=1 HF_XET_CACHE=/tmp/xet-cache",
+    ]
+    if clean:
+        lines.append('rm -rf "$HF_HOME/xet"')  # old chunk cache from an earlier run, if any
+    for repo in sorted(clean or []):
+        lines.append(f'rm -rf "$HF_HOME/hub/models--{repo.replace("/", "--")}"')
+    lines += [
         "python3 - <<'PY'",
         "import os, time",
         "from huggingface_hub import snapshot_download",
-        f"for repo in {repos!r}:",
+        f"plan = {plan!r}",
+        "for repo, ignore in plan.items():",
         "    t = time.time()",
-        "    snapshot_download(repo, token=os.environ.get('HF_TOKEN') or None, max_workers=16)",
+        "    snapshot_download(repo, token=os.environ.get('HF_TOKEN') or None, max_workers=16,",
+        "                      ignore_patterns=ignore or None)",
         "    print(f'[download] {repo} {time.time() - t:.0f}s', flush=True)",
         "PY",
         "du -sh $HF_HOME/hub/* || true",
     ]
+    return lines
 
 
-def render_download_script(config_dir: Path = ROOT / "config") -> str:
+def render_download_script(
+    config_dir: Path = ROOT / "config", clean: list[str] | None = None
+) -> str:
     """Entrypoint of the CPU download pod: fetch weights, report, then idle until deleted."""
     infra = load_infra(config_dir)
     hf_home = infra["paths"]["hf_home"]
@@ -197,7 +215,9 @@ def render_download_script(config_dir: Path = ROOT / "config") -> str:
         f"mkdir -p {hf_home}",
         "pip install -q --root-user-action=ignore 'huggingface_hub[hf_xet]'",
         'echo "[download] start $(date -u +%FT%TZ)"',
-        *download_lines(config_dir),
+        # A failure must not end the container: Runpod would restart it and loop the download.
+        "trap 'echo \"[download] FAILED $(date -u +%FT%TZ)\"; df -h $HF_HOME || true; sleep infinity' ERR",
+        *download_lines(config_dir, clean),
         "df -h $HF_HOME || true",
         'echo "[download] DONE $(date -u +%FT%TZ)"',
         "sleep infinity",

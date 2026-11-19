@@ -40,6 +40,8 @@ models:
     context_length: 32768
     max_num_seqs: 16
     approx_size_gb: 65
+    # Depoda aynı ağırlıkların iki kopyası daha var (original/, metal/; her biri 65 GB).
+    download_ignore: ["original/*", "metal/*"]
     engine_args:
       vllm: ["--kv-cache-dtype", "fp8"]
       sglang: ["--reasoning-parser", "gpt-oss"]
