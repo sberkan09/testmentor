@@ -38,7 +38,9 @@ async def main(runs: list[str]) -> None:
             for rubric in ("r1", "r2"):
                 text = RUBRICS[rubric]
 
-                async def one(rid: str, text=text, rubric=rubric) -> tuple[str, list[bool]]:
+                async def one(
+                    rid: str, text=text, rubric=rubric, projects=projects
+                ) -> tuple[str, list[bool]]:
                     proj = projects[rid.split("-")[0]]
                     tests = [t for t in proj["test_cases"] if rid in t["covers"]]
                     user = judge_prompt(raw[rid], checks[rid], tests)
