@@ -2,7 +2,7 @@
  {
   "clause": "3.5.3.4",
   "stratum": "core",
-  "text": "The OBU shall establish a communication session in each of the trigger situations defined in SUBSET-026 §3.5.3.4, among them Start of Mission, an order from trackside, a mode change to be reported to the RBC, a manual level change to Level 2, the engine rear end leaving an announced radio hole and loss of the safe radio connection, observing the Level 2 restrictions stated there for individual triggers.",
+  "text": "The OBU shall establish a communication session in each of the trigger situations defined in SUBSET-026 §3.5.3.4, among them Start of Mission, an order from trackside, a mode change to be reported to the RBC, a manual level change to Level 2, the engine rear end reaching the end of an announced radio hole, the previous session being considered terminated after loss of the safe radio connection, and the driver manually selecting RBC contact information outside Start of Mission, observing the level restrictions stated there for individual triggers.",
   "clauses": [
    "3.5.3.4"
   ],
@@ -384,7 +384,7 @@
  {
   "clause": "3.10.3.2",
   "stratum": "core",
-  "text": "The OBU shall acknowledge each received revocation of an emergency message according to the general acknowledgement procedure of SUBSET-026 §3.16.3.5.",
+  "text": "The OBU shall acknowledge revocations of emergency messages according to the general acknowledgement procedure of SUBSET-026 §3.16.3.5.",
   "clauses": [
    "3.10.3.2"
   ],
@@ -865,7 +865,7 @@
  {
   "clause": "3.6.3.2.3",
   "stratum": "core",
-  "text": "The OBU shall interpret received location data according to the general structure of SUBSET-026 Figure 12: each distance is an unsigned increment from the preceding value, the first distance takes over previously received data, and each value may stand for a single value or a data set.",
+  "text": "The OBU shall interpret received location data according to SUBSET-026 Figure 12: distances are unsigned increments between consecutive values, over the first distance the previously received data remain in use, and each value may represent a single value or a set of data.",
   "clauses": [
    "3.6.3.2.3"
   ],
@@ -1045,7 +1045,7 @@
  {
   "clause": "3.11.11.11",
   "stratum": "control",
-  "text": "In its initial state, before any speed restriction to ensure permitted braking distance has been computed from permitted braking distance data received from trackside, the OBU shall consider that no such speed restriction applies, so that no permitted-braking-distance limit constrains the train speed (SUBSET-026 §3.11.11.11).",
+  "text": "The OBU shall use \"no speed restriction\" as the initial state for speed restrictions to ensure permitted braking distance: before any such restriction has been computed from data received from trackside, and whenever trackside orders the initial state to be resumed, no permitted-braking-distance limit shall constrain the train speed (SUBSET-026 §3.11.11.11, §3.7.3.2 a)).",
   "clauses": [
    "3.11.11.11"
   ],

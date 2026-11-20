@@ -1908,7 +1908,7 @@
   "ref": "AC-7",
   "language": "tr",
   "stratum": "control",
-  "text": "Portal, vatandaş ve şirket temsilcisi hesaplarında aynı kullanıcı 15 dakika içinde 10 ardışık geçersiz giriş denemesi yaptığında hesabı kilitlemek yerine sonraki giriş istemini otomatik olarak geciktirmelidir. Gecikme ilk aşımda 1 dakika olmalı, sonraki her başarısız denemede iki katına çıkmalı ve 60 dakikayı aşmamalıdır; gecikme süresince giriş denemesi kabul edilmemelidir. (NIST SP 800-53 AC-7)",
+  "text": "Portal, şirket temsilcisi hesaplarında (vatandaşlar e-Devlet Kapısı'nda doğrulandığı için yalnızca VBP'nin doğruladığı yerel hesaplarda) aynı kullanıcı 15 dakika içinde 10 ardışık geçersiz giriş denemesi yaptığında hesabı kilitlemek yerine sonraki giriş istemini otomatik olarak geciktirmelidir. Gecikme ilk aşımda 1 dakika olmalı, sonraki her başarısız denemede iki katına çıkmalı ve 60 dakikayı aşmamalıdır; gecikme süresince giriş denemesi kabul edilmemelidir. (NIST SP 800-53 AC-7)",
   "source": {
    "doc": "NIST-SP-800-53r5",
    "section": "AC-7"
