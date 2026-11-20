@@ -233,7 +233,78 @@
    ],
    "method_rationale": "800-63-4 uygunluk kriteri AUPSTN-2 yöntemleri: TEST.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "An active company representative account at AAL2 with SMS bound as a second factor to a verified test telephone number, a second test telephone number to change to, and access to the representative's registered e-mail inbox.",
+   "reference_checks": [
+    {
+     "action": "As a company representative whose last full authentication is older than 5 minutes, try to set or change the pre-registered telephone number for SMS codes.",
+     "expected": "VBP requires a fresh AAL2 authentication (password and second factor) before it accepts the new number.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "AUPSTN-2",
+      "text": "Test by changing pre-registered telephone number and verify that requirements BAA-2 and BAA-3 are satisfied."
+     },
+     "passages": [
+      "KDH-009-P1",
+      "KDH-009-P2",
+      "KDH-009-P3",
+      "KDH-009-P5"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Complete a change of the pre-registered telephone number.",
+     "expected": "VBP notifies the representative of the change through a channel independent of the change transaction (e-mail to the registered addresses), not only via the new number.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "AUPSTN-2",
+      "text": "Test by changing pre-registered telephone number and verify that requirements BAA-2 and BAA-3 are satisfied."
+     },
+     "passages": [
+      "KDH-009-P1",
+      "KDH-009-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-009-P1",
+     "doc": "NIST-SP-800-63B-4",
+     "section": "4.1.2.1",
+     "text": "Accordingly, CSPs SHALL permit the binding of multiple authenticators to a subscriber\naccount. When any new authenticator is bound to a subscriber account, the CSP SHALL\nensure that the process requires authentication at either the maximum AAL currently\navailable in the subscriber account or the maximum AAL at which the new authenticator\nwill be used, whichever is lower. For example, binding an authenticator that is suitable\nfor use at AAL2 requires authentication at AAL2 unless the subscriber account currently\nhas only AAL1 authentication capabilities. When an authenticator is added, the CSP\nSHALL notify the subscriber via a mechanism independent of the transaction binding\nthe new authenticator, as described in Sec. 4.6."
+    },
+    {
+     "id": "KDH-009-P2",
+     "doc": "NIST-SP-800-63B-4",
+     "section": "3.1.3.3",
+     "text": "Use of the PSTN for out-of-band verification is restricted as described in this section and\nSHALL satisfy the requirements of Sec. 3.2.9. Setting or changing the pre-registered\ntelephone number is considered to be the binding of a new authenticator and SHALL\nonly occur as described in Sec. 4.1.2."
+    },
+    {
+     "id": "KDH-009-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§5.4",
+     "text": "Şu işlemler son 5 dakika içinde tam kimlik doğrulama gerektirir (IA-11; Rehber 3.2.1.10; ASVS V7.5.1, V7.5.3): e-posta, telefon ve doğrulayıcı ayarı değişikliği; kurtarma kodu yenileme; yeni temsilci yetkilendirme; iade için IBAN bildirme; arka ofiste karar onayı, iade onayı ve toplu dışa aktarım."
+    },
+    {
+     "id": "KDH-009-P4",
+     "doc": "VBP-YTB-001",
+     "section": "§4.8",
+     "text": "Doğrulayıcı bağlama ya da kaldırma, kurtarma, kurtarma kodu yenileme, e-posta ya da telefon değişikliği ve olağan dışı konumdan giriş, kayıtlı tüm adreslere anında bildirilir (800-63B-4 §4.2.3, §4.6; ASVS V6.3.5, V6.3.7)."
+    },
+    {
+     "id": "KDH-009-P5",
+     "doc": "VBP-YTB-001",
+     "section": "§4.6",
+     "text": "Numara değişikliği yeni doğrulayıcı bağlama sayılır (§3.1.3.3)."
+    }
+   ],
+   "needs_documents": true,
+   "reference_note": "Kept the single TEST procedure as 2 checks; nothing dropped. The block refers to 'BAA-2 and BAA-3' but neither the block nor the corpus contains their text; the expected results are grounded on the two SHALLs of NIST SP 800-63B-4 §4.1.2.1 (authentication at the applicable maximum AAL; notification through an independent mechanism), which the requirement cites via §4.1.2, and it is assumed these are BAA-2 and BAA-3. The 5-minute freshness and the 'all registered addresses' notification come from VBP-YTB-001 §5.4 and §4.8. uncovered: none."
   },
   {
    "id": "KDH-010",
@@ -386,7 +457,42 @@
    ],
    "method_rationale": "800-63-4 uygunluk kriteri FAL1-5 yöntemleri: EXAMINE, TEST.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "A test citizen identity at the e-Devlet test IdP and a tool (intercepting proxy) to capture and resubmit the federation response after a successful sign-in.",
+   "reference_checks": [
+    {
+     "action": "After a successful e-Devlet sign-in, present the same, previously accepted assertion to VBP again while it is still within its validity window.",
+     "expected": "VBP rejects the replayed assertion and creates no new session.",
+     "channel_note": "OIDC: capture and resubmit the same callback (authorization code and state) or the same ID token; replay within the 5-minute validity window (VBP-YTB-001 §4.2) so that a rejection is not just expiry.",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "FAL1-5",
+      "text": "Test the RP configuration by replaying a previously accepted, valid assertion. Confirm rejection."
+     },
+     "passages": [
+      "KDH-015-P1",
+      "KDH-015-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-015-P1",
+     "doc": "NIST-SP-800-63C-4",
+     "section": "2.2",
+     "text": "At FAL1, the assertion SHALL be audience-restricted to a specific RP or set of RPs, and\nthe RP SHALL validate that it is one of the targeted RPs for the given assertion. Each RP\nin the audience SHALL enforce replay protection mechanisms in the assertion to ensure\nthat the same assertion is not accepted by a given RP multiple times. An assertion with\nmultiple audiences could be accepted by multiple RPs but only once by each RP."
+    },
+    {
+     "id": "KDH-015-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§4.2",
+     "text": "- Kimlik belirtecinin imzası, hedef kitlesi ve tek kullanımı doğrulanır (63C §2.2, §2.3; ASVS V6.8.2, V10.5.4). Geçerlilik penceresi en çok 5 dakika, saat kayması toleransı 60 saniyedir."
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "Kept the TEST procedure; dropped 2 EXAMINE methods (rule 2); the guidance paragraph is not a procedure. uncovered: none."
   },
   {
    "id": "KDH-016",
@@ -412,7 +518,49 @@
    ],
    "method_rationale": "800-63-4 uygunluk kriteri FAL2-2 yöntemleri: EXAMINE, TEST.",
    "difficulty": "Orta",
-   "note": "IdP tarafından başlatılan (istenmemiş) yanıtın kabul edilmemesi gözlemlenebilir davranıştır."
+   "note": "IdP tarafından başlatılan (istenmemiş) yanıtın kabul edilmemesi gözlemlenebilir davranıştır.",
+   "reference_preconditions": "A test citizen identity at the e-Devlet test IdP with which a valid assertion can be obtained, and the ability to send requests to VBP's federation endpoint outside a VBP-initiated login.",
+   "reference_checks": [
+    {
+     "action": "Deliver an otherwise well-formed e-Devlet assertion directly to VBP's federation endpoint without the transaction having been initiated at VBP.",
+     "expected": "VBP rejects the assertion and no session is established.",
+     "channel_note": "OIDC: call VBP's redirect (callback) URI with an authorization code or ID token for which VBP issued no state/nonce/PKCE request in this browser session; needs the e-Devlet test IdP.",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "FAL2-2",
+      "text": "Test the RP flow by delivering an assertion directly to the RP's federation endpoint without initiating the transaction at the RP. Confirm the RP rejects it."
+     },
+     "passages": [
+      "KDH-016-P1",
+      "KDH-016-P2",
+      "KDH-016-P3"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-016-P1",
+     "doc": "NIST-SP-800-63C-4",
+     "section": "2.3",
+     "text": "At FAL2, the assertion SHALL be strongly protected from assertion injection attacks, as\ndiscussed in Sec. 3.11.1. The federation transaction SHALL be initiated by the RP."
+    },
+    {
+     "id": "KDH-016-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§4.2",
+     "text": "- İşlemi her zaman VBP başlatır; `state`, `nonce` ve PKCE her istekte üretilip tarayıcı oturumuna bağlanır (63C §2.3; ASVS V10.1.2, V10.2.1, V10.5.1)."
+    },
+    {
+     "id": "KDH-016-P3",
+     "doc": "NIST-SP-800-63C-4",
+     "section": "4.10",
+     "text": "When federation transactions are initiated by the IdP (at FAL1), these requirements do\nnot apply. Federation transactions are always initiated by the RP at FAL2 or higher."
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "Kept the TEST procedure; dropped 1 EXAMINE method (rule 2); the guidance paragraph (including the allowed case where the IdP only signals the RP to start) is not a procedure. uncovered: none."
   },
   {
    "id": "KDH-017",
@@ -438,7 +586,57 @@
    ],
    "method_rationale": "800-63-4 uygunluk kriteri FRAUD-5 yöntemleri: EXAMINE, TEST.",
    "difficulty": "Zor",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "A synthetic company representative applicant and synthetic authoritative records (MNKS identity, TSBS company and representation authority) in the test environment, so that self-asserted attributes can be made to match or mismatch on purpose; access to the representative proofing and enrolment flow.",
+   "reference_checks": [
+    {
+     "action": "In the company representative proofing and enrolment flow, submit self-asserted attributes of which exactly one does not match the authoritative or credible source record.",
+     "expected": "The failure response does not reveal which attribute failed to match (no field-level mismatch message or highlighting).",
+     "channel_note": "In VBP the authoritative sources are MNKS (identity) and TSBS (company and representation authority); prepare synthetic records in their test doubles.",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "FRAUD-5",
+      "text": "Test by initiating an identity proofing session and self-asserting attributes. Confirm that no information is revealed that can aid in determining the accuracy of submitted attributes."
+     },
+     "passages": [
+      "KDH-017-P1",
+      "KDH-017-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Repeat unsuccessful submissions with different mismatch patterns (one attribute wrong versus all attributes wrong) and compare the responses.",
+     "expected": "The responses are indistinguishable from each other (same message and status, no attribute-dependent difference).",
+     "channel_note": "Compare message text, HTTP status, response size and timing with an intercepting proxy.",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "FRAUD-5",
+      "text": "Test by initiating an identity proofing session and self-asserting attributes. Confirm that no information is revealed that can aid in determining the accuracy of submitted attributes."
+     },
+     "passages": [
+      "KDH-017-P1"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-017-P1",
+     "doc": "NIST-SP-800-63A-4",
+     "section": "3.2.1 #5",
+     "text": "5. The CSP SHALL take measures to prevent unsuccessful applicants from inferring\nthe accuracy of any self-asserted information with that confirmed by authoritative\nor credible sources."
+    },
+    {
+     "id": "KDH-017-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§4.3",
+     "text": "Yerel hesap, e-Devlet kimlik bilgisi olmayan yabancı uyruklu temsilciler ve birden çok şirket adına işlem yapan vekil müşavirler için gereklidir. Kimlik bir kez kanıtlanır: Türk vatandaşı temsilci e-Devlet federasyonuyla, yabancı uyruklu temsilci il müdürlüğünde yüz yüze (IAL2, 800-63A-4 §4.2). Şirket adına yetki, Ticaret Sicil Bilgi Servisi (TSBS) sorgusu ve personelin yetki belgesi incelemesiyle doğrulanır; yılda bir ve TSBS'de değişiklik görüldüğünde yenilenir."
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "Kept the TEST procedure; dropped 1 EXAMINE method (rule 2); the guidance paragraph is not a procedure. Rule 10 design gap: VBP-YTB-001 §4.3 does not say which attributes a representative self-asserts or what a failed validation shows. Turkish representatives are proofed through e-Devlet and foreign ones in person, so the remote self-assertion surface is mainly the TSBS company/authority check; the checks are written at the requirement's level and do not assume a specific screen. uncovered: none."
   },
   {
    "id": "KDH-018",
@@ -641,7 +839,66 @@
    ],
    "method_rationale": "800-63-4 uygunluk kriteri PASSAUTH-3 yöntemleri: TEST.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "A company representative account at the activation step (activation link received) and an active representative account that can change its password; candidate passwords long enough for the length rule and not on the blocklist.",
+   "reference_checks": [
+    {
+     "action": "During representative account activation, set a password that satisfies the length rule and is not on the blocklist but consists only of lowercase letters.",
+     "expected": "The password is accepted.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "PASSAUTH-3",
+      "text": "Test by attempting to create an unusual password that does not meet usual composition requirements (e.g., all lower case letters) and determine that it is accepted."
+     },
+     "passages": [
+      "KDH-025-P1",
+      "KDH-025-P2",
+      "KDH-025-P3"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Change an existing representative password to one that satisfies the length rule and is not on the blocklist but contains only digits.",
+     "expected": "The new password is accepted.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "PASSAUTH-3",
+      "text": "Test by attempting to create an unusual password that does not meet usual composition requirements (e.g., all lower case letters) and determine that it is accepted."
+     },
+     "passages": [
+      "KDH-025-P1",
+      "KDH-025-P2",
+      "KDH-025-P3"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-025-P1",
+     "doc": "NIST-SP-800-63B-4",
+     "section": "3.1.1.1",
+     "text": "Passwords SHALL either be chosen by the subscriber or assigned randomly by the CSP.\nIf the CSP disallows a chosen password because it is on a blocklist of commonly used,\nexpected, or compromised values (see Sec. 3.1.1.2), the subscriber SHALL be required to\nchoose a different password. Other composition requirements for passwords SHALL NOT\nbe imposed."
+    },
+    {
+     "id": "KDH-025-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§4.5",
+     "text": "- **Bileşim kuralı yoktur** (§3.1.1.2(5); ASVS V6.2.5). IA-5(1)(h) değeri: \"en kısa uzunluk dışında kural yok\"."
+    },
+    {
+     "id": "KDH-025-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| Parola en kısa uzunluğu | 15 karakter (Unicode kod noktası) | 800-63B-4 §3.1.1.2(1); ASVS V6.2.1 | Ç-1 |"
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "Kept the single TEST procedure as 2 checks (set at activation, change); nothing dropped. The minimum length (15 characters, VBP-YTB-001 §14) helps pick test passwords but is not needed to write the checks. uncovered: none."
   },
   {
    "id": "KDH-026",
@@ -1250,7 +1507,35 @@
    ],
    "method_rationale": "800-63-4 uygunluk kriteri SUB-9 yöntemleri: EXAMINE, TEST.",
    "difficulty": "Kolay",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "An active company representative account (AAL2, password and second factor) with which the tester can sign in.",
+   "reference_checks": [
+    {
+     "action": "Signed in as a company representative, use VBP's function to report unauthorized access to, or potential compromise of, information in the account.",
+     "expected": "VBP accepts the report and confirms its receipt to the representative.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-800-63-4-CC",
+      "ref": "SUB-9",
+      "text": "Confirm that the CSP provides a mechanism for subscribers to report suspected or confirmed incidents of fraud associated with their accounts. … Test this capability."
+     },
+     "passages": [
+      "KDH-049-P1"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-049-P1",
+     "doc": "NIST-SP-800-63A-4",
+     "section": "5.3",
+     "text": "The CSP SHALL provide the capability for the subscriber to report any unauthorized\naccess or potential compromise to information in their subscriber account."
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "Kept the TEST procedure ('Test this capability'); dropped 1 EXAMINE method (rule 2). Rule 10 design gap: none of VBP-KIB-001, VBP-YTB-001 or VBP-PYP-001 describes a channel for representatives to report unauthorized access or account compromise (only staff reporting to SOME, notifications and the 'Oturumlarım' page exist), so the check names no screen and has no VBP passage. uncovered: none."
   },
   {
    "id": "KDH-050",
@@ -1425,7 +1710,69 @@
    ],
    "method_rationale": "ASVS'de test prosedürü yok; davranış çalıştırılarak doğrulanır: Test.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "A Help Desk staff account (Yardım Masası Uzmanı role, KKS with FIDO2 key, AAL3) and an active company representative account with a registered e-mail address the tester can read.",
+   "reference_checks": [
+    {
+     "action": "A Help Desk staff member initiates the password reset process for a company representative from the back office.",
+     "expected": "The reset process starts and the reset instructions are sent to the representative.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-056-P1",
+      "KDH-056-P2",
+      "KDH-056-P3"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "The Help Desk staff member reviews the functions offered for the representative's account in the back office.",
+     "expected": "No function lets the staff member enter, choose or change the representative's password.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-056-P1",
+      "KDH-056-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "The Help Desk staff member sends a request that sets a password for the representative directly to the server, bypassing the user interface.",
+     "expected": "The request is refused as unauthorised and the representative's password is unchanged.",
+     "channel_note": "Replay a password-set request (e.g. from the representative's own change-password flow) with the Help Desk session in an intercepting proxy.",
+     "basis": null,
+     "passages": [
+      "KDH-056-P1",
+      "KDH-056-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-056-P1",
+     "doc": "OWASP-ASVS-5.0.0",
+     "section": "V6.4.6",
+     "text": "V6,Authentication,V6.4,Authentication Factor Lifecycle and Recovery,V6.4.6,\"Verify that administrative users can initiate the password reset process for the user, but that this does not allow them to change or choose the user's password. This prevents a situation where they know the user's password.\",3"
+    },
+    {
+     "id": "KDH-056-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§4.8",
+     "text": "Yardım masası sıfırlamayı başlatabilir, parolayı göremez ve belirleyemez (ASVS V6.4.6)."
+    },
+    {
+     "id": "KDH-056-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§6",
+     "text": "| Yardım Masası Uzmanı | Durum görüntüleme, kurtarma başlatma | Kişisel veri maskeli; belge içeriği yok |"
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "System-specific requirement (reference_origin claude): 3 checks from ASVS V6.4.6 and VBP-YTB-001 §4.8/§6. Rule 10: VBP-YTB-001 §4.8 handles representative password reset as account recovery and §6 lists 'kurtarma başlatma' for the Help Desk, but neither says what the Help Desk initiation sends to the representative; the first check is therefore written without a specific channel."
   },
   {
    "id": "KDH-057",
@@ -1475,7 +1822,85 @@
    ],
    "method_rationale": "ASVS'de test prosedürü yok; davranış çalıştırılarak doğrulanır: Test.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "An active company representative account (AAL2) that can sign in from two browsers, a way to capture and replay the session cookie, and a clock or accelerated test time for the 30-minute and 12-hour limits.",
+   "reference_checks": [
+    {
+     "action": "Sign out as a company representative, then send a request to a protected page with the session cookie captured before sign-out.",
+     "expected": "The request is rejected as unauthenticated and no account data is returned.",
+     "channel_note": "Replay the captured __Host-vbp_sid value with an intercepting proxy or curl.",
+     "basis": null,
+     "passages": [
+      "KDH-058-P1",
+      "KDH-058-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Keep an AAL2 representative session active until its 12-hour total lifetime ends, then send a request with the old session cookie.",
+     "expected": "The request is rejected as unauthenticated and a full sign-in is required.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-058-P2",
+      "KDH-058-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Leave an AAL2 representative session idle for 30 minutes, then use the old session cookie to perform an operation (e.g. open an application).",
+     "expected": "The operation is refused; only re-authentication with the password is offered.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-058-P3",
+      "KDH-058-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "With two active sessions, change the password in one and choose to end the other sessions, then send a request with the other session's cookie.",
+     "expected": "The request is rejected as unauthenticated.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-058-P2"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-058-P1",
+     "doc": "OWASP-ASVS-5.0.0",
+     "section": "V7.4.1",
+     "text": "V7,Session Management,V7.4,Session Termination,V7.4.1,\"Verify that when session termination is triggered (such as logout or expiration), the application disallows any further use of the session. For reference tokens or stateful sessions, this means invalidating the session data at the application backend. Applications using self-contained tokens will need a solution such as maintaining a list of terminated tokens, disallowing tokens produced before a per-user date and time or rotating a per-user signing key.\",1"
+    },
+    {
+     "id": "KDH-058-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§5.2",
+     "text": "- **Sonlandırma (AC-12):** hareketsizlik dolunca kimliği doğrulanmış durum biter ve işlem yapılamaz; AAL2'de oturum sırrı yalnızca parola ile yeniden doğrulama için toplam süre sonuna kadar sunucuda tutulur, AAL3'te hemen silinir. Oturum tamamen; toplam süre dolduğunda, çıkışta, parola ya da doğrulayıcı değiştiğinde (diğer oturumlar için kullanıcı tercihiyle), rol ya da yetki değiştiğinde, hesap devre dışı bırakıldığında veya silindiğinde, yönetici sonlandırdığında ve oturum izleme dolandırıcılık göstergesi saptadığında biter (Rehber 3.2.2.3; ASVS V7.4.1, V7.4.2, V7.4.5; 800-63B-4 §5.3). Sunucu kaydı silinir, `Clear-Site-Data` gönderilir (ASVS V14.3.1). Her korumalı sayfada çıkış bağlantısı vardır (AC-12(1))."
+    },
+    {
+     "id": "KDH-058-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| AAL2 hareketsizlik zaman aşımı | 30 dakika; 25. dakikada uyarı | 800-63B-4 §2.2.3 (≤1 sa); AC-12 | Paylaşılan bilgisayarlar |\n| AAL2 toplam oturum süresi | 12 saat | 800-63B-4 §2.2.3 (≤24 sa); AC-12 | Bir iş günü |"
+    },
+    {
+     "id": "KDH-058-P4",
+     "doc": "VBP-YTB-001",
+     "section": "§5.2",
+     "text": "- **AAL2 (vatandaş, temsilci):** hareketsizlik 30 dakika, toplam 12 saat. NIST üst önerisi 1 saat ve 24 saattir (§2.2.3); daha kısa süreler, portalın belediye hizmet noktaları ve internet kafeler gibi paylaşılan bilgisayarlardan kullanılmasından kaynaklanır. Hareketsizlik dolup toplam süre dolmadıysa temsilci oturum sırrıyla birlikte yalnızca parolasını girerek devam eder (§2.2.3); vatandaş için e-Devlet'ten taze doğrulama istenir."
+    }
+   ],
+   "needs_documents": true,
+   "reference_note": "System-specific requirement (reference_origin claude): 4 checks from ASVS V7.4.1 and VBP-YTB-001 §5.2/§14. Rule 10: VBP-YTB-001 §5.2 keeps the AAL2 session secret on the server after the inactivity timeout until the total lifetime ends (for password-only re-authentication), which is weaker than 'invalidating the session data at the backend' for that trigger; check 3 therefore expects 'no operation without re-authentication', not full invalidation. Ending other sessions after a password change is a user choice in the design."
   },
   {
    "id": "KDH-059",
@@ -1579,7 +2004,50 @@
    ],
    "method_rationale": "Başarı ölçütü onaylı ACT kurallarıyla test edilir: Test.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "Portalda görünür veri tabloları içeren sayfalara (ör. başvuru listesi, harç tarifesi) erişim; DOM incelemesi ya da ACT uyumlu bir değerlendirme aracı.",
+   "reference_checks": [
+    {
+     "action": "Portaldaki veri tablolarında headers özniteliği taşıyan hücreler incelenir.",
+     "expected": "Her headers değerindeki her kimlik aynı tablodaki bir hücrenin id değeridir.",
+     "channel_note": "DOM incelemesiyle ya da ACT uyumlu otomatik araçla; yalnızca görünür ve erişilebilirlik ağacında table/grid/treegrid rolü taşıyan tablolar.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT a25f45",
+      "text": "This rule applies to any `headers` attribute specified on a [`cell`][] within a [`table`][] element … Each token is the value of the `id` attribute of an element, that is a [`cell`][] of the same [`table`][]."
+     },
+     "passages": [
+      "KDH-062-P1"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": true
+    },
+    {
+     "action": "Aynı hücreler, headers değerinin hücrenin kendi id değerini içerip içermediği yönünden incelenir.",
+     "expected": "Hiçbir hücrenin headers değeri o hücrenin kendi id değerini içermez.",
+     "channel_note": "DOM incelemesiyle ya da ACT uyumlu otomatik araçla; yalnızca görünür ve erişilebilirlik ağacında table/grid/treegrid rolü taşıyan tablolar.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT a25f45",
+      "text": "This rule applies to any `headers` attribute specified on a [`cell`][] within a [`table`][] element … and none of these tokens is the `id` of the element on which the test target is specified."
+     },
+     "passages": [
+      "KDH-062-P1"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": true
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-062-P1",
+     "doc": "W3C-WCAG-2.2",
+     "section": "1.3.1",
+     "text": "Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text."
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "Tek ACT kuralı (a25f45) iki beklentisiyle 2 denetim oldu; düşürülen yok. Kural yalnızca headers özniteliğini denetler ve VBP tabloları headers kullanmıyorsa uygulanamaz; VBP belgeleri tablo yapısını tanımlamaz. headers/id ayrıntısı corpus/text içinde yok (not_in_corpus). uncovered: başvuru formlarında etiket-alan ve gruplama ilişkileri; başlıklar; listeler; headers özniteliği dışındaki tablo yapısı ve ilişkileri (th/scope, başlık); metin olarak sunma seçeneği (ACT a25f45 yalnızca headers özniteliğini denetler)."
   },
   {
    "id": "KDH-063",
@@ -1941,7 +2409,120 @@
    ],
    "method_rationale": "Başarı ölçütü onaylı ACT kurallarıyla test edilir: Test.",
    "difficulty": "Zor",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "Portalın vatandaş ve temsilci sayfalarına (giriş öncesi ve sonrası, başvuru formları dahil) erişim; tarayıcı erişilebilirlik ağacı denetçisi ya da ACT uyumlu bir değerlendirme aracı.",
+   "reference_checks": [
+    {
+     "action": "Portal sayfalarındaki form alanları (metin kutusu, arama kutusu, onay kutusu, radyo düğmesi, açılır liste, kaydırıcı, sayı kutusu, anahtar) erişilebilirlik ağacında incelenir.",
+     "expected": "Her form alanının boş olmayan bir erişilebilir adı vardır.",
+     "channel_note": "Tarayıcının erişilebilirlik ağacı denetçisi ya da ACT uyumlu otomatik araçla; ekran okuyucuyla doğrulama isteğe bağlıdır.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT e086e5",
+      "text": "This rule applies to any element that is [included in the accessibility tree](#included-in-the-accessibility-tree), and that has one of the following [semantic roles][]: `checkbox`, `combobox` (`select` elements), `listbox`, `menuitemcheckbox`, `menuitemradio`, `radio`, `searchbox`, `slider`, `spinbutton`, `switch`, `textbox`. … Each target element has an [accessible name][] that is not empty (`\"\"`)."
+     },
+     "passages": [
+      "KDH-076-P1",
+      "KDH-076-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Portal sayfalarındaki bağlantılar erişilebilirlik ağacında incelenir.",
+     "expected": "Her bağlantının boş olmayan bir erişilebilir adı vardır.",
+     "channel_note": "Tarayıcının erişilebilirlik ağacı denetçisi ya da ACT uyumlu otomatik araçla; ekran okuyucuyla doğrulama isteğe bağlıdır.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT c487ae",
+      "text": "This rule applies to any [HTML element][] that is an [inheriting semantic][] `link` [included in the accessibility tree][]. … Each target element has an [accessible name][] that is not empty (`\"\"`)."
+     },
+     "passages": [
+      "KDH-076-P1",
+      "KDH-076-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Düğme ve menü öğesi rolündeki öğeler (resim düğmeleri hariç) erişilebilirlik ağacında incelenir.",
+     "expected": "Her birinin boş olmayan bir erişilebilir adı vardır.",
+     "channel_note": "merged: ACT m6b1q3. Tarayıcının erişilebilirlik ağacı denetçisi ya da ACT uyumlu otomatik araçla; ekran okuyucuyla doğrulama isteğe bağlıdır.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT 97a4e1",
+      "text": "This rule applies to elements that are [included in the accessibility tree][] and have a [semantic role](#semantic-role) of `button`, except for `input` elements with a `type` [attribute value] of `image`. … Each target element has an [accessible name][] that is not empty (`\"\"`)."
+     },
+     "passages": [
+      "KDH-076-P1",
+      "KDH-076-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Resim düğmeleri (type=\"image\" olan input öğeleri) erişilebilirlik ağacında incelenir.",
+     "expected": "Her resim düğmesinin boş olmayan ve tarayıcının varsayılan adı (\"Submit Query\" ya da yerelleştirilmiş karşılığı) olmayan bir erişilebilir adı vardır.",
+     "channel_note": "Tarayıcının erişilebilirlik ağacı denetçisi ya da ACT uyumlu otomatik araçla; ekran okuyucuyla doğrulama isteğe bağlıdır.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT 59796f",
+      "text": "This rule applies to any `input` element with a `type` [attribute value][] of `image`, and that is [included in the accessibility tree][]. … Each target element has an [accessible name][] that is neither empty (`\"\"`), nor the default name for this element (localized version of \"Submit Query\")."
+     },
+     "passages": [
+      "KDH-076-P1"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": true
+    },
+    {
+     "action": "details öğesini açıp kapatan summary öğeleri erişilebilirlik ağacında incelenir.",
+     "expected": "Her summary öğesinin boş olmayan ve yalnızca işaretçinin (::marker) adından oluşmayan bir erişilebilir adı vardır.",
+     "channel_note": "Tarayıcının erişilebilirlik ağacı denetçisi ya da ACT uyumlu otomatik araçla; ekran okuyucuyla doğrulama isteğe bağlıdır.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT 2t702h",
+      "text": "This rule applies to HTML `summary` elements for which all the following are true:\n\n- the element is [included in the accessibility tree][]; and\n- the element works as the [summary button for its parent `details` element][details summary]; and … Each target element has an [accessible name][] that is not empty (`\"\"`), nor just the name of the `::marker` pseudo element."
+     },
+     "passages": [
+      "KDH-076-P1",
+      "KDH-076-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": true
+    },
+    {
+     "action": "aria-hidden=\"true\" taşıyan öğelerin ve alt öğeleri sunumsal olan rollerdeki öğelerin (ör. düğme, onay kutusu, görsel) içinde Tab tuşuyla sırayla gezinilir.",
+     "expected": "Bu öğelerin içinde Tab sırasına giren odaklanabilir bir öğe yoktur.",
+     "channel_note": "merged: ACT 307n5z. Tarayıcının erişilebilirlik ağacı denetçisi ya da ACT uyumlu otomatik araçla; ekran okuyucuyla doğrulama isteğe bağlıdır.",
+     "basis": {
+      "doc": "W3C-ACT-RULES",
+      "ref": "ACT 6cfa84",
+      "text": "This rule applies to any element with an `aria-hidden` [attribute value][] of `true`. … None of the target elements has an [inclusive descendant][] in the [flat tree][] that are [focusable][] and part of the [sequential focus navigation][]."
+     },
+     "passages": [
+      "KDH-076-P1"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": true
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-076-P1",
+     "doc": "W3C-WCAG-2.2",
+     "section": "4.1.2",
+     "text": "For all user interface components (including but not limited to: form elements, links and components generated by scripts),\nthe name and role can be programmatically determined; states, properties, and values that can be set by the user can be programmatically set; and notification of changes to these items is available to user agents, including assistive technologies."
+    },
+    {
+     "id": "KDH-076-P2",
+     "doc": "W3C-WCAG-2.2",
+     "section": "Definitions: user interface component",
+     "text": "a part of the content that is perceived by users as a single control for a distinct\nfunction\n\nNote 1\n\nMultiple user interface components may be implemented as a single programmatic element.\n\"Components\" here is not tied to programming techniques, but rather to what the user\nperceives as separate controls.\n\nNote 2\n\nUser interface components include form elements and links as well as components generated\nby scripts."
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "8 ACT kuralı 6 denetime indirildi (kural 5). Birleştirmeler: 'ACT 97a4e1' (düğme) denetimi m6b1q3 (menü öğesi, aynı beklenti) kuralını da kapsar; 'ACT 6cfa84' (aria-hidden) denetiminin eylemi 307n5z (alt öğeleri sunumsal olan roller içinde Tab sırasına giren öğe olmaması) kuralını da kapsar; basis birincil kuralı alıntılar, birleşen kimlikler channel_note alanında (kural 6). Erişilebilir ad, varsayılan 'Submit Query' adı, ::marker ve aria-hidden ayrıntıları corpus/text içinde yok (not_in_corpus). Varsayımlar, test örnekleri ve arka plan bölümleri prosedür değil. uncovered: bileşen rolünün programlı belirlenebilmesi; kullanıcının ayarlayabildiği durum, özellik ve değerlerin programlı olarak ayarlanabilmesi; bunlardaki değişikliklerin yardımcı teknolojiler dahil kullanıcı aracılarına bildirilmesi (ACT kuralları yalnızca boş olmayan ad ve gizli odaklanabilir içerik denetler)."
   },
   {
    "id": "KDH-077",
@@ -2149,7 +2730,119 @@
    ],
    "method_rationale": "Rehber denetim yöntem önerileri: Gözden Geçirme, Mülakat, Sızma Testi.",
    "difficulty": "Zor",
-   "note": "Süre değerleri Tasarım §14'te; sürelerin yetkilendirmeyle güncellenmesi cümlesi metne alınmadı."
+   "note": "Süre değerleri Tasarım §14'te; sürelerin yetkilendirmeyle güncellenmesi cümlesi metne alınmadı.",
+   "reference_preconditions": "İki farklı tarayıcıdan AAL2 ile oturum açabilen etkin bir şirket temsilcisi hesabı; oturum çerezini yakalayıp yeniden gönderebilecek bir araç; 30 dakikalık süreyi gözlemek için saat ya da test ortamında hızlandırılmış zaman.",
+   "reference_checks": [
+    {
+     "action": "Kimliği doğrulanmış bir sayfadan oturum kapatılır, ardından çıkıştan önce alınan oturum çereziyle korumalı bir sayfa istenir.",
+     "expected": "İstek kimliği doğrulanmamış olarak reddedilir; çıkış yapılan oturum sunucuda geçersizdir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.2.3",
+      "text": "Kullanıcı oturumu kapattığında oturumun sonlandığı test\nedilmiş midir?"
+     },
+     "passages": [
+      "KDH-084-P1",
+      "KDH-084-P4"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "AAL2 ile açılmış bir temsilci oturumu 30 dakika işlem yapılmadan bekletilir (25. dakikadaki uyarıda süre uzatılmaz), ardından korumalı bir işlem denenir.",
+     "expected": "İşlem yapılamaz; devam etmek için yeniden kimlik doğrulama istenir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.2.3",
+      "text": "İşlem yapılmadan beklenen geçerlilik süresi\nsonunda oturum sonlandırılıyor mu?"
+     },
+     "passages": [
+      "KDH-084-P2",
+      "KDH-084-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "AAL2 ile açılmış bir temsilci oturumu 30 dakikadan kısa aralıklarla işlem yapılarak açık tutulur ve oturum açılışından itibaren 12 saat geçer.",
+     "expected": "Oturum geçersiz hale gelir; eski oturumla yapılan istek reddedilir ve tam giriş gerekir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.2.3",
+      "text": "Oluşturulan oturum kimliğinin geçerlilik süresi belirlenmiş\nmidir?"
+     },
+     "passages": [
+      "KDH-084-P1",
+      "KDH-084-P2",
+      "KDH-084-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Kullanıcının iki tarayıcıda etkin oturumu varken birinde parolasını değiştirir ve diğer oturumları sonlandırmayı seçer; ardından diğer tarayıcıdan istek gönderilir.",
+     "expected": "Diğer tarayıcıdaki oturum geçersizdir ve istek reddedilir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.2.3",
+      "text": "Kullanıcı, oturumun geçersiz olmasına sebep olacak\nbilgilerini değiştirdikten sonra etkin olan tüm oturumlarını\nsonlandırabiliyor mu?"
+     },
+     "passages": [
+      "KDH-084-P1",
+      "KDH-084-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Oturum sona erdikten sonra (çıkış ya da süre dolması) tarayıcıdaki çerezler ve oturuma ait istemci tarafı depolama incelenir.",
+     "expected": "Oturum çerezi ve oturuma ait istemci tarafı geçici depolama silinmiştir.",
+     "channel_note": "Tarayıcı geliştirici araçlarıyla çerez ve depolama incelenir; yanıtta Clear-Site-Data başlığı gözlenebilir.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.2.3",
+      "text": "Oturum sonlandığında oturum ile ilgili tüm geçici\ndepolama alanları ve çerezler uygulama tarafından\nsiliniyor mu?"
+     },
+     "passages": [
+      "KDH-084-P1",
+      "KDH-084-P4"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-084-P1",
+     "doc": "VBP-YTB-001",
+     "section": "§5.2",
+     "text": "- **Sonlandırma (AC-12):** hareketsizlik dolunca kimliği doğrulanmış durum biter ve işlem yapılamaz; AAL2'de oturum sırrı yalnızca parola ile yeniden doğrulama için toplam süre sonuna kadar sunucuda tutulur, AAL3'te hemen silinir. Oturum tamamen; toplam süre dolduğunda, çıkışta, parola ya da doğrulayıcı değiştiğinde (diğer oturumlar için kullanıcı tercihiyle), rol ya da yetki değiştiğinde, hesap devre dışı bırakıldığında veya silindiğinde, yönetici sonlandırdığında ve oturum izleme dolandırıcılık göstergesi saptadığında biter (Rehber 3.2.2.3; ASVS V7.4.1, V7.4.2, V7.4.5; 800-63B-4 §5.3). Sunucu kaydı silinir, `Clear-Site-Data` gönderilir (ASVS V14.3.1). Her korumalı sayfada çıkış bağlantısı vardır (AC-12(1))."
+    },
+    {
+     "id": "KDH-084-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§5.2",
+     "text": "- **AAL2 (vatandaş, temsilci):** hareketsizlik 30 dakika, toplam 12 saat. NIST üst önerisi 1 saat ve 24 saattir (§2.2.3); daha kısa süreler, portalın belediye hizmet noktaları ve internet kafeler gibi paylaşılan bilgisayarlardan kullanılmasından kaynaklanır. Hareketsizlik dolup toplam süre dolmadıysa temsilci oturum sırrıyla birlikte yalnızca parolasını girerek devam eder (§2.2.3); vatandaş için e-Devlet'ten taze doğrulama istenir."
+    },
+    {
+     "id": "KDH-084-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| AAL2 hareketsizlik zaman aşımı | 30 dakika; 25. dakikada uyarı | 800-63B-4 §2.2.3 (≤1 sa); AC-12 | Paylaşılan bilgisayarlar |\n| AAL2 toplam oturum süresi | 12 saat | 800-63B-4 §2.2.3 (≤24 sa); AC-12 | Bir iş günü |"
+    },
+    {
+     "id": "KDH-084-P4",
+     "doc": "SGB-REHBER-1.1",
+     "section": "3.2.2.3",
+     "text": "Kimlik doğrulamayla erişilen tüm sayfalardan oturum\nkapatma işlevine erişilebilmelidir. Buna ek olarak,\noluşturulan oturum kimliğinin geçerlilik süresi\nbelirlenmelidir. İlgili süre sonunda, belirli süre etkinlik\nolmadığında veya kullanıcı oturumu kapattığında oturum\ngeçersiz hale gelmelidir. İlgili sürelerin güncellenmesi\nsürecinde\nyetkilendirme\nmekanizmasından\nfaydalanılmalıdır. Ayrıca oturumun geçersiz olmasına\nsebep olacak bilgilerin değişmesi durumunda (kullanıcı\nparolasının güncellenmesi, yetkilerin güncellenmesi vb.)\netkin oturumların sonlandırılması sağlanmalıdır. Oturum\nsonlandığında istemci ve sunucuda oturum ile ilgili tüm\ngeçici depolama alanları ve çerezler uygulama tarafından\nsilinmelidir."
+    }
+   ],
+   "needs_documents": true,
+   "reference_note": "Pencerede 3.2.2.3'e içerik olarak ait 6 soru var; ikisi tedbir numarasından ÖNCE geliyor (çıkış testi ve sürelerin yetkisiz güncellenmesi). 5 soru 5 denetim oldu; 'geçerlilik süresi belirlenmiş midir' ve 'test edilmiş midir' soruları davranışın kendisi olarak denetlendi (kural 2), toplam süre değeri VBP-YTB-001 §14'ten (12 saat). Düşürülen: 'süreler yetkisiz güncellenebiliyor mu' (gereksinim metnine alınmamış, kural 3). Mülakat ve Gözden Geçirme yöntemleri denetim değil. Penceredeki diğer 4 soru 3.2.2.2 ve 3.2.2.4'e ait. Kural 10: gereksinim parola değişince oturumların geçersiz kılınmasını ister; VBP-YTB-001 §5.2 diğer oturumları kullanıcı tercihine bırakır, AAL2 hareketsizlikte de oturum sırrını toplam süre sonuna kadar tutar. uncovered: kimlik doğrulamayla erişilen tüm sayfalardan oturum kapatma işlevine erişim; yetki değiştiğinde etkin oturumların geçersiz kılınması (pencerede bu davranışlar için denetim sorusu yok)."
   },
   {
    "id": "KDH-085",
@@ -2305,7 +2998,86 @@
    ],
    "method_rationale": "Rehber denetim yöntem önerileri: Gözden Geçirme, Sızma Testi.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "Kimlik doğrulama gerektiren ve gerektirmeyen sayfalara erişim; yönlendirme hedefini parametre olarak alan bir portal işlevi (ör. giriş sonrası dönüş adresi); istekleri değiştirebilen bir araç (araya giren vekil).",
+   "reference_checks": [
+    {
+     "action": "Yönlendirme hedefini parametreyle alan bir işlevde (ör. girişten sonra dönüş adresi) hedef olarak beyaz listedeki bir adres verilir.",
+     "expected": "Kullanıcı uyarı gösterilmeden o adrese yönlendirilir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.4.6",
+      "text": "Yönlendirilebilir güvenilir URL adresleri listesi tutuluyor\nmu? … URL yeniden yönlendirme işleminden önce hangi\nkontroller yapılıyor?"
+     },
+     "passages": [
+      "KDH-090-P1",
+      "KDH-090-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Aynı işlevde hedef olarak beyaz listede olmayan dış bir adres verilir.",
+     "expected": "Otomatik yönlendirme yapılmaz; kullanıcı bilinmeyen adrese gideceği konusunda uyarılır ve yönlendirme yalnızca onayıyla sürer.",
+     "channel_note": "Dış adresin atlatma biçimleri de denenir: //saldirgan.example, kodlanmış adres (%2F%2F), kullanıcı bilgisi içeren adres (https://izinli@saldirgan.example), izinli adı alt alan olarak içeren benzer alan adı.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.4.6",
+      "text": "Listede olmayan adreslerle karşılaştığında uygulama nasıl\nkarşılık vermektedir?"
+     },
+     "passages": [
+      "KDH-090-P1",
+      "KDH-090-P3"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Uygulama verisi döndüren, oturum çereziyle yapılan bir istek güvenilmeyen bir kaynaktan (Origin değeri güvenilmeyen bir alan adı) gönderilir.",
+     "expected": "Yanıt bu kaynağa izin vermez; güvenilmeyen kaynaktaki betik yanıttaki veriyi okuyamaz.",
+     "channel_note": "Origin başlığı değiştirilerek Access-Control-Allow-Origin ve Access-Control-Allow-Credentials yanıt başlıkları incelenir; Origin: null ve alt alan adı benzeri kaynaklar da denenir.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.4.6",
+      "text": "Uygulamada kökler arası kaynak paylaşımında (CORS)\ngüvenlik önlemleri tanımlanmış mıdır?"
+     },
+     "passages": [
+      "KDH-090-P1",
+      "KDH-090-P4"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-090-P1",
+     "doc": "SGB-REHBER-1.1",
+     "section": "3.2.4.6",
+     "text": "Kökler arası kaynak paylaşımında (CORS) güvenilmeyen\nkaynakların\nuygulamanın\nverilerine\nerişmesi\nengellenmelidir. URL yeniden yönlendirmelerinin sadece\nbilinen beyaz liste adreslerine yapılması, bilinmeyen\nadreslere yönlendirme gerekiyorsa kullanıcının uyarılarak\nonayının alınması sağlanmalıdır."
+    },
+    {
+     "id": "KDH-090-P2",
+     "doc": "OWASP-ASVS-5.0.0",
+     "section": "V3.7.2",
+     "text": "V3,Web Frontend Security,V3.7,Other Browser Security Considerations,V3.7.2,Verify that the application will only automatically redirect the user to a different hostname or domain (which is not controlled by the application) where the destination appears on an allowlist.,2"
+    },
+    {
+     "id": "KDH-090-P3",
+     "doc": "OWASP-ASVS-5.0.0",
+     "section": "V3.7.3",
+     "text": "V3,Web Frontend Security,V3.7,Other Browser Security Considerations,V3.7.3,\"Verify that the application shows a notification when the user is being redirected to a URL outside of the application's control, with an option to cancel the navigation.\",3"
+    },
+    {
+     "id": "KDH-090-P4",
+     "doc": "OWASP-ASVS-5.0.0",
+     "section": "V3.4.2",
+     "text": "V3,Web Frontend Security,V3.4,Browser Security Mechanism Headers,V3.4.2,\"Verify that the Cross-Origin Resource Sharing (CORS) Access-Control-Allow-Origin header field is a fixed value by the application, or if the Origin HTTP request header field value is used, it is validated against an allowlist of trusted origins. When 'Access-Control-Allow-Origin: *' needs to be used, verify that the response does not include any sensitive information.\",1"
+    }
+   ],
+   "needs_documents": false,
+   "reference_note": "Pencerede 3.2.4.6'ya içerik olarak ait 4 soru var; ilki ('URL yeniden yönlendirme işleminden önce hangi kontroller yapılıyor?') tedbir numarasından ÖNCE geliyor. 4 soru 3 denetim oldu: 'güvenilir URL listesi tutuluyor mu' ve 'hangi kontroller yapılıyor' listedeki adrese yönlendirme denetiminde birleşti, 'CORS güvenlik önlemleri tanımlanmış mıdır' davranışın kendisi olarak denetlendi (kural 2); atlatma yükleri ayrı denetim yerine 2. denetimin channel_note alanında. Düşürülen yok. Penceredeki diğer 3 soru 3.2.4.5'e ait. Kural 10 tasarım eksiği: VBP belgelerinde yönlendirme beyaz listesi, uyarı/onay ekranı ya da CORS politikası tanımlı değil; denetimler genel düzeyde yazıldı ve belge gerektirmez. uncovered: yok."
   },
   {
    "id": "KDH-091",
@@ -2619,7 +3391,148 @@
    ],
    "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
-   "note": ""
+   "note": "",
+   "reference_preconditions": "AAL2 ile (parola ve ikinci faktör) oturum açabilen etkin bir şirket temsilcisi hesabı; KKS üzerinden FIDO2 anahtarı ve PIN ile AAL3 oturum açabilen bir arka ofis personeli hesabı; rol değiştirebilen ve temsilci hesabını devre dışı bırakabilen yetkili bir hesap; süreleri gözleyebilmek için saat ya da test ortamında hızlandırılmış zaman.",
+   "reference_checks": [
+    {
+     "action": "AAL2 ile oturum açmış bir şirket temsilcisi 30 dakika hiçbir işlem yapmaz (25. dakikadaki uyarıda süreyi uzatmaz), ardından korumalı bir sayfada işlem yapmayı dener.",
+     "expected": "İşlem gerçekleştirilmez; kimliği doğrulanmış durum sona ermiştir ve devam etmek için yeniden kimlik doğrulama (parola) istenir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AC-12",
+      "text": "a user session is automatically terminated after … Automated mechanisms implementing user session termination"
+     },
+     "passages": [
+      "KDH-102-P1",
+      "KDH-102-P4",
+      "KDH-102-P5"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "AAL2 oturumu 30 dakikadan kısa aralıklarla işlem yapılarak açık tutulur ve oturum açılışından itibaren 12 saat geçer.",
+     "expected": "Oturum tamamen sonlandırılır; eski oturumla yapılan istek reddedilir ve tam giriş gerekir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AC-12",
+      "text": "a user session is automatically terminated after … Automated mechanisms implementing user session termination"
+     },
+     "passages": [
+      "KDH-102-P1",
+      "KDH-102-P3",
+      "KDH-102-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "AAL3 ile arka ofise girmiş bir personel 15 dakika işlem yapmaz (8. dakikadaki uyarıda süreyi uzatmaz, 10. dakikada ekran kilitlenir).",
+     "expected": "Oturum 15. dakikada sonlandırılır; devam etmek için ilk girişle aynı AAL3 kimlik doğrulaması gerekir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AC-12",
+      "text": "a user session is automatically terminated after … Automated mechanisms implementing user session termination"
+     },
+     "passages": [
+      "KDH-102-P2",
+      "KDH-102-P3",
+      "KDH-102-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Personel oturumu işlem yapılarak açık tutulur ve oturum açılışından itibaren 10 saat geçer.",
+     "expected": "Oturum sonlandırılır; arka ofise devam etmek için yeniden AAL3 girişi gerekir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AC-12",
+      "text": "a user session is automatically terminated after … Automated mechanisms implementing user session termination"
+     },
+     "passages": [
+      "KDH-102-P2",
+      "KDH-102-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Oturumu açık bir personelin rolü ya da yetkisi değiştirilir, ardından personel açık oturumdan istek gönderir.",
+     "expected": "Etkilenen oturum sonlandırılmıştır; istek kimliği doğrulanmamış olarak reddedilir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AC-12",
+      "text": "a user session is automatically terminated after … Automated mechanisms implementing user session termination"
+     },
+     "passages": [
+      "KDH-102-P3",
+      "KDH-102-P6"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Oturumu açık bir şirket temsilcisinin hesabı devre dışı bırakılır, ardından temsilci açık oturumdan istek gönderir.",
+     "expected": "Oturum sonlandırılmıştır; istek kimliği doğrulanmamış olarak reddedilir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AC-12",
+      "text": "a user session is automatically terminated after … Automated mechanisms implementing user session termination"
+     },
+     "passages": [
+      "KDH-102-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-102-P1",
+     "doc": "VBP-YTB-001",
+     "section": "§5.2",
+     "text": "- **AAL2 (vatandaş, temsilci):** hareketsizlik 30 dakika, toplam 12 saat. NIST üst önerisi 1 saat ve 24 saattir (§2.2.3); daha kısa süreler, portalın belediye hizmet noktaları ve internet kafeler gibi paylaşılan bilgisayarlardan kullanılmasından kaynaklanır. Hareketsizlik dolup toplam süre dolmadıysa temsilci oturum sırrıyla birlikte yalnızca parolasını girerek devam eder (§2.2.3); vatandaş için e-Devlet'ten taze doğrulama istenir."
+    },
+    {
+     "id": "KDH-102-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§5.2",
+     "text": "- **AAL3 (personel):** hareketsizlik 15 dakika, toplam 10 saat (§2.3.3); mesai ve fazla mesai payını kapsar. Yeniden doğrulama ilk doğrulamayla aynıdır."
+    },
+    {
+     "id": "KDH-102-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§5.2",
+     "text": "- **Sonlandırma (AC-12):** hareketsizlik dolunca kimliği doğrulanmış durum biter ve işlem yapılamaz; AAL2'de oturum sırrı yalnızca parola ile yeniden doğrulama için toplam süre sonuna kadar sunucuda tutulur, AAL3'te hemen silinir. Oturum tamamen; toplam süre dolduğunda, çıkışta, parola ya da doğrulayıcı değiştiğinde (diğer oturumlar için kullanıcı tercihiyle), rol ya da yetki değiştiğinde, hesap devre dışı bırakıldığında veya silindiğinde, yönetici sonlandırdığında ve oturum izleme dolandırıcılık göstergesi saptadığında biter (Rehber 3.2.2.3; ASVS V7.4.1, V7.4.2, V7.4.5; 800-63B-4 §5.3). Sunucu kaydı silinir, `Clear-Site-Data` gönderilir (ASVS V14.3.1). Her korumalı sayfada çıkış bağlantısı vardır (AC-12(1))."
+    },
+    {
+     "id": "KDH-102-P4",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| AAL2 hareketsizlik zaman aşımı | 30 dakika; 25. dakikada uyarı | 800-63B-4 §2.2.3 (≤1 sa); AC-12 | Paylaşılan bilgisayarlar |\n| AAL2 toplam oturum süresi | 12 saat | 800-63B-4 §2.2.3 (≤24 sa); AC-12 | Bir iş günü |\n| AAL3 hareketsizlik zaman aşımı | 15 dakika; 8. dakikada uyarı, 10. dakikada ekran kilidi | 800-63B-4 §2.3.3; AC-12 | NIST önerisi |\n| AAL3 toplam oturum süresi | 10 saat | 800-63B-4 §2.3.3 (≤12 sa); AC-12 | Mesai ve fazla mesai |"
+    },
+    {
+     "id": "KDH-102-P5",
+     "doc": "NIST-SP-800-53r5",
+     "section": "AC-12",
+     "text": "Automatically terminate a user session after {{ insert: param, ac-12_odp }}."
+    },
+    {
+     "id": "KDH-102-P6",
+     "doc": "VBP-YTB-001",
+     "section": "§6",
+     "text": "Yetki değişikliği anında uygulanır, etkilenen oturumlar sonlandırılır (ASVS V8.3.2)."
+    }
+   ],
+   "needs_documents": true,
+   "reference_note": "Kaynak blokta tek TEST nesnesi var ve süre/koşullar [conditions or trigger events] parametresinde; değerler VBP-YTB-001 §5.2 ve §14'ten alındı (tüm denetimler belge gerektirir). Düşürülen: EXAMINE (8 nesne) ve INTERVIEW (3 nesne) yöntemleri, kural 2. §5.2'deki çıkış, parola/doğrulayıcı değişikliği, yönetici sonlandırması ve dolandırıcılık göstergesi tetikleri 6 denetim sınırı nedeniyle ayrı denetim yapılmadı (çıkış kullanıcı başlatımlı olup AC-12(1) kapsamındadır). Kural 10: gereksinim hareketsizlikte oturumun 'otomatik olarak sonlandırılmasını' ister; tasarım AAL2'de hareketsizlik sonrası oturum sırrını toplam süre sonuna kadar sunucuda tutar (yalnızca kimliği doğrulanmış durum biter), bu yüzden 1. denetimin beklenen sonucu 'işlem yapılamaz' olarak yazıldı. uncovered: yok."
   },
   {
    "id": "KDH-103",
@@ -2671,7 +3584,93 @@
    ],
    "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
-   "note": "Kontrol UTC ofsetli seçeneklere de izin verir; tasarım UTC'yi seçmiştir."
+   "note": "Kontrol UTC ofsetli seçeneklere de izin verir; tasarım UTC'yi seçmiştir.",
+   "reference_preconditions": "İz kayıtlarını okuyabilen Denetçi rolünde bir personel hesabı (KKS, AAL3); denetlenebilir olay üretmek için bir şirket temsilcisi hesabı; olay anını karşılaştırmak için güvenilir bir referans saat.",
+   "reference_checks": [
+    {
+     "action": "Denetlenebilir bir güvenlik olayı (ör. başarısız giriş) bilinen bir anda üretilir ve olayın denetim kaydı incelenir.",
+     "expected": "Kaydın zaman damgası UTC cinsindendir (UTC göstergesi ya da +00:00 ofseti taşır); yerel saatle (UTC+3) yazılmamıştır.",
+     "channel_note": "Kayıtlar Denetçi rolüyle merkezi kayıt sisteminden ya da SIEM'den okunur.",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AU-8",
+      "text": "timestamps are recorded for audit records that meet … and that use Coordinated Universal Time, have a fixed local time offset from Coordinated Universal Time, or include … Mechanisms implementing timestamp generation"
+     },
+     "passages": [
+      "KDH-104-P1",
+      "KDH-104-P3",
+      "KDH-104-P5"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Kısa aralıkla (aynı saniye içinde) art arda iki denetlenebilir olay üretilir ve kayıtları incelenir.",
+     "expected": "Zaman damgaları milisaniye çözünürlüğündedir; iki olay saniyenin altındaki basamaklarla ayrışır.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AU-8",
+      "text": "timestamps are recorded for audit records that meet … Mechanisms implementing timestamp generation"
+     },
+     "passages": [
+      "KDH-104-P1",
+      "KDH-104-P2"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Saati bilerek yanlış ayarlanmış (ör. birkaç saat ileri) bir istemciden denetlenebilir bir olay üretilir.",
+     "expected": "Kayıttaki zaman damgası istemcinin saatini değil sunucunun (iç NTP ile eşitlenmiş) saatini yansıtır.",
+     "channel_note": "",
+     "basis": {
+      "doc": "NIST-SP-800-53r5",
+      "ref": "AU-8",
+      "text": "internal system clocks are used to generate timestamps for audit records … Mechanisms implementing timestamp generation"
+     },
+     "passages": [
+      "KDH-104-P1",
+      "KDH-104-P4"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-104-P1",
+     "doc": "VBP-YTB-001",
+     "section": "§7.1",
+     "text": "Zaman UTC ve milisaniye çözünürlüklüdür; sunucular iki iç NTP sunucusundan eşitlenir (AU-8; Rehber 3.1.8.3)."
+    },
+    {
+     "id": "KDH-104-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| Zaman damgası (AU-8) | UTC, milisaniye; iki iç NTP | AU-8; Rehber 3.1.8.3 | Korelasyon |"
+    },
+    {
+     "id": "KDH-104-P3",
+     "doc": "NIST-SP-800-53r5",
+     "section": "AU-8 b.",
+     "text": "Record time stamps for audit records that meet {{ insert: param, au-08_odp }} and that use Coordinated Universal Time, have a fixed local time offset from Coordinated Universal Time, or that include the local time offset as part of the time stamp."
+    },
+    {
+     "id": "KDH-104-P4",
+     "doc": "NIST-SP-800-53r5",
+     "section": "AU-8 a.",
+     "text": "Use internal system clocks to generate time stamps for audit records; and"
+    },
+    {
+     "id": "KDH-104-P5",
+     "doc": "VBP-YTB-001",
+     "section": "§6",
+     "text": "| Denetçi | İş ve güvenlik kayıtlarını okuma | Tüm iller; değişiklik yok |"
+    }
+   ],
+   "needs_documents": true,
+   "reference_note": "Kaynak blokta tek TEST nesnesi var; ayrıntı düzeyi [granularity of time measurement] parametresi VBP-YTB-001 §7.1 ve §14'ten (milisaniye) alındı. Düşürülen: EXAMINE (8 nesne) ve INTERVIEW (3 nesne), kural 2. Kontrolün sabit yerel ofset ya da ofset içeren damga seçenekleri gereksinim UTC'yi sabitlediği için denetim yapılmadı. İz kaydı okumak Denetçi rolü ister; zaman damgaları VBP'nin ürettiği kayıtlarda gözlenir. uncovered: yok."
   },
   {
    "id": "KDH-105",
@@ -2961,7 +3960,76 @@
    ],
    "method_rationale": "Tasarım belgesindeki karara özgü; davranış çalıştırılarak doğrulanır: Test.",
    "difficulty": "Zor",
-   "note": "Rehber 3.2.1.8 ile NIST/ASVS arasındaki sapma; vatandaş ve personel kapsam dışı olmalı."
+   "note": "Rehber 3.2.1.8 ile NIST/ASVS arasındaki sapma; vatandaş ve personel kapsam dışı olmalı.",
+   "reference_preconditions": "Parola yaşı test verisiyle ayarlanabilen etkin şirket temsilcisi hesapları (biri 365 günlük, biri süresi dolmaya 14 gün kalan, biri yeni parolalı); temsilcinin kayıtlı e-posta adresine erişim; test ortamında sızıntı listesine kayıt ekleme olanağı.",
+   "reference_checks": [
+    {
+     "action": "Parolası 365 gün önce belirlenmiş (test verisiyle yaşlandırılmış) bir şirket temsilcisi giriş yapar.",
+     "expected": "Temsilci korumalı işlevlere geçmeden önce parolasını değiştirmeye zorlanır.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-115-P1",
+      "KDH-115-P2",
+      "KDH-115-P3",
+      "KDH-115-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Bir temsilci parolasının geçerlilik süresinin dolmasına 14 gün kalır.",
+     "expected": "Temsilciye parolanın süresinin dolacağını bildiren bildirim gönderilir.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-115-P1",
+      "KDH-115-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Süresi dolmamış bir temsilci parolası sızıntı listesiyle eşleşir ve temsilci giriş yapar.",
+     "expected": "Süre beklenmeden parola değişikliği zorunlu tutulur.",
+     "channel_note": "Test ortamında yasaklı/sızıntı listesine temsilcinin mevcut parolası eklenerek eşleşme oluşturulur.",
+     "basis": null,
+     "passages": [
+      "KDH-115-P1",
+      "KDH-115-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-115-P1",
+     "doc": "VBP-YTB-001",
+     "section": "§4.5",
+     "text": "- **Geçerlilik süresi.** En uzun geçerlilik 365 gündür. Rehber 3.2.1.8 (Parola Yönetimi) en uzun geçerlilik tanımlanmasını şart koşar; 800-63B-4 §3.1.1.2(6) ve ASVS V6.2.10 periyodik değişikliği yasaklar. Öncelik kuralı gereği Rehber uygulanır ve sapma DIAS'a işlenmiştir (Ç-2). Süre dolmadan 14 gün önce bildirim gönderilir (ASVS V6.4.5). Ele geçirme kanıtında (sızıntı eşleşmesi, şüpheli giriş) değişiklik derhal zorunludur (§3.1.1.2(6))."
+    },
+    {
+     "id": "KDH-115-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§13 Ç-2",
+     "text": "| Ç-2 | Parola geçerlilik süresi | Rehber 3.2.1.8: en uzun geçerlilik tanımlanmalı. 800-63B-4 §3.1.1.2(6), ASVS V6.2.10: periyodik değişiklik yasak | 365 gün; yalnızca yerel parolalar; 14 gün önce bildirim; ele geçirmede derhal değişim | Rehber | Genelge kapsamında bağlayıcı; NIST/ASVS sapması DIAS'ta |"
+    },
+    {
+     "id": "KDH-115-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| Parola en uzun geçerlilik süresi | 365 gün; 14 gün önce bildirim | Rehber 3.2.1.8; ASVS V6.4.5 | Ç-2 |"
+    },
+    {
+     "id": "KDH-115-P4",
+     "doc": "VBP-YTB-001",
+     "section": "§4.5",
+     "text": "Politika yalnızca VBP'nin merkezi olarak doğruladığı temsilci parolalarına uygulanır; personel anahtar PIN'i yerel etkinleştirme sırrıdır (800-63B-4 §3.2.10)."
+    }
+   ],
+   "needs_documents": true,
+   "reference_note": "Sisteme özgü gereksinim (reference_origin claude): VBP-YTB-001 §4.5, Ç-2 ve §14'ten 3 denetim. 'Şüpheli giriş' tetiği VBP belgelerinde tanımlı değil (nasıl saptandığı ve neyin tetiklediği yok), ayrı denetim yazılmadı. Sürenin yalnızca temsilci parolalarına uygulanması dışarıdan test edilemez (vatandaş ve personel parolası VBP'de doğrulanmaz), denetim yazılmadı. Bildirim kanalı (e-posta/portal) belgede belirtilmemiş."
   },
   {
    "id": "KDH-116",
@@ -3015,7 +4083,94 @@
    ],
    "method_rationale": "Tasarım belgesindeki karara özgü; davranış çalıştırılarak doğrulanır: Test.",
    "difficulty": "Zor",
-   "note": "Dış kullanıcılar için; personel kilidi ayrı kuraldır."
+   "note": "Dış kullanıcılar için; personel kilidi ayrı kuraldır.",
+   "reference_preconditions": "Parola ve ikinci faktörü (TOTP) bağlı, kurtarma kodları bilinen etkin şirket temsilcisi test hesapları; bot sorgusu ve artan gecikmeyle başa çıkabilecek test ortamı yapılandırması ya da yeterli süre.",
+   "reference_checks": [
+    {
+     "action": "Bir temsilci hesabında aynı doğrulayıcıyla (parola) arada başarılı giriş olmadan 50 başarısız deneme yapılır, ardından doğru parolayla giriş denenir.",
+     "expected": "Doğrulayıcı devre dışıdır; doğru parola da kabul edilmez.",
+     "channel_note": "15 dakikada 10 başarısızlıktan sonra artan gecikme (1-60 dk) ve 5 başarısızlıktan sonra bot sorgusu devreye girer (VBP-YTB-001 §4.7); 50 deneme test ortamında zaman alır.",
+     "basis": null,
+     "passages": [
+      "KDH-117-P1",
+      "KDH-117-P3",
+      "KDH-117-P4"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Parola ve ikinci faktörün birlikte denendiği girişlerde 50 başarısız deneme yapılır, ardından doğru parola ve doğru ikinci faktörle giriş denenir.",
+     "expected": "Parola ile birlikte ikinci faktör de devre dışıdır; giriş yapılamaz.",
+     "channel_note": "15 dakikada 10 başarısızlıktan sonra artan gecikme (1-60 dk) ve 5 başarısızlıktan sonra bot sorgusu devreye girer (VBP-YTB-001 §4.7); 50 deneme test ortamında zaman alır.",
+     "basis": null,
+     "passages": [
+      "KDH-117-P1",
+      "KDH-117-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Devre dışı kalan doğrulayıcı hesap kurtarma dışındaki bir yolla yeniden etkinleştirilmeye ya da bağlanmaya çalışılır.",
+     "expected": "Yeniden bağlama yapılmaz; yalnızca hesap kurtarma yolu sunulur.",
+     "channel_note": "",
+     "basis": null,
+     "passages": [
+      "KDH-117-P1",
+      "KDH-117-P5"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Aynı doğrulayıcıda 49 başarısız denemeden sonra başarılı giriş yapılır, ardından yeniden 49 başarısız deneme yapılır.",
+     "expected": "Doğrulayıcı devre dışı bırakılmaz.",
+     "channel_note": "15 dakikada 10 başarısızlıktan sonra artan gecikme (1-60 dk) ve 5 başarısızlıktan sonra bot sorgusu devreye girer (VBP-YTB-001 §4.7); 50 deneme test ortamında zaman alır.",
+     "basis": null,
+     "passages": [
+      "KDH-117-P1",
+      "KDH-117-P2",
+      "KDH-117-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-117-P1",
+     "doc": "VBP-YTB-001",
+     "section": "§4.7",
+     "text": "3. **Doğrulayıcının devre dışı bırakılması.** Aynı doğrulayıcıda başarılı giriş olmadan 50 başarısız deneme olduğunda doğrulayıcı (parola ve ikinci faktör birlikte denenmişse ikisi) devre dışı kalır ve yalnızca kurtarmayla yeniden bağlanır (§3.2.2, üst sınır 100). Bu, Rehber 3.2.1.1'deki kalıcı kilit niteliğindedir."
+    },
+    {
+     "id": "KDH-117-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§4.7",
+     "text": "5. Başarılı giriş, kullanılan doğrulayıcıların sayaçlarını sıfırlar (§3.2.2)."
+    },
+    {
+     "id": "KDH-117-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| Doğrulayıcı devre dışı bırakma eşiği | 50 ardışık başarısız deneme | 800-63B-4 §3.2.2 (≤100) | Üst sınırın yarısı |"
+    },
+    {
+     "id": "KDH-117-P4",
+     "doc": "VBP-YTB-001",
+     "section": "§13 Ç-3",
+     "text": "| Ç-3 | Kilitleme ve yavaşlatma | AC-7 ve Rehber 3.2.1.1 kilitleme seçeneği sunar. 800-63B-4 §3.2.2, ASVS V6.1.1 kötü niyetli kilitlemeyi önlemeyi ister | Dış kullanıcıda artan gecikme ve bot sorgusu, 50 denemede doğrulayıcı devre dışı; personelde 10 denemede yönetici kilidi | Dış kullanıcı: 800-63B-4 §3.2.2; personel: AC-7 | Dış hesaplar hizmet engellemeye açık; personel doğrulayıcısında deneme saldırı göstergesi |"
+    },
+    {
+     "id": "KDH-117-P5",
+     "doc": "VBP-YTB-001",
+     "section": "§4.8",
+     "text": "Temsilci hesabı en çok AAL2 olduğundan kurtarma 800-63B-4 §4.2.2.2'ye göredir: (a) kayıtlı kurtarma kodu ile e-postaya gönderilen kurtarma kodu, (b) bir kurtarma kodu ile bağlı tek faktörlü doğrulayıcı (parola ya da TOTP) veya (c) e-Devlet ya da il müdürlüğünde yeniden kimlik kanıtlama."
+    }
+   ],
+   "needs_documents": true,
+   "reference_note": "Sisteme özgü gereksinim (reference_origin claude): VBP-YTB-001 §4.7, §14 ve Ç-3'ten 4 denetim. Kural 10: §14 eşiği '50 ardışık başarısız deneme' derken §4.7 'başarılı giriş olmadan 50 başarısız deneme' der; ikinci faktörün ayrı sayacı ve 'birlikte denenmiş' durumunun nasıl sayıldığı belirsiz. Artan gecikme (en çok 60 dk) ve bot sorgusu 50 denemeye ulaşmayı pratikte saatlere yayar; eşiğin test edilebilirliği test ortamı ayarına bağlıdır."
   },
   {
    "id": "KDH-118",
