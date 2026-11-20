@@ -57,11 +57,13 @@ Her düğümde ortak alanlar bulunur: `input_hash`, `cache_key`, `status` (`fres
 
 Kurallar:
 
-- `input_hash`, sıralı girdi içeriklerinin, prompt sürümünün, model kimliğinin ve üretim parametrelerinin SHA-256 özetidir. Girdiler düz JSON'dur; aşağı akış düğümleri ham içerik (örneğin vektör) yerine üst düğümün hash'ini kullanır.
+- `input_hash`, düğüm tipinin, sıralı girdi içeriklerinin, prompt sürümünün, model kimliğinin ve üretim parametrelerinin SHA-256 özetidir. Düğüm tipi hash'e girer: aynı girdili ve aynı ayarlı iki aşamanın (örneğin tek üyeli öbeğin adı ile o gereksinimin yöntemi) çıktıları cache'te karışmaz. Girdiler düz JSON'dur; aşağı akış düğümleri ham içerik (örneğin vektör) yerine üst düğümün hash'ini kullanır.
 - Bağımlılık ile bağlam ayrıdır (paket 2'de netleşti). Bağımlılıklar `input_hash`'e girer ve bayatlığı belirler. Bağlam (sabitlenmiş test durumlarının içeriği, kullanıcının ek talimatı) bayatlatmaz, ama çıktı cache'inin anahtarına girer: `cache_key = H(input_hash, bağlam hash'i)`. Üretim biçimi (artımlı, baştan, birleştirme, onarım; önceki set) hiçbir anahtara girmez, `produced_by` içinde kaydedilir. Böylece test durumunu elle düzenlemek model çağırmaz, gereksinimi taşıyıp geri almak cache'ten döner.
 - Düğüm bayattır ⇔ kayıtlı `input_hash`, güncel girdilerden hesaplanan beklenen hash'ten farklıdır. Her olaydan sonra beklenen hash'ler projenin tamamı için yeniden hesaplanır. Üretim sonucu yazıldığında yalnızca yazılan düğümün aşağı akışı yeniden hesaplanır; sonucun baştan hesapla aynı olduğu testle doğrulanır. Ters bağımlılık dizini arayüz ve doğrulama listesi için tutulur.
-- Model çağırmayan ucuz bir düğümün (embedding, arama sonucu) girdisi değişince aşağısı hemen bayat sayılmaz, doğrulanacak listesine girer: durumu `fresh` kalır, üstü taze olana kadar kuyruğa alınmaz. Ucuz düğüm yeniden hesaplanır; çıktısı aynıysa aşağısı taze kalır (erken kesme).
-- Girdisi değişen `running` düğüm `stale` olur ve işi iptal edilir; silinen ya da elle düzenlenen `running` düğümün işi de iptal edilir. Eski girdiyle biten sonuç çıktı cache'ine kendi anahtarıyla yazılır, düğüme yazılmaz.
+- Bir düğümün üstü taze değilse (bayat, çalışıyor, başarısız ya da kendisi bekliyor) düğüm, kendi girdileri değişmediyse bayat sayılmaz, doğrulanacak listesine girer: durumu `fresh` kalır, üstü taze olana kadar kuyruğa alınmaz. Üst düğüm yeniden üretilir; çıktısı aynıysa aşağısı taze kalır (erken kesme). Arama sonucu bu yolla çalışır. Embedding istisnadır: vektörler bayt düzeyinde kararlı olmadığı için aşağısı embedding'i beklenen hash'iyle görür, girdisi değişen embedding'in aşağısı (öbekleme ağacı) doğrudan bayatlar.
+- Üretim sonucu yalnızca üstündeki her düğüm taze ya da sabitlenmişken (bekleyen yokken) yazılır; aksi halde reddedilir.
+- `running` düğümün işi şu durumlarda iptal edilir: girdisi (`input_hash`) ya da bağlamı (`cache_key`; örneğin öbekte bir test durumu düzenlendi ya da sabitlendi) değişti, düğüm silindi, elle düzenlendi ya da sabitlendi. İptalden sonra durum normal kuralla belirlenir (kayıtlı hash beklenene eşitse `fresh`, değilse `stale`). Eski girdi ya da bağlamla biten sonuç çıktı cache'ine kendi anahtarıyla yazılır, düğüme yazılmaz.
+- Hiç üretilmemiş (içeriksiz) düğüm sabitlenemez ve korunamaz.
 - Öbek hash'i üyelerin kimlik ve metinlerine bağlıdır, öbeğin adına ya da ekrandaki konumuna değil. Ad değiştirmek testleri bayatlatmaz.
 - Sabitleme düğüm başınadır; test setinde sabitlenen birim tek test durumudur.
 - Elle düzenleme düğümü o anki girdilerine göre taze yapar: yeni sürümün `input_hash`'i güncel beklenen hash'tir. Sabitlenmiş düğüm sonradan bayatlarsa kullanıcı fark ekranında "benimkini koru" der (`node_kept`): içerik aynı kalır, yeni sürüm güncel hash'i alır.
@@ -216,7 +218,7 @@ Bir düzenlemenin maliyeti, bayatlattığı düğüm sayısı kadardır; çoğu 
 
 | Katman | Ne saklar | Anahtar | Nerede |
 | --- | --- | --- | --- |
-| Çıktı cache'i | üretilmiş düğüm içerikleri | `input_hash` | Postgres |
+| Çıktı cache'i | üretilmiş düğüm içerikleri | `cache_key` (`input_hash` ve bağlam) | Postgres |
 | Prefix cache | prompt önekinin model içi durumu | ortak önek token'ları | vLLM, GPU belleği |
 | Arama cache'i | öbek için getirilen bilgi parçaları | öbek hash'i ve indeks sürümü | Postgres |
 

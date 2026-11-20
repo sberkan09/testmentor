@@ -84,7 +84,7 @@ Ortak düzen: proje P, gereksinimler R1–R6, öbekler A{R1,R2}, B{R3,R4}, C{R5,
 
 | Satır | Test | Beklenen |
 | --- | --- | --- |
-| Taşıma R2: A→B | `test_move_requirement` | set A, set B, ad A, ad B bayat; arama A/B ve matris R1–R4 bayat; 4 çağrı |
+| Taşıma R2: A→B | `test_move_requirement` | set A, set B, ad A, ad B ve arama A/B bayat; test durumları ve matris R1–R4 doğrulanacak; 4 çağrı |
 | Yeniden adlandırma | `test_rename_cluster` | bayat yok, 0 çağrı; ad yeni sürüm, `origin=edited`, `pinned` |
 | Silme, R1→B, R2→C | `test_delete_cluster_distributes` | B ve C'nin set ve adları; 4 çağrı; A'nın düğümleri kalkar |
 | Birleştirme A+B→D | `test_merge_clusters` | D'nin seti ve adı; 2 çağrı; bağlamda iki eski set |
