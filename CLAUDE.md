@@ -39,7 +39,7 @@ Gereksinim setinden test durumlarına ve gereksinim-test matrisine giden, yerel 
 
 ## Veri ve Runpod
 
-- Gerçek proje verisi bu depoya ve Runpod'a girmez. Deneyler yalnızca `eval/golden/` altındaki sentetik setle yapılır.
+- Kurumun gerçek proje verisi bu depoya ve Runpod'a girmez. Deneyler yalnızca `eval/golden/` altındaki setle yapılır; set sentetik gereksinimlerden ve kamuya açık belgelerden (standartlar, mevzuat, resmî spesifikasyonlar) türetilir. Ücretli standartlar kullanılmaz; yeniden kullanım koşulu belirsiz belgelerin metni kullanıcının onayı olmadan depoya girmez.
 - Model ağırlıklarını yalnızca modelin resmî kuruluş hesabından indir; benzer adlı depolar vardır.
 - Krediyi yalnızca gerektiği kadar harca. Ücret doğuran bir kaynak oluşturmadan önce GPU'yu ve saatlik fiyatını `list-gpu-types` çıktısından yaz; paketin bütçesini aşma.
 - GPU pod'unu yalnızca model yükleme ve ölçüm için aç. Kod ve birim testleri pod kapalıyken yazılır.
