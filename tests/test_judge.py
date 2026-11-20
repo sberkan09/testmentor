@@ -96,13 +96,9 @@ def test_paired_bootstrap(tmp_path):
         d.mkdir()
         (d / "judge.jsonl").write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
 
-    row = lambda rid, m, rep=0: {
-        "requirement": rid,
-        "matched": m,
-        "checks": 4,
-        "repeat": rep,
-        "unscored": None,
-    }  # noqa: E731
+    def row(rid, m, rep=0):
+        return {"requirement": rid, "matched": m, "checks": 4, "repeat": rep, "unscored": None}
+
     write(
         tmp_path / "a", [row("R1", 4), row("R2", 2), row("R1", 2, 1), row("R2", 2, 1), row("R3", 1)]
     )
