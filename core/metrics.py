@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from statistics import mean
@@ -31,7 +32,7 @@ class ProjectOutcome:
 
 @dataclass(frozen=True)
 class CallStat:
-    kind: str  # "classification" | "generation" | "repair"
+    kind: str  # "classification" | "label" | "generation" | "repair" | "incremental" | "merge"
     schema_valid: bool
     error: bool
     prompt_tokens: int
@@ -103,6 +104,27 @@ def requirement_metrics(
     }
 
 
+def raw_violations(
+    outputs: Iterable[str], refs: Mapping[str, RefRequirement], test_method: str
+) -> int:
+    """Test cases in the model's own outputs (before the covers filter) that cover a requirement
+    whose reference methods lack `test_method` (paket 3). The producer drops such ids, so the
+    final set cannot show them in reference mode; this keeps the paket 1 threshold meaningful.
+    Lists read: `test_cases` (full, repair), `add` and `update` (incremental)."""
+    count = 0
+    for text in outputs:
+        try:
+            data = json.loads(text)
+        except (TypeError, ValueError):
+            continue
+        for key in ("test_cases", "add", "update"):
+            for tc in data.get(key) or []:
+                ids = [i for i in tc.get("covers", []) if i in refs]
+                if any(test_method not in refs[i].methods for i in ids):
+                    count += 1
+    return count
+
+
 def cluster_ari(outcome: ProjectOutcome, refs: Mapping[str, RefRequirement]) -> float | None:
     ids = sorted(rid for rid, r in refs.items() if r.project == outcome.project)
     predicted = {rid: i for i, c in enumerate(outcome.clusters) for rid in c}
@@ -140,11 +162,17 @@ def layer1(
     calls: Sequence[CallStat],
     wall_s: float,
     test_method: str,
+    raw_outputs: Sequence[str] | None = None,
 ) -> dict[str, Any]:
+    """`raw_outputs` given (paket 3 pipeline): `all.no_test_violations_raw` is counted on them and
+    the threshold uses it; `all.no_test_violations` stays the count on the final sets."""
     langs = sorted({r.language for r in refs.values()})
     aris = [a for o in outcomes if (a := cluster_ari(o, refs)) is not None]
+    overall = requirement_metrics(outcomes, refs, test_method)
+    if raw_outputs is not None:
+        overall["no_test_violations_raw"] = raw_violations(raw_outputs, refs, test_method)
     return {
-        "all": requirement_metrics(outcomes, refs, test_method),
+        "all": overall,
         "by_language": {
             lang: requirement_metrics(
                 outcomes, refs, test_method, lambda r, lang=lang: r.language == lang
@@ -165,5 +193,6 @@ def passes_thresholds(m: Mapping[str, Any], thresholds: Mapping[str, float]) -> 
         "schema_valid_rate": (c["schema_valid_rate"] or 0) >= thresholds["schema_valid_rate"],
         "coverage_rate": (a["coverage_rate"] or 0) >= thresholds["coverage_rate"],
         "step_structure_rate": (a["step_structure_rate"] or 0) >= thresholds["step_structure_rate"],
-        "no_test_violations": a["no_test_violations"] <= thresholds["no_test_violations"],
+        "no_test_violations": a.get("no_test_violations_raw", a["no_test_violations"])
+        <= thresholds["no_test_violations"],
     }

@@ -1,15 +1,26 @@
-"""The simplest pipeline for measurement (paket 1). Paket 3 replaces it with the real stages; the
+"""Measurement pipeline over the real stages (paket 3; paket 1 had a bare pipeline here). The
 runner only depends on `Pipeline.run`.
 
-Order per project: embed and cluster → classify verification methods in batches → generate test
-cases per cluster in parallel (tests only for requirements whose method includes Test) → one
-repair call per cluster for Test requirements left uncovered.
+Per project: a `core` project state is built from the golden project and produced by the wave
+driver (`eval.stage_driver`) with the real producers; every model call goes through a recording
+`Complete` (call stats, raw outputs, concurrency limit).
+
+- `generation_inputs: reference`: clusters are the golden reference clusters; the method stage
+  still runs once for the method accuracy, then the reference methods are written as user edits
+  (`MethodEdited`: pinned and fresh), so test generation is measured apart from classification.
+- `generation_inputs: predicted`: clusters from the first cut over the embeddings
+  (`initial_membership`), methods from the model (end to end).
+- `passages: none | gold`: no knowledge base, or the support passages of golden set v1 for the
+  cluster's requirements (oracle retrieval, D9 pilot); same text and order as in paket 1.
+
+Cluster names (`cluster_label`) are not produced: nothing measured depends on them.
 """
 
 from __future__ import annotations
 
 import asyncio
 import hashlib
+import itertools
 import json
 import time
 from collections.abc import Awaitable, Callable, Sequence
@@ -17,21 +28,36 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from core.clustering import build_tree
+import core.stages  # noqa: F401  (registers the stages)
+from core.events import MethodEdited
+from core.graph import ProjectState, new_project
 from core.hashing import input_hash
+from core.invalidation import apply
+from core.llm import Complete, LLMReply, LLMRequest
 from core.metrics import CallStat, ProjectOutcome
-from core.prompts import (
-    TEMPLATE_VERSION,
-    Method,
-    ProjectCard,
-    classification_messages,
-    generation_messages,
+from core.nodes import (
+    MethodContent,
+    MethodDef,
+    NodeKind,
+    NodeRef,
+    RequirementContent,
+    TestCaseContent,
+    TestSetContent,
+    ref,
 )
-from core.schemas import Requirement, case_set_model, method_batch_model, plain
+from core.prompts import card_text
+from core.schemas import Requirement
+from core.stages import method as method_stage
+from core.stages.base import ProduceContext
+from core.stages.clustering import cut, initial_membership
 from eval.golden import Golden, GoldenProject
-from services.llm_client import ChatResult, LLMClient, LLMError, StreamDelta
+from eval.stage_driver import drive
+from services.llm_client import LLMClient, LLMError
+from services.settings import stage_configs, stage_settings_from
+from services.stage_llm import ClientComplete
 
 EmbedFn = Callable[[Sequence[str]], Awaitable[list[list[float]]]]
+SKIP = frozenset({NodeKind.CLUSTER_LABEL})
 
 
 class EmbeddingCache:
@@ -66,281 +92,303 @@ class PipelineResult:
     calls: list[CallStat]
     wall_s: float
     stage_wall_s: dict[str, float] = field(default_factory=dict)
+    raw_outputs: list[str] = field(default_factory=list)
+    """Schema-valid test set outputs as the model wrote them (before covers filtering): the
+    no-test violations are counted on these (paket 3)."""
 
 
-class Pipeline:
+def call_kind(request: LLMRequest) -> str:
+    if request.stage == NodeKind.METHOD:
+        return "classification"
+    if request.stage == NodeKind.CLUSTER_LABEL:
+        return "label"
+    for mode in ("repair", "incremental", "merge"):
+        if f"/{mode}" in request.unit:
+            return mode
+    return "generation"
+
+
+class Recorder:
+    """`Complete` that limits concurrency and records every call (stats, outputs)."""
+
     def __init__(
         self,
-        llm: LLMClient,
-        embeddings: EmbeddingCache,
-        cfg: dict[str, Any],
-        examples: dict[str, Any],
+        inner: Complete,
+        sem: asyncio.Semaphore,
+        model: str,
+        configs: dict[NodeKind, Any],
     ) -> None:
-        self.llm, self.embeddings, self.cfg, self.examples = llm, embeddings, cfg, examples
-        # reference: generation gets the golden clusters and methods, so its quality is measured
-        # apart from clustering (D6) and classification; predicted: end to end.
-        self.generation_inputs = cfg.get("generation_inputs", "reference")
-        # none: no knowledge-base passages; gold: the support passages of golden set v1 for the
-        # cluster's requirements (oracle retrieval, D9 pilot of paket 1b)
-        self.passage_mode = cfg.get("passages", "none")
-        self.methods = tuple(m["name"] for m in cfg["methods"])
-        self.case_model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]))
-        self.method_model = method_batch_model(self.methods)
-        self.sem = asyncio.Semaphore(int(cfg["concurrency"]))
+        self.inner, self.sem, self.model, self.configs = inner, sem, model, configs
         self.records: list[dict[str, Any]] = []
         self.calls: list[CallStat] = []
+        self.raw_outputs: list[str] = []
 
-    def card(self, p: GoldenProject) -> ProjectCard:
-        return ProjectCard(
-            p.key,
-            p.name,
-            p.domain,
-            tuple(Method(m["name"], m["criterion"]) for m in self.cfg["methods"]),
-        )
+    def for_project(self, project: str) -> Complete:
+        async def complete(request: LLMRequest) -> LLMReply:
+            return await self._call(project, request)
 
-    # Model calls ----------------------------------------------------------------------------
+        return complete
 
-    async def _call(
-        self,
-        kind: str,
-        project: str,
-        unit: str,
-        messages: list[dict[str, str]],
-        schema: type,
-        stage: dict[str, Any],
-        first_token: asyncio.Event | None = None,
-        wait_for: asyncio.Event | None = None,
-    ) -> ChatResult | None:
-        params = {k: stage[k] for k in ("temperature", "thinking", "max_tokens")}
+    async def _call(self, project: str, request: LLMRequest) -> LLMReply:
+        kind = call_kind(request)
+        params = request.params.model_dump(mode="json")
         h = input_hash(
-            inputs=messages,
-            prompt_version=f"{self.cfg['prompt_version']}/{TEMPLATE_VERSION}",
-            model=self.llm.settings.served_model_name,
+            inputs=list(request.messages),
+            prompt_version=self.configs[request.stage].prompt_version,
+            model=self.model,
             params=params,
         )
-        if wait_for is not None:
-            await wait_for.wait()
-        result: ChatResult | None = None
+        reply: LLMReply | None = None
         error: str | None = None
         async with self.sem:
             started = time.perf_counter()
             try:
-                async for item in self.llm.chat_stream(
-                    messages,
-                    schema=schema,
-                    max_tokens=stage["max_tokens"],
-                    temperature=stage["temperature"],
-                    thinking=stage["thinking"],
-                ):
-                    if isinstance(item, StreamDelta):
-                        if first_token is not None and not first_token.is_set():
-                            first_token.set()
-                    else:
-                        result = item
+                reply = await self.inner(request)
             except LLMError as exc:
                 error = str(exc)[:2000]
-            finally:
-                if first_token is not None:
-                    first_token.set()
-        m = result.metrics if result else None
+            elapsed = time.perf_counter() - started
+        u = reply.usage if reply else None
+        valid = reply is not None and reply.parsed is not None
         self.calls.append(
             CallStat(
                 kind=kind,
-                schema_valid=bool(result and result.schema_error is None),
+                schema_valid=valid,
                 error=error is not None,
-                prompt_tokens=(m.prompt_tokens or 0) if m else 0,
-                completion_tokens=(m.completion_tokens or 0) if m else 0,
-                cached_tokens=m.cached_tokens if m else None,
-                ttft_s=m.ttft_s if m else None,
-                total_s=m.total_s if m else time.perf_counter() - started,
+                prompt_tokens=(u.prompt_tokens or 0) if u else 0,
+                completion_tokens=(u.completion_tokens or 0) if u else 0,
+                cached_tokens=u.cached_tokens if u else None,
+                ttft_s=u.ttft_s if u else None,
+                total_s=(u.total_s if u and u.total_s is not None else elapsed),
             )
         )
         self.records.append(
             {
                 "type": "call",
                 "kind": kind,
+                "stage": request.stage.value,
                 "project": project,
-                "unit": unit,
+                "unit": request.unit,
                 "input_hash": h,
                 "params": params,
                 "error": error,
-                "content": result.content if result else None,
-                "reasoning_chars": len(result.reasoning or "") if result else 0,
-                "finish_reason": result.finish_reason if result else None,
-                "schema_error": result.schema_error if result else None,
-                "metrics": m.model_dump() if m else None,
+                "content": reply.content if reply else None,
+                "finish_reason": reply.finish_reason if reply else None,
+                "schema_error": reply.schema_error if reply else None,
+                "metrics": u.model_dump() if u else None,
             }
         )
-        return result
+        if valid and request.stage == NodeKind.TEST_SET:
+            self.raw_outputs.append(reply.content)  # type: ignore[union-attr]
+        if error is not None:
+            raise LLMError(error)
+        assert reply is not None
+        return reply
 
-    # Stages ---------------------------------------------------------------------------------
 
-    async def cluster(self, p: GoldenProject) -> list[list[str]]:
-        c = self.cfg["clustering"]
-        vectors = await self.embeddings.get([r.text for r in p.requirements])
-        tree = build_tree([r.id for r in p.requirements], vectors, method=c["linkage"])
-        return tree.cut(float(c["distance_threshold"]), int(c["max_cluster_size"]))
-
-    async def classify(self, p: GoldenProject) -> dict[str, list[str]]:
-        stage = self.cfg["classification"]
-        schema = self.method_model.model_json_schema()
-        size = int(stage["batch_size"])
-        reqs = list(p.requirements)
-        batches = [reqs[i : i + size] for i in range(0, len(reqs), size)]
-        results = await asyncio.gather(
-            *(
-                self._call(
-                    "classification",
-                    p.key,
-                    f"{p.key}/methods/{i}",
-                    classification_messages(self.card(p), batch, schema=schema),
-                    self.method_model,
-                    stage,
-                )
-                for i, batch in enumerate(batches)
-            )
-        )
-        decided: dict[str, list[str]] = {}
-        for res in results:
-            if res and res.parsed is not None:
-                for d in plain(res.parsed)["decisions"]:
-                    if d["requirement_id"] in {r.id for r in reqs}:
-                        decided[d["requirement_id"]] = sorted(set(d["methods"]))
-        return decided
-
-    async def generate(
+class Pipeline:
+    def __init__(
         self,
-        p: GoldenProject,
-        clusters: list[list[str]],
-        methods: dict[str, list[str]],
-    ) -> tuple[list[dict[str, Any]], set[str]]:
-        stage = self.cfg["generation"]
-        test_method = self.cfg["test_method"]
-        by_id = {r.id: r for r in p.requirements}
-        schema = self.case_model.model_json_schema()
-        # Unclassified requirements default to Test so they are not silently skipped.
-        eff = {rid: methods.get(rid) or [test_method] for rid in by_id}
-        warm = asyncio.Event() if self.cfg.get("prefix_warmup") else None
-
-        def msgs(cluster: list[str], only: Sequence[str] = ()) -> list[dict[str, str]]:
-            return generation_messages(
-                self.card(p),
-                [by_id[i] for i in cluster],
-                {i: eff[i] for i in cluster},
-                schema=schema,
-                examples=self.examples,
-                test_method=test_method,
-                types=self.cfg["test_types"],
-                priorities=self.cfg["priorities"],
-                only_ids=only,
-                passages=self.passages(p, cluster),
-            )
-
-        async def one(idx: int, cluster: list[str]) -> tuple[list[dict[str, Any]], set[str]]:
-            need = {i for i in cluster if test_method in eff[i]}
-            if not need:
-                return [], set()
-            first = warm if (warm is not None and idx == 0) else None
-            wait = warm if (warm is not None and idx > 0) else None
-            unit = f"{p.key}/c{idx}"
-            res = await self._call(
-                "generation",
-                p.key,
-                unit,
-                msgs(cluster),
-                self.case_model,
-                stage,
-                first_token=first,
-                wait_for=wait,
-            )
-            tests = self._accept(res, cluster, unit)
-            covered_first = {i for t in tests for i in t["covers"]} & need
-            missing = sorted(need - covered_first)
-            if missing and stage.get("repair", True):
-                rep = await self._call(
-                    "repair",
-                    p.key,
-                    f"{unit}/repair",
-                    msgs(cluster, missing),
-                    self.case_model,
-                    stage,
-                )
-                tests += self._accept(rep, cluster, f"{unit}/r", start=len(tests))
-            return tests, covered_first
-
-        order = [i for i, c in enumerate(clusters) if any(test_method in eff[r] for r in c)]
-        if warm is not None and order and order[0] != 0:
-            # The warm-up leader is the first cluster that actually needs tests.
-            clusters = [clusters[order[0]]] + [c for i, c in enumerate(clusters) if i != order[0]]
-        if warm is not None and not order:
-            warm.set()
-        parts = await asyncio.gather(*(one(i, c) for i, c in enumerate(clusters)))
-        tests = [t for part, _ in parts for t in part]
-        covered = set().union(*(c for _, c in parts)) if parts else set()
-        return tests, covered
-
-    def passages(self, p: GoldenProject, cluster: Sequence[str]) -> list[str]:
-        if self.passage_mode == "none":
-            return []
-        if self.passage_mode != "gold":
+        llm: LLMClient | None,
+        embeddings: EmbeddingCache,
+        cfg: dict[str, Any],
+        examples: dict[str, Any],
+        *,
+        complete: Complete | None = None,
+    ) -> None:
+        self.embeddings, self.cfg = embeddings, cfg
+        # reference: generation gets the golden clusters and methods, so its quality is measured
+        # apart from clustering (D6) and classification; predicted: end to end.
+        self.generation_inputs = cfg.get("generation_inputs", "reference")
+        self.passage_mode = cfg.get("passages", "none")
+        if self.passage_mode not in ("none", "gold"):
             raise ValueError(f"unknown passages mode {self.passage_mode!r}")
-        by_id = {r["id"]: r for r in p.raw["requirements"]}
-        seen: dict[str, tuple] = {}
-        for rid in cluster:
-            for ps in by_id[rid].get("support_passages", []):
-                key = " ".join(ps["text"].split())
-                seen.setdefault(key, (ps["doc"], ps["section"], ps["text"]))
-        # deterministic order: document, section, text (prompt prefix rules)
-        return [f"[{d} §{sec}] {t}" for d, sec, t in sorted(seen.values())]
+        self.settings = stage_settings_from(cfg, examples)
+        self.model = llm.settings.served_model_name if llm is not None else "model"
+        self.configs = stage_configs(
+            self.settings, model=self.model, embedding_model_version=embeddings.model_version
+        )
+        self.card_methods = tuple(
+            MethodDef(name=m["name"], criterion=m["criterion"]) for m in cfg["methods"]
+        )
+        if complete is None:
+            if llm is None:
+                raise ValueError("either llm or complete is needed")
+            complete = ClientComplete(llm)
+        self.recorder = Recorder(
+            complete, asyncio.Semaphore(int(cfg["concurrency"])), self.model, self.configs
+        )
+        self.records = self.recorder.records
+        self.calls = self.recorder.calls
 
-    def _accept(
-        self, res: ChatResult | None, cluster: list[str], unit: str, start: int = 0
-    ) -> list[dict[str, Any]]:
-        if res is None or res.parsed is None:
-            return []
-        out = []
-        allowed = set(cluster)
-        for n, tc in enumerate(plain(res.parsed)["test_cases"], start=start + 1):
-            covers = [i for i in dict.fromkeys(tc["covers"]) if i in allowed]
-            invalid = [i for i in tc["covers"] if i not in allowed]
-            if not covers:
-                self.records.append({"type": "dropped_test", "unit": unit, "covers": tc["covers"]})
-                continue
-            out.append(tc | {"id": f"{unit}-{n}", "covers": covers, "invalid_covers": invalid})
-        return out
+    def prompt_versions(self) -> dict[str, str]:
+        return {k.value: c.prompt_version for k, c in self.configs.items()}
+
+    # Project state ------------------------------------------------------------------------
+
+    def project_state(self, p: GoldenProject, clusters: dict[str, tuple[str, ...]]) -> ProjectState:
+        return new_project(
+            p.key,
+            requirements=[
+                RequirementContent(id=r.id, text=r.text, language=r.language)
+                for r in p.requirements
+            ],
+            clusters=clusters,
+            card=card_text(p.key, p.name, p.domain),
+            index_version="v1",
+            stage_configs=self.configs,
+            methods=self.card_methods,
+        )
+
+    def gold_passages(self, p: GoldenProject):
+        """Retrieve and passage source for `passages: gold`."""
+        texts: dict[str, str] = {}
+
+        async def retrieve(members: Sequence[RequirementContent]) -> list[str]:
+            rows = gold_passages(p, [m.id for m in members])
+            texts.update(rows)
+            return [pid for pid, _ in rows]
+
+        def source(ids: Sequence[str]) -> list[str]:
+            return [texts[i] for i in ids]
+
+        return retrieve, source
 
     # Whole run ------------------------------------------------------------------------------
 
     async def run_project(self, p: GoldenProject) -> ProjectOutcome:
-        clusters, methods = await asyncio.gather(self.cluster(p), self.classify(p))
+        ids = [r.id for r in p.requirements]
+        vectors = await self.embeddings.get([r.text for r in p.requirements])
+        predicted_cut = cut(ids, vectors, self.settings.clustering)
+        complete = self.recorder.for_project(p.key)
         if self.generation_inputs == "reference":
-            gen_clusters = p.reference_clusters()
-            gen_methods = {
-                r["id"]: sorted(r["verification_methods"]) for r in p.raw["requirements"]
-            }
+            clusters = {f"c{i:03d}": tuple(c) for i, c in enumerate(p.reference_clusters())}
         else:
-            gen_clusters, gen_methods = clusters, methods
-        tests, covered = await self.generate(p, gen_clusters, gen_methods)
+            counter = itertools.count()
+            clusters = initial_membership(
+                ids, vectors, self.settings.clustering, lambda: f"c{next(counter):03d}"
+            )
+        state = self.project_state(p, clusters)
+        predicted: dict[str, list[str]] = {}
+        errors: dict[str, str] = {}
+        if self.generation_inputs == "reference":
+            state, predicted, errors = await self._reference_methods(p, state, complete)
+        retrieve, passages = self.gold_passages(p) if self.passage_mode == "gold" else (None, None)
+
+        async def embed(texts: Sequence[str]) -> list[list[float]]:
+            return await self.embeddings.get(texts)
+
+        driven = await drive(
+            state,
+            complete,
+            settings=self.settings,
+            skip=SKIP,
+            embed=embed,
+            retrieve=retrieve,
+            passages=passages,
+        )
+        state = driven.state
+        errors |= {str(r): why for r, why in driven.errors.items()}
+        if self.generation_inputs != "reference":
+            for rid in ids:
+                content = state.node(ref(NodeKind.METHOD, rid)).content
+                if isinstance(content, MethodContent):
+                    predicted[rid] = list(content.methods)
+        stats = driven.stats()
+        tests: list[dict[str, Any]] = []
+        covered: set[str] = set()
+        for c in state.keys_of(NodeKind.CLUSTER):
+            tests += case_dicts(state, c)
+            covered |= set(
+                stats.get(ref(NodeKind.TEST_SET, c), {}).get("covered_before_repair", [])
+            )
         self.records.append(
             {
                 "type": "project",
                 "project": p.key,
-                "clusters": clusters,
-                "methods": methods,
+                "clusters": [list(c) for c in predicted_cut],
+                "methods": predicted,
                 "generation_inputs": self.generation_inputs,
-                "generation_clusters": gen_clusters,
+                "generation_clusters": [list(m) for m in clusters.values()],
                 "test_cases": tests,
                 "covered_before_repair": sorted(covered),
+                "stage_stats": {
+                    str(r): dict(s)
+                    for r, s in sorted(stats.items(), key=lambda x: x[0].sort_key())
+                    if r.kind == NodeKind.TEST_SET
+                },
+                "errors": errors,
             }
         )
-        return ProjectOutcome(p.key, clusters, methods, tests, covered)
+        return ProjectOutcome(p.key, [list(c) for c in predicted_cut], predicted, tests, covered)
+
+    async def _reference_methods(
+        self, p: GoldenProject, state: ProjectState, complete: Complete
+    ) -> tuple[ProjectState, dict[str, list[str]], dict[str, str]]:
+        """Run the method stage once for its accuracy, then pin the reference methods."""
+        refs = tuple(ref(NodeKind.METHOD, r.id) for r in p.requirements)
+        errors: dict[str, str] = {}
+        try:
+            out = await method_stage.produce(
+                ProduceContext(state=state, refs=refs, settings=self.settings), complete
+            )
+            predicted = {
+                r.key: list(res.content.methods)  # type: ignore[union-attr]
+                for r, res in out.results
+            }
+            errors = {str(r): why for r, why in out.failed.items()}
+        except Exception as exc:  # noqa: BLE001 - measured as missing predictions
+            predicted, errors = {}, {str(r): f"{type(exc).__name__}: {exc}" for r in refs}
+        for r in p.raw["requirements"]:
+            state, _ = apply(
+                state,
+                MethodEdited(
+                    requirement=r["id"],
+                    methods=tuple(sorted(r["verification_methods"])),
+                    rationale="altın set referansı",
+                ),
+            )
+        return state, predicted, errors
 
     async def run(self, golden: Golden) -> PipelineResult:
         started = time.perf_counter()
         outcomes = await asyncio.gather(*(self.run_project(p) for p in golden.projects))
         return PipelineResult(
-            list(outcomes), self.records, self.calls, time.perf_counter() - started
+            list(outcomes),
+            self.records,
+            self.calls,
+            time.perf_counter() - started,
+            raw_outputs=self.recorder.raw_outputs,
         )
+
+
+def gold_passages(p: GoldenProject, cluster: Sequence[str]) -> list[tuple[str, str]]:
+    """(passage id, prompt text) of the golden v1 support passages of the cluster's requirements,
+    de-duplicated by normalised text, in document, section, text order (paket 1 text and order;
+    prompt prefix rules)."""
+    by_id = {r["id"]: r for r in p.raw["requirements"]}
+    seen: dict[str, tuple] = {}
+    for rid in sorted(cluster):
+        for ps in by_id[rid].get("support_passages", []):
+            key = " ".join(ps["text"].split())
+            seen.setdefault(key, (ps["doc"], ps["section"], ps["text"]))
+    return [
+        (f"{d}§{sec}#{hashlib.sha256(t.encode('utf-8')).hexdigest()[:12]}", f"[{d} §{sec}] {t}")
+        for d, sec, t in sorted(seen.values())
+    ]
+
+
+def case_dicts(state: ProjectState, cluster: str) -> list[dict[str, Any]]:
+    """The set's cases in `case_keys` order as plain dicts; `id` is the node key (unique in the
+    project), `case_id` the id inside the set."""
+    content = state.node(ref(NodeKind.TEST_SET, cluster)).content
+    keys = content.case_keys if isinstance(content, TestSetContent) else ()
+    out = []
+    for k in keys:
+        node = state.node(NodeRef(kind=NodeKind.TEST_CASE, key=k))
+        if isinstance(node.content, TestCaseContent):
+            d = node.content.model_dump(mode="json", exclude={"kind"})
+            out.append(d | {"id": k, "case_id": d["id"], "cluster": cluster, "pinned": node.pinned})
+    return out
 
 
 def requirement_texts(golden: Golden) -> list[Requirement]:

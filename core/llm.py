@@ -57,6 +57,8 @@ class LLMReply:
     """Validated instance of `LLMRequest.schema`; None when the output did not conform."""
     schema_error: str | None = None
     usage: LLMUsage | None = None
+    finish_reason: str | None = None
+    """`length` means the output was cut at `max_tokens`; a schema error then is truncation."""
 
 
 class Complete(Protocol):

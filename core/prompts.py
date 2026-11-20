@@ -29,8 +29,6 @@ from core.nodes import NodeKind, ProjectCardContent, TestCaseContent
 from core.schemas import ClusterLabel, Requirement, case_set_model, method_batch_model
 from core.settings import StageSettings
 
-TEMPLATE_VERSION = "t2"  # t2: test_cases has at least one item. Removed in paket 3 step 5 (eval).
-
 # Versions (paket 3) ------------------------------------------------------------------------------
 
 SHARED_VERSION = "s1"

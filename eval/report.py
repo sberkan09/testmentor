@@ -14,12 +14,21 @@ def _fmt(v: Any) -> str:
     return str(v)
 
 
+def _versions(meta: dict[str, Any]) -> str:
+    """Per-stage prompt versions (paket 3) or the single template version of paket 1 runs."""
+    if meta.get("prompt_versions"):
+        v = meta["prompt_versions"]
+        return ", ".join(f"{k} {v[k]}" for k in ("method", "test_set") if k in v)
+    return str(meta.get("template_version", "–"))
+
+
 def _req_table(m: dict[str, Any]) -> list[str]:
     cols = [
         "requirements",
         "coverage_rate",
         "coverage_rate_before_repair",
         "no_test_violations",
+        "no_test_violations_raw",
         "step_structure_rate",
         "test_cases",
         "method_exact_match",
@@ -43,7 +52,8 @@ def render(metrics: dict[str, Any]) -> str:
         "",
         f"- Soru: {exp.get('question', '')}",
         f"- Değişken: {exp.get('variable', '')}",
-        f"- Koşu: `{meta['run_id']}`, ayar `{meta['config_file']}`, şablon `{meta['template_version']}`, "
+        f"- Koşu: `{meta['run_id']}`, ayar `{meta['config_file']}`, prompt "
+        f"`{_versions(meta)}`, "
         f"altın set `{meta['golden_version']}`",
         f"- Sunucu: {meta['server'].get('engine')} / {meta['server'].get('model')} "
         f"(sunulan ad `{meta.get('served_model')}`, pod `{meta['server'].get('pod')}`)",

@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from core.metrics import layer1, passes_thresholds  # noqa: E402
-from core.prompts import TEMPLATE_VERSION, Method, ProjectCard, generation_messages  # noqa: E402
+from core.prompts import Method, ProjectCard, generation_messages  # noqa: E402
 from core.schemas import case_set_model  # noqa: E402
 from eval.golden import load_golden  # noqa: E402
 from eval.golden_v1 import load_golden_v1  # noqa: E402
@@ -250,7 +250,6 @@ async def main() -> int:
         "experiment": exp,
         "config_file": str(exp_path),
         "pipeline_config": cfg,
-        "template_version": TEMPLATE_VERSION,
         "golden_version": golden.version,
         "server": server_info,
         "model_spec": load_models()[os.environ.get("LLM_MODEL", "")].model_dump()
@@ -281,9 +280,15 @@ async def main() -> int:
                 repeats = args.repeat or int(exp.get("repeat", 1))
                 for rep in range(repeats):
                     pipe = Pipeline(client, cache, cfg, examples)
+                    meta["prompt_versions"] = pipe.prompt_versions()
                     res = await pipe.run(golden)
                     m = layer1(
-                        res.outcomes, golden.refs(), res.calls, res.wall_s, cfg["test_method"]
+                        res.outcomes,
+                        golden.refs(),
+                        res.calls,
+                        res.wall_s,
+                        cfg["test_method"],
+                        raw_outputs=res.raw_outputs,
                     )
                     m["thresholds"] = passes_thresholds(m, cfg["thresholds"])
                     runs.append(m)
@@ -293,7 +298,7 @@ async def main() -> int:
                     print(
                         f"  tekrar {rep + 1}/{repeats}: kapsama {a['coverage_rate']}, şema "
                         f"{c['schema_valid_rate']}, yöntem {a['method_exact_match']}, ihlal "
-                        f"{a['no_test_violations']}, {c['wall_s']} sn, {c['tokens_per_second']} tok/sn, "
+                        f"{a.get('no_test_violations_raw', a['no_test_violations'])}, {c['wall_s']} sn, {c['tokens_per_second']} tok/sn, "
                         f"hata {c['errors']}",
                         flush=True,
                     )

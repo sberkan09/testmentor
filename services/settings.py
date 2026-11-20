@@ -151,7 +151,12 @@ def load_stage_settings(config_dir: str | Path = "config") -> StageSettings:
     if not examples_path.is_absolute():
         # Repo-relative (`config/prompts/...`): resolved against the parent of `config_dir`.
         examples_path = config_dir.resolve().parent / examples_path
-    examples = yaml.safe_load(examples_path.read_text(encoding="utf-8"))
+    return stage_settings_from(cfg, yaml.safe_load(examples_path.read_text(encoding="utf-8")))
+
+
+def stage_settings_from(cfg: dict[str, Any], examples: dict[str, Any]) -> StageSettings:
+    """`StageSettings` from an already merged pipeline config (eval merges experiment files over
+    config/pipeline.yaml) and the loaded examples."""
 
     def params(section: str) -> LLMParams:
         raw = cfg.get(section) or {}

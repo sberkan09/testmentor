@@ -33,6 +33,7 @@ class ClientComplete:
             content=result.content,
             parsed=result.parsed,
             schema_error=result.schema_error,
+            finish_reason=result.finish_reason,
             usage=LLMUsage(
                 prompt_tokens=m.prompt_tokens,
                 completion_tokens=m.completion_tokens,
