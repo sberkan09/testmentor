@@ -179,7 +179,7 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 | D6 | Embedding ve kümeleme | BGE-M3 ve iki alternatif; agglomerative ve HDBSCAN | uzmanın elle öbeklemesiyle uyum, kullanıcının yapmak zorunda kaldığı taşıma sayısı | BGE-M3, agglomerative | bu paketin kapsamı dışında |
 | D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; öbek sınırı 10, 25, 50 | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | bu paketin kapsamı dışında |
 | D8 | Yeniden üretim biçimi | artımlı ve baştan | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | bu paketin kapsamı dışında |
-| D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | bu paketin kapsamı dışında |
+| D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | pilot (paket 1b): altın set v1 belgenin etkisini ölçebiliyor; kâhin parçalarla belge gerektiren denetimlerde recall 0,28 → 0,49 ([`D9`](deneyler/D9.md)). Parça boyu, sayı ve reranker paket 7'de |
 | D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | bu paketin kapsamı dışında |
 | D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 | bu paketin kapsamı dışında |
 | D12 | Önek ısıtma | paralel çağrıları ilk çağrı öneki işleyene kadar bekletmek ve bekletmemek | ilk üretimin toplam süresi ve önek cache isabet oranı | bekletmek | **Bekletmemek.** Önek isabeti aynı (%54), süre biraz kısa, recall farkı gürültü içinde. [D12](deneyler/D12.md) |

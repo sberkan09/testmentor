@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": true, "evidence": "Kurtarma işlemi sonrası temsilciye bildirim gönderimi, steps 1-2: recovery completed, notification observed at the representative's registered contact address"}, {"no": 2, "matched": false, "evidence": ""}], "invented": [], "boundary_ok": false, "ambiguity_flagged": true}

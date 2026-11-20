@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": true, "evidence": "SMS kodunun 5 dakikalık geçerlilik süresi aşıldığında reddedilmesi, step 1"}], "invented": [], "boundary_ok": false, "ambiguity_flagged": true}

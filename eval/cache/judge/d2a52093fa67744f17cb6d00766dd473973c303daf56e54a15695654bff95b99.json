@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": false, "evidence": ""}, {"no": 2, "matched": false, "evidence": ""}], "invented": ["ST03 and ST04 symbols on the E1 screen are not stated in the requirement", "'No Connection' is indicated by no symbol being displayed, which the requirement does not state"], "boundary_ok": false, "ambiguity_flagged": false}

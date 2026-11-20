@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": true, "evidence": "SMS kodunun 5 dakikadan sonra reddedilmesi, step 1: correct code submitted after more than 5 minutes is rejected and the representative cannot sign in."}], "invented": ["hata mesajı gösterilir (an error message is displayed)"], "boundary_ok": false, "ambiguity_flagged": true}

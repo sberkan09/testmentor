@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": false, "evidence": ""}, {"no": 2, "matched": true, "evidence": "New MA with SvL while supervising LOA is treated as shortening, steps 2 and 3: OBU treats the event as an MA shortening and deletes/updates the stored location-based information from A.3.4."}], "invented": [], "boundary_ok": false, "ambiguity_flagged": false}

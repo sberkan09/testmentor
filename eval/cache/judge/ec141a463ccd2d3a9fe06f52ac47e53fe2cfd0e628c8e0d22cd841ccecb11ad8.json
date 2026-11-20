@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": true, "evidence": "Repetition of Termination message upon no acknowledgement, step 1"}, {"no": 2, "matched": true, "evidence": "Repetition of Termination message upon no acknowledgement, step 2"}], "invented": [], "boundary_ok": false, "ambiguity_flagged": true}

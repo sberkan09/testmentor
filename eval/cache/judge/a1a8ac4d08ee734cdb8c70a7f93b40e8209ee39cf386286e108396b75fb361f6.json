@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": false, "evidence": ""}, {"no": 2, "matched": false, "evidence": ""}], "invented": ["Form doldurma ve gönderim butonu tıklama senaryosu requirement'ta belirtilmeyen belirli işlevleri varsayıyor"], "boundary_ok": false, "ambiguity_flagged": false}
