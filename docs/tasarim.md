@@ -44,18 +44,26 @@ Sistemdeki her şey Postgres'te tutulan bir çıktı düğümüdür ve hangi gir
 | --- | --- | --- | --- |
 | Gereksinim | kimlik, metin, kaynak belge | yüklenen set | ayrıştırıcı |
 | Embedding | vektör | gereksinim metni, embedding modeli sürümü | embedding modeli |
-| Öbekleme | gereksinim → öbek ataması | tüm embedding'ler, kümeleme parametreleri, kullanıcı atamaları | algoritma |
-| Öbek | ad, gerekçe, üye listesi | üye gereksinimlerin kimlik ve metinleri | model (yalnızca ad) |
-| Test durumu seti | öbeğin test durumları, her biri kapsadığı gereksinim kimlikleriyle | öbek üyeleri, bilgi havuzu parçaları, proje kartı | model |
+| Öbekleme | kümeleme ağacı | tüm embedding'ler, kümeleme parametreleri | algoritma |
+| Öbek | üye listesi | gereksinim → öbek ataması (ağaç kesimi ya da kullanıcı taşıması) | algoritma, kullanıcı |
+| Öbek adı | ad, bir cümle gerekçe | üye gereksinimlerin kimlik ve metinleri, proje kartı | model |
+| Arama sonucu | sıralı parça kimlikleri | üye gereksinimlerin metinleri, indeks sürümü | arama |
+| Test durumu seti | öbeğin test durumlarının sıralı listesi | öbek üyelerinin kimlik ve metinleri, üyelerin doğrulama yöntemleri, arama sonucundaki parça kimlikleri, proje kartı | model |
+| Test durumu | başlık, adımlar, `covers[req_id]` ve diğer şema alanları | ait olduğu setin girdileri | model ya da kullanıcı |
 | Doğrulama yöntemi | bir ya da birden çok yöntem ve bir cümle gerekçe | gereksinim metni, proje kartı | model |
-| Matris satırı | gereksinim, yöntem, test durumu kimlikleri, kapsama durumu | doğrulama yöntemi, test durumu setleri | SQL birleştirmesi |
+| Matris satırı | gereksinim, yöntem, test durumu kimlikleri, kapsama durumu | doğrulama yöntemi, gereksinimi kapsayan test durumları | SQL birleştirmesi |
 
-Her düğümde ortak alanlar bulunur: `input_hash`, `status` (`fresh`, `stale`, `running`, `failed`), `pinned`, `origin` (`generated`, `edited`), `version`, `produced_by` (model ve prompt sürümü).
+Her düğümde ortak alanlar bulunur: `input_hash`, `cache_key`, `status` (`fresh`, `stale`, `running`, `failed`), `pinned`, `origin` (`generated`, `edited`), `version`, `produced_by` (model, prompt sürümü ve üretim biçimi).
 
 Kurallar:
 
-- `input_hash`, sıralı girdi içeriklerinin, prompt sürümünün, model kimliğinin ve üretim parametrelerinin SHA-256 özetidir.
+- `input_hash`, sıralı girdi içeriklerinin, prompt sürümünün, model kimliğinin ve üretim parametrelerinin SHA-256 özetidir. Girdiler düz JSON'dur; aşağı akış düğümleri ham içerik (örneğin vektör) yerine üst düğümün hash'ini kullanır.
+- Bağımlılık ile bağlam ayrıdır (paket 2'de netleşti). Bağımlılıklar `input_hash`'e girer ve bayatlığı belirler. Bağlam (sabitlenmiş test durumlarının içeriği, kullanıcının ek talimatı) bayatlatmaz, ama çıktı cache'inin anahtarına girer: `cache_key = H(input_hash, bağlam hash'i)`. Üretim biçimi (artımlı, baştan, birleştirme, onarım; önceki set) hiçbir anahtara girmez, `produced_by` içinde kaydedilir. Böylece test durumunu elle düzenlemek model çağırmaz, gereksinimi taşıyıp geri almak cache'ten döner.
+- Düğüm bayattır ⇔ kayıtlı `input_hash`, güncel girdilerden hesaplanan beklenen hash'ten farklıdır. Her olaydan sonra beklenen hash'ler projenin tamamı için yeniden hesaplanır; ters bağımlılık dizini arayüz ve doğrulama listesi için tutulur.
+- Model çağırmayan ucuz bir düğümün (embedding, arama sonucu) girdisi değişince aşağısı hemen bayat sayılmaz, doğrulanacak listesine girer: durumu `fresh` kalır, üstü taze olana kadar kuyruğa alınmaz. Ucuz düğüm yeniden hesaplanır; çıktısı aynıysa aşağısı taze kalır (erken kesme).
+- Girdisi değişen `running` düğüm `stale` olur ve işi iptal edilir. Eski girdiyle biten sonuç çıktı cache'ine kendi anahtarıyla yazılır, düğüme yazılmaz.
 - Öbek hash'i üyelerin kimlik ve metinlerine bağlıdır, öbeğin adına ya da ekrandaki konumuna değil. Ad değiştirmek testleri bayatlatmaz.
+- Sabitleme düğüm başınadır; test setinde sabitlenen birim tek test durumudur.
 - Kullanıcı düzenlemesi yeni bir sürüm yazar (`origin=edited`, `pinned=true`). Eski sürümler silinmez, geri alma sürüm değiştirmektir.
 - Her düzenleme olay günlüğüne yazılır (`requirement_moved`, `cluster_created`, `test_case_edited`). Arayüz bu olayları dinler, denetim izi de buradan çıkar.
 
@@ -72,6 +80,8 @@ Yüklenen set gereksinim kayıtlarına ayrıştırılır. Kimliği olmayan gerek
 - Kosinüs uzaklığıyla hiyerarşik (agglomerative) kümeleme yapılır ve ağaç saklanır.
 - Arayüzdeki ayrıntı kaydırıcısı ağacı farklı seviyeden keser. Öbek sayısı model çağrısı olmadan anında değişir.
 - Kullanıcının taşıdığı gereksinim sabit atama olur. Yeniden kümeleme sabit atamaları bozmaz.
+- Öbek üyeliği somut durumdur; öbekler ağaca değil üyeliğe bağlıdır. Embedding değişince ağaç bayatlar ve arayüzde gösterilir, ama yeniden kesim yalnızca açık komutla (ayrıntı kaydırıcısı, yeniden öbekle) yapılır. Böylece tek metin değişikliği öbekleri dağıtmaz (paket 2'de netleşti).
+- Son üyesi taşınan öbek silinir; adı, seti ve arama sonucu kaldırılır.
 - Model her öbek için 3–6 kelimelik ad ve bir cümle gerekçe yazar. Kullanıcının elle yazdığı ad sabittir.
 
 ### 3. Test durumu üretimi
@@ -219,18 +229,22 @@ Aynı projenin tüm istekleri ilk üç parçayı paylaşır. İlk üç parçaya 
 
 ### Hangi düzenleme neyi bayatlatır
 
+Sayılar büyük model çağrısıdır; embedding ayrı sayılır. Matris satırları kapsanan gereksinimler için bayatlar ve model çağırmaz. Tablo paket 2'de veri modeliyle tutarlı hale getirildi: öbek adı üye metinlerine bağlı olduğu için silme, birleştirme ve metin değişikliği satırlarına ad çağrısı eklendi; son iki satır yeni.
+
 | Olay | Bayatlayan | Model çağrısı |
 | --- | --- | --- |
-| Gereksinim A öbeğinden B'ye taşındı | A ve B'nin test setleri ve adları | 2 artımlı test çağrısı, 2 ad çağrısı |
+| Gereksinim A öbeğinden B'ye taşındı | A ve B'nin test setleri ve adları | 2 artımlı test, 2 ad |
 | Öbek yeniden adlandırıldı | hiçbir şey | 0 |
-| Öbek silindi, üyeleri dağıtıldı | üye alan öbeklerin setleri | üye alan öbek başına 1 |
-| İki öbek birleştirildi | yeni öbeğin seti | 1: iki set birleştirilir, model yalnızca tekrarları ayıklar |
-| Gereksinim metni değişti | embedding, doğrulama yöntemi, öbeğinin test seti | 2 |
-| Test durumu elle düzenlendi | yalnızca matris satırı | 0 |
+| Öbek silindi, üyeleri dağıtıldı | üye alan öbeklerin setleri ve adları | üye alan öbek başına 1 test, 1 ad |
+| İki öbek birleştirildi | yeni öbeğin seti ve adı | 1 test (iki set birleştirilir, model yalnızca tekrarları ayıklar), 1 ad |
+| Gereksinim metni değişti | embedding, doğrulama yöntemi, öbeğin test seti ve adı | 3 (yöntem, test, ad) |
+| Test durumu elle düzenlendi | yalnızca matris satırları | 0 |
 | Bilgi havuzuna belge eklendi | getirilen parçaları değişen öbeklerin setleri | değişen öbek başına 1 |
 | Prompt ya da model sürümü değişti | o aşamanın tüm çıktıları, kullanıcı onayıyla | toplu, arka planda |
+| Doğrulama yöntemi elle değişti | öbeğin test seti | 1 |
+| Proje kartı değişti | projedeki tüm model çıktıları, kullanıcı onayıyla | toplu, arka planda |
 
-İki ayrıntı önemlidir. Test setinin hash'ine indeks sürümü değil, getirilen parçaların kimlikleri girer; belge eklemek, arama sonucu değişmeyen öbekleri bayatlatmaz. Bayatlayan sabitlenmiş düğüm kendiliğinden yeniden üretilmez, kullanıcıya uyarı olarak gösterilir.
+İki ayrıntı önemlidir. Test setinin hash'ine indeks sürümü değil, getirilen parçaların kimlikleri girer; belge eklemek, arama sonucu değişmeyen öbekleri bayatlatmaz. Bayatlayan sabitlenmiş düğüm kendiliğinden yeniden üretilmez, çağrı sayısına girmez, kullanıcıya uyarı olarak gösterilir.
 
 ### İş kuyruğu
 
@@ -261,7 +275,7 @@ Her projenin bilgisi iki katmanda tutulur: her prompt'a giren kısa bir proje ka
 - Belgeler başlık yolu korunarak 300–500 token'lık parçalara bölünür ve yüklemede bir kez embed edilir.
 - Depo Postgres ve pgvector'dür; projeler `project_id` ile ayrılır. Ayrı bir vektör veritabanı kurulmaz.
 - Arama hibrittir: yoğun vektör ve anahtar kelime sonuçları sıra birleştirmeyle (RRF) tek listeye iner, ilk 6–8 parça alınır.
-- Arama birimi öbektir. Sorgu, öbek adı ile üye gereksinimlerin metnidir; gereksinim başına değil öbek başına bir arama yapılır.
+- Arama birimi öbektir. Sorgu üye gereksinimlerin metnidir; gereksinim başına değil öbek başına bir arama yapılır. Öbek adı sorguya girmez: girseydi yeniden adlandırma arama sonucunu ve test setini bayatlatabilirdi (paket 2'de netleşti). Adın faydası D9'da ölçülebilir.
 - Yeniden sıralayıcı (reranker) ilk sürümde yoktur; altın set ölçümü gerektirirse eklenir.
 
 ### Örnek havuzu
@@ -407,7 +421,7 @@ Aynı yöntemlerin geliştirme sürecine uygulanışı deponun `CLAUDE.md` dosya
 | --- | --- | --- | --- |
 | 0 | Altyapı: aday sunum motorları, embedding servisi, Postgres, Docker Compose, `LLMClient` | Sonnet | 16 eşzamanlı istek hatasız ve şemaya uygun dönüyor |
 | 1 | Altın set ve ölçüm koşucusu | Opus tasarlar, Sonnet yazar | D0–D5 deneyleri koşuldu; motor, model ve ayarlar ölçümle seçildi |
-| 2 | Çekirdek: veri modeli, hash, bağımlılık grafiği, geçersiz kılma | Opus | Bayatlama tablosundaki her satırın birim testi geçiyor |
+| 2 | Çekirdek: veri modeli, hash, bağımlılık grafiği, geçersiz kılma ([plan](paketler/paket-2-plan.md)) | Opus | Bayatlama tablosundaki her satırın birim testi geçiyor |
 | 3 | Aşamalar ve prompt'lar: öbekleme, test üretimi (artımlı dahil), doğrulama yöntemi | Opus | Altın sette belirlenen eşikler aşılıyor |
 | 4 | İçe alma, matris görünümü, xlsx dışa aktarım | Sonnet | Örnek set uçtan uca matrise dönüşüyor |
 | 5 | Orkestratör ve kuyruk: komut işleme, öncelik, bekleme, iptal, aşama kapıları | Opus | Taşıma senaryosu iki çağrıyla bitiyor, diğer öbekler cache'ten geliyor |
