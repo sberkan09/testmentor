@@ -1,0 +1,125 @@
+Service Standard
+
+9. Create a secure service which protects users’ privacy
+
+Establish the security risks, threats and legal responsibilities associated with the service.
+
+Give feedback about this page
+
+Contents
+
+Why it's important
+
+What it means
+
+Related guidance
+
+Service standard points
+
+Understand how to manage risks throughout the delivery lifecycle and put robust security measures in place to protect against potential threats.
+
+Why it’s important
+
+Government services often hold personal data about users and sensitive information about operational activities. Government has an obligation to protect this information and minimise disruption to services. If we fail in that duty, we could put people and critical national infrastructure at risk, and undermine public trust.
+
+What it means
+
+Service teams must follow the Secure By Design principles and:
+
+ensure senior leaders who are accountable for security are aware of risks
+
+have a plan and budget to manage security during the life of the service, including responding to changes in requirements or new threats
+
+perform due diligence on the security of third-party software
+
+perform user research to create security processes that are fit for purpose and easy to understand
+
+collect, process and store data securely and in a way which respects users’ privacy
+
+maintain an assessment of security risks and mitigate threats with appropriate protections
+
+work with business and information risk teams to make sure the service meets security requirements
+
+anticipate and manage vulnerabilities, limiting opportunities for cyber attacks
+
+regularly test security controls
+
+Related guidance
+
+Secure by Design
+
+Securing your information
+
+Protecting your service against fraud
+
+Collecting personal information from users
+
+Working with cookies or similar technologies
+
+Vulnerability and penetration testing
+
+Service standard points
+
+1. Understand users and their needs
+
+2. Solve a whole problem for users
+
+3. Provide a joined up experience across all channels
+
+4. Make the service simple to use
+
+5. Make sure everyone can use the service
+
+6. Have a multidisciplinary team
+
+7. Use agile ways of working
+
+8. Iterate and improve frequently
+
+9. Create a secure service which protects users’ privacy
+
+10. Define what success looks like and publish performance data
+
+11. Choose the right tools and technology
+
+12. Make new source code open
+
+13. Use and contribute to open standards, common components and patterns
+
+14. Operate a reliable service
+
+Updates to this page
+
+Published:
+
+8 May 2019
+
+Last updated:
+
+12 December 2024
+
+Show all updates
+
+12 December 2024
+
+This page has been updated to reflect the broader role that security has within service delivery beyond user privacy. Protecting users’ data is retained as a core element of effective security, and including activities such as risk management and mitigation throughout delivery also helps guard against potential threats to government systems and infrastructure.
+
+Changes reflect updates to government policy, for example considering security earlier on in the delivery lifecycle, ensuring accountability for security, and having long term plans. Read more at https://www.security.gov.uk/policy-and-guidance/secure-by-design/.
+
+Third party software is included, encouraging teams to check integrations or extensions to service architecture. This encompasses previous guidance on cookies.
+
+Guidance on collecting and processing data securely has been expanded to cover storage. Guidance on front-end security has been updated to clarify that protection and authentication can facilitate rather than block user journeys.
+
+References to specific roles within this point have been removed to encourage teams to seek the most suitable support and expertise for their needs, regardless of job titles.
+
+30 May 2022
+
+Added links to related guidance and other standard points. There is no change to the content of the standard point itself.
+
+20 August 2021
+
+Added a link to guidance about using cookies.
+
+8 May 2019
+
+Guidance first published

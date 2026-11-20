@@ -1,0 +1,507 @@
+[
+  {
+    "id": "ETC-901",
+    "project": "ETC",
+    "language": "en",
+    "text": "The on-board equipment shall use the last passed LRBG compliant balise group as the reference when reporting the train position to the RBC, where LRBG compliance depends on whether the balise group is marked as linked or unlinked and on whether linking consistency is checked on-board, as defined in SUBSET-026 §3.6.2.2.2 a).",
+    "source": {
+      "doc": "SUBSET-026-3 v4.0.0",
+      "section": "3.6.2.2.2 a)"
+    },
+    "reference_origin": "official",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3060200 TC2 (Based on: 3.6.2.2.2, 3.6.2.2.2 a), 3.6.2.2.2 a) a)); steps 1→2-4, 5→6-8, 9→10-12",
+    "reference_preconditions": "Starting conditions: ERTMS/ETCS Mode FS / OS / SR / TR / PT / NL / LS / RV / AD / SM; ERTMS/ETCS Level L2; Radio communication session ESTABLISHED; Linking STORED: BG1 is contained in the linking information, Q_LINKREACTION=10; BG3 is not contained in the linking information; BG4 (not used in TC) beyond position of BG3 is contained in the linking information, Q_LINKREACTION=10; Position Report parameters STORED: Position reports issued periodically in space or in time. Interfaces: SAFE CONNECTION SET-UP (RTM). Constraints: Linking information stored on-board contains BG1 (step 1) and BG4 (not used in this TC) and does not contain BG3 (step 9).",
+    "reference_checks": [
+      {
+        "action": "[BTM] One Balise Group message (Q_LINK=1) containing packet 255 is received. Referenced as BG1. The balise is contained in the previously received linking information. Set BG1 position at a few meters less than D_CYCLOC/T_CYCLOC Position Report Parameters period.",
+        "expected": "[JRU] TELEGRAM FROM BALISE (NID_MESSAGE_JRU=6) is recorded. [RTM] SA-DATA.Request with Euroradio Message \"Train Position Report\" (NID_MESSAGE=136) containing packet 0 is transmitted: Referring to BG1. [JRU] MESSAGE TO RBC (NID_MESSAGE_JRU=10) is recorded."
+      },
+      {
+        "action": "[BTM] One Balise Group message (Q_LINK=0) containing packet 255 is received. Referenced as BG2. The balise group message is unlinked. Set BG position to BG1 + (Position Report Parameters period).",
+        "expected": "[JRU] TELEGRAM FROM BALISE (NID_MESSAGE_JRU=6) is recorded. [RTM] SA-DATA.Request with Euroradio Message \"Train Position Report\" (NID_MESSAGE=136) containing packet 0 is transmitted: Referring to BG1. [JRU] MESSAGE TO RBC (NID_MESSAGE_JRU=10) is recorded."
+      },
+      {
+        "action": "[BTM] One Balise Group message (Q_LINK=1) containing packet 255 is received. Referenced as BG3. The balise is not contained in the previously received linking information. Set BG position to BG1 + 2x(Position Report Parameters period).",
+        "expected": "[JRU] TELEGRAM FROM BALISE (NID_MESSAGE_JRU=6) is recorded. [RTM] SA-DATA.Request with Euroradio Message \"Train Position Report\" (NID_MESSAGE=136) containing packet 0 is transmitted: Referring to BG1. [JRU] MESSAGE TO RBC (NID_MESSAGE_JRU=10) is recorded. Next: L2, FS / AD / LS / OS / SR / SM / TR / PT / NL / RV."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "ETC-901-P1",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.6.2.2.2 a)",
+        "text": "3.6.2.2.2 For the LRBG the following requirements have to be met: a) The on-board equipment shall use as a reference for reporting the train position to the RBC the last passed LRBG compliant balise group that fulfils the conditions of the clause 3.6.5.1.8. This balise group is termed as LRBGONB in the following. Only • balise groups marked as linked and contained in the previously received linking information, if linking consistency is checked on-board or • balise groups not marked as unlinked, if linking consistency was not checked when such a balise group was passed shall be regarded as LRBG compliant balise groups."
+      },
+      {
+        "id": "ETC-901-P2",
+        "doc": "ERA SUBSET-026-7 v4.0.0",
+        "section": "7.5.1.114 Q_LINK",
+        "text": "7.5.1.114 Q_LINK Name Link Qualifier Description This qualifier is used to mark a balise group as linked or unlinked. Length of variable Minimum Value Maximum Value Resolution/formula 1 bit Special/Reserved Values 0 Unlinked 1 Linked"
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test"
+    ],
+    "method_rationale": "Madde SUBSET-076-7 Tablo 3'te (test edilemez gereksinimler) yok ve SUBSET-076-5-2'de test vakası var: Test.",
+    "difficulty": "Orta",
+    "note": "Tek test vakası (TC2); TC3 (linking STORED değil) çelişen ön koşul taşıdığı için birleştirilmedi. Beklenen sonuçlar arayüz düzeyinde: NID_MESSAGE_JRU değerleri SUBSET-027'den (JRU) gelir, derlemde yok; destek parçalarından yazılamaz. pdftotext alt simgeleri düzleştirdi: LRBGONB = LRBG_ONB. TC adım 9 BG3'ü (linking'de olmayan, Q_LINK=1) 'Referring to BG1' ile bitirir; linking tepkisi TC'de yok."
+  },
+  {
+    "id": "ETC-902",
+    "project": "ETC",
+    "language": "en",
+    "text": "When receiving information from any transmission medium, the on-board equipment shall take into account only information valid for the train orientation and shall ignore other information, subject to the exceptions in SUBSET-026 §3.6.3.1.3.",
+    "source": {
+      "doc": "SUBSET-026-3 v4.0.0",
+      "section": "3.6.3.1.3"
+    },
+    "reference_origin": "official",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3060300 TC6 (Based on: 3.6.3.1.3); steps 1→2-3, 4→5-7, 8→9-11",
+    "reference_preconditions": "Starting conditions: ERTMS/ETCS Mode OS / LS; ERTMS/ETCS Level L2; Radio communication session ESTABLISHED; Train Position STORED: Train running direction in relation to the direction of the LRBG : Reverse (0) or nominal (1), Q_DIRTRAIN=0 or 1. Interfaces: SAFE CONNECTION SET-UP (RTM). Constraints: The train is running and the train orientation in relation to the direction of the LRBG is known. Q_DIR variable of radio messages at step 1 and step 4 shall be set according to the orientation of the train in relation to the direction of the LRBG.",
+    "reference_checks": [
+      {
+        "action": "[RTM] SA-DATA.Indication with Euroradio Message \"Conditional Emergency Stop\" (NID_MESSAGE=15) is received. Q_DIR = opposite (Q_DIRLRBG).",
+        "expected": "[JRU] MESSAGE FROM RBC (NID_MESSAGE_JRU=9) is recorded: The radio message is recorded on the JRU. [DMI] NOT The system status message \"Emergency stop\" is displayed: The train does not react."
+      },
+      {
+        "action": "[RTM] SA-DATA.Indication with Euroradio Message \"Track Ahead Free Request\" (NID_MESSAGE=34) is received. Q_DIR = Q_DIRLRBG.",
+        "expected": "[JRU] MESSAGE FROM RBC (NID_MESSAGE_JRU=9) is recorded: The radio message is recorded on the JRU. [DMI] The Driver Request symbol \"Track Ahead Free\" is displayed. [JRU] DMI SYMBOL STATUS (NID_MESSAGE_JRU=21; DMI_SYMB_STATUS=<Bit82=1>) is recorded."
+      },
+      {
+        "action": "[RTM] SA-DATA.Indication with Euroradio Message \"Conditional Emergency Stop\" (NID_MESSAGE=15) is received. Q_DIR = 2 (Both directions).",
+        "expected": "[JRU] MESSAGE FROM RBC (NID_MESSAGE_JRU=9) is recorded: The radio message is recorded on the JRU. [DMI] The Status symbol \"Service Brake or Emergency Brake intervention\" is displayed: DMI symbol: ST01. [JRU] DMI SYMBOL STATUS (NID_MESSAGE_JRU=21; DMI_SYMB_STATUS=<Bit38=1>) is recorded."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "ETC-902-P1",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.6.3.1.1-3.6.3.1.3.2",
+        "text": "3.6.3.1.1 The direction for which transmitted information is valid shall refer to: a) the LRBG orientation for information sent by radio b) the balise group orientation for information sent by this balise group c) the loop orientation (which refers itself to the orientation of the balise group transmitting the EOLM information, see 3.4.5.1.3) for information sent by this loop 3.6.3.1.2 Data transmitted to the on-board equipment shall be identified as being valid for a) both directions b) the nominal direction c) the reverse direction of the referenced balise group (for information sent by balise or radio) or of the loop (for information sent by loop). 3.6.3.1.2.1 Deleted. 3.6.3.1.3 When receiving information from any transmission medium, the ERTMS/ETCS on-board equipment shall only take into account information valid for the train orientation. Other information shall be ignored. 3.6.3.1.3.1 Exception 1: for SL, PS and SH engines, balise group crossing direction shall be considered. 3.6.3.1.3.2 Exception 2: information in a Supervised Manoeuvre authorisation shall be taken into account also when its validity direction is opposite to that of the current train orientation"
+      },
+      {
+        "id": "ETC-902-P2",
+        "doc": "ERA SUBSET-026-7 v4.0.0",
+        "section": "7.5.1.103 Q_DIR",
+        "text": "7.5.1.103 Q_DIR Name Validity direction of transmitted data Description Qualifier to indicate the relevant validity direction of transmitted data, with reference to directionality of the balise group sending the information or to directionality of the LRBG, in case of information sent via radio. Length of variable Minimum Value Maximum Value Resolution/formula 2 bits Special/Reserved Values 00 Reverse 01 Nominal 10 Both directions 11 Spare"
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test"
+    ],
+    "method_rationale": "Madde SUBSET-076-7 Tablo 3'te yok; SUBSET-076-5-2'de test vakası var: Test.",
+    "difficulty": "Orta",
+    "note": "TC6 seçildi (3 I satırı, telsiz yolu); TC2 tek I satırlı, TC3 adım 6 §3.16.2.3.1.1'e ve reddedilen paket 5'e dayanıyor. Mesaj adları (15 Conditional Emergency Stop, 34 Track Ahead Free Request) ve DMI/JRU değerleri (ST01, Bit82, Bit38) destek parçalarında yok: SUBSET-026-8 mesaj listesi ve SUBSET-027/ERA DMI belgesi gerekir."
+  },
+  {
+    "id": "ETC-903",
+    "project": "ETC",
+    "language": "en",
+    "text": "Whenever linking information is received, including when it is released from the transition buffer, the on-board equipment shall apply the replacement of stored linking information before determining the Single On-board Location Reference (SOLR), as specified in SUBSET-026 §3.6.4.2.2.2.",
+    "source": {
+      "doc": "SUBSET-026-3 v4.0.0",
+      "section": "3.6.4.2.2.2"
+    },
+    "reference_origin": "official",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3060400 TC20 (Based on: 3.6.4.2.2.2, 3.7.3.1, 3.7.3.1 m)); steps 1→2, 3→4-5, 6→7-9",
+    "reference_preconditions": "Starting conditions: ERTMS/ETCS Level L1; ERTMS/ETCS Mode FS / OS / LS / AD; Linking STORED: Linking information about BGx is stored on boad; Radio communication session STORED; Level Transition Order STORED: A level 2 transition order is stored on board. Constraints: -",
+    "reference_checks": [
+      {
+        "action": "[RTM] SA-DATA.Indication with Euroradio Message \"General message\" (NID_MESSAGE=24) containing packet 5 is received. Info: This radio message is refered to a FRBG with Q_LINK=1. Linking information is stored on-board since a L2 transition order is stored on board. Linking information about a balise located further than the trasition order is available, no linking information about BGx.",
+        "expected": "[JRU] MESSAGE FROM RBC (NID_MESSAGE_JRU=9) is recorded."
+      },
+      {
+        "action": "[BTM] One Balise Group message (NID_BG=<BGx>; Q_LINK=1) containing packet 255 is received.",
+        "expected": "[JRU] TELEGRAM FROM BALISE (NID_MESSAGE_JRU=6) is recorded. [JRU] Any message (NID_MESSAGE_JRU=ALL; NID_SOLR=<BGx>) is recorded: BGx is the new SOLR."
+      },
+      {
+        "action": "[ODO] The train reaches a location with its estimated front end.",
+        "expected": "[DMI] The Level symbol \"Level 2\" is displayed. [JRU] DMI SYMBOL STATUS (NID_MESSAGE_JRU=21; DMI_SYMB_STATUS=<Bit04=1/Bit05=1>) is recorded. [JRU] Any message (NID_MESSAGE_JRU=ALL; NID_SOLR=<FRBG>) is recorded: After the transition to L2, linking information is released from the transition buffer. BGx remains LRBG but FRBG becomes the new SOLR since the clause 3.7.3.1 m) is applied before the clause 3.6.4.2.2. Next: L2, FS / AD / LS / OS."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "ETC-903-P1",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.6.4.2.2-3.6.4.2.2.3",
+        "text": "3.6.4.2.2 The Single On-board Location Reference (SOLR) shall be: a) the last received balise group that is the reference of linking information or that is announced in linking information (including if it is announced with a balise group with ID “unknown” and it contains repositioning information), while the linking consistency is checked (see 3.4.4.2.1.1), or b) the last received balise group, while no linking consistency is checked. 3.6.4.2.2.1 Exception to 3.6.4.2.2 b): when exiting No Power mode, the SOLR shall be set to the stored LRBG if any. 3.6.4.2.2.2 Whenever linking information is received (e.g. when it is released from the transition buffer), the clause 3.7.3.1 m) shall be applied before this clause 3.6.4.2.2. For all other information, any relocation to the SOLR resulting from this clause 3.6.4.2.2 shall take place before the corresponding item of the clause 3.7.3.1 is applied. 3.6.4.2.2.3 Note: the SOLR is generally equal to the LRBGONB. For some cases however, like the transition to level 1/2 area, it might be possible that the linking information released from the transition buffer provokes the change of SOLR to a former LRBG in case this information does not announce every balise group in rear of the border (see Figure 13e)."
+      },
+      {
+        "id": "ETC-903-P2",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.7.3.1 m)",
+        "text": "m) New linking information received as non-infill information shall replace all stored linking information from the reference balise group of the new linking information."
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test"
+    ],
+    "method_rationale": "Madde SUBSET-076-7 Tablo 3'te yok; SUBSET-076-5-2'de test vakası var: Test.",
+    "difficulty": "Zor",
+    "note": "Adım 6'daki konum TC'de belirtilmemiş (seviye geçiş konumu olduğu çıkarılabilir, eklenmedi). Ön koşullardaki 'boad', 'refered', 'trasition' yazım hataları TC'den aynen alındı. NID_SOLR bir JRU değişkeni (SUBSET-027), derlemde yok. Geçiş tamponu kavramı SUBSET-026 §4.8'de; destek parçasına alınmadı."
+  },
+  {
+    "id": "ETC-904",
+    "project": "ETC",
+    "language": "en",
+    "text": "The on-board equipment shall replace stored Static Speed Profile information with newly received Static Speed Profile information from the start location of the new information, as specified in SUBSET-026 §3.7.3.1 a).",
+    "source": {
+      "doc": "SUBSET-026-3 v4.0.0",
+      "section": "3.7.3.1 a)"
+    },
+    "reference_origin": "official",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3070300 TC14 (Based on: 3.7.3.1, 3.7.3.1 a)); steps 1→2, 3/5 (L1/L2 alternatives)→4, 6, 7-8",
+    "reference_preconditions": "Starting conditions: ERTMS/ETCS Mode FS / OS / LS / AD / SM; ERTMS/ETCS Level L1 / L2; Radio communication session ESTABLISHED (Only in L2); Movement Authority STORED; International SSP STORED: Ends beyond the start location of SSP received from BGa or RBC. Interfaces: SAFE CONNECTION SET-UP (RTM) Only in L2; The speed and distance monitoring information is displayed (DMI): Speed and distance information is DISPLAYED, which reflects the currently stored SSP. Constraints: An SSP is stored on-board which ends beyond the start location of SSP received from BGa or RBC.",
+    "reference_checks": [
+      {
+        "action": "[DMI] The driver requests the speed and distance monitoring information to be displayed. Info: only if in OS.",
+        "expected": "[JRU] DRIVER’S ACTIONS (NID_MESSAGE_JRU=11; M_DRIVERACTIONS=0001 1011) is recorded. Info: only if in OS."
+      },
+      {
+        "action": "Info: If in L1: [BTM] One Balise Group message (N_TOTAL=1; NID_BG=<BGa>) containing packet 27, packet 255 is received; the SSP is different from the previous one and shall be valid immediately. Info: If in L2: [RTM] SA-DATA.Indication with Euroradio Message \"General message\" (NID_MESSAGE=24) containing packet 27 is received; the SSP is different from the previous one and shall be valid immediately.",
+        "expected": "Info: If in L1: [JRU] TELEGRAM FROM BALISE (NID_MESSAGE_JRU=6) is recorded. Info: If in L2: [JRU] MESSAGE FROM RBC (NID_MESSAGE_JRU=9) is recorded. [DMI] The speed and distance monitoring information is displayed: The new SSP is the one recieved from track. [JRU] SPEED AND DISTANCE MONITORING INFORMATION (NID_MESSAGE_JRU=20) is recorded. Info: This Step does not apply in LS mode. Next: L1 / L2, FS / AD / LS / OS / SM."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "ETC-904-P1",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.7.3.1 a)",
+        "text": "3.7.3.1 New track description and linking information shall replace (in the ERTMS/ETCS on-board equipment) stored information as detailed below: a) New Static Speed Profile information shall replace all stored Static Speed Profile information from the start location of the new information."
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test"
+    ],
+    "method_rationale": "Madde SUBSET-076-7 Tablo 3'te yok; SUBSET-076-5-2'de test vakası var: Test.",
+    "difficulty": "Kolay",
+    "note": "TC'de adım 3 (L1, balise) ve 5 (L2, telsiz) seçenekli I satırları; tek eyleme birleştirildi, adım 4 ve 6 kendi koşuluyla, 7-8 her iki yol için beklenen sonuçta. Paket 27 = International Static Speed Profile (SUBSET-026-7 §7.4.1.1) destek parçasında yok. needs_documents: paket numarası ve JRU değerleri."
+  },
+  {
+    "id": "ETC-905",
+    "project": "ETC",
+    "language": "en",
+    "text": "The on-board equipment shall send an MA request to the RBC when the triggering criterion defined by the RBC is reached and, together with any MA request, shall inform the RBC about the reason(s) applicable at the time the MA request is sent, as specified in SUBSET-026 §3.8.2.2.2 and §3.8.2.1.7.",
+    "source": {
+      "doc": "SUBSET-026-3 v4.0.0",
+      "section": "3.8.2.1.7, 3.8.2.2.2"
+    },
+    "reference_origin": "official",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3080200 TC7 (Based on: 3.8.2.1.7, 3.8.2.2.2); steps 1→2-3, 4→5-6, 7→8-9, 10→11-12",
+    "reference_preconditions": "Starting conditions: ERTMS/ETCS Mode FS / OS / LS / AD; ERTMS/ETCS Level L2; Radio communication session ESTABLISHED; Movement Authority STORED; Gradient Profile STORED; International SSP STORED; MA Request Parameters STORED: T_TIMEOUTRQST=1023, T_CYCRQST=10, No MA request triggering with regards to this function; Train Position V_TRAIN > 0. Interfaces: SAFE CONNECTION SET-UP (RTM). Constraints: There are an initial MA and a complete track description on-board. The MA request is sent with Q_MARQSTREASON = xxx1x (Time before reaching the perturbation location reached).",
+    "reference_checks": [
+      {
+        "action": "[ODO] The train reaches a location with its max safe front end. The train is running and would reach the pertubation location in T_MAR seconds if it would be driving at warning speed.",
+        "expected": "[RTM] SA-DATA.Request with Euroradio Message \"MA Request\" (NID_MESSAGE=132; Q_MARQSTREASON=<xxx1x>) containing packet 0/1 is transmitted. [JRU] MESSAGE TO RBC (NID_MESSAGE_JRU=10) is recorded."
+      },
+      {
+        "action": "[INT] A timer expires (T_CYCRQST).",
+        "expected": "[RTM] SA-DATA.Request with Euroradio Message \"MA Request\" (NID_MESSAGE=132; Q_MARQSTREASON=<xxx1x>) containing packet 0/1 is transmitted. [JRU] MESSAGE TO RBC (NID_MESSAGE_JRU=10) is recorded."
+      },
+      {
+        "action": "[ODO] The train reaches standstill. Info: The train is at standstill at the end of the current MA.",
+        "expected": "[RTM] SA-DATA.Request with Euroradio Message \"Train Position Report\" (NID_MESSAGE=136) containing packet 0/1 is transmitted. Info: The train informs the RBC about standstill. [JRU] MESSAGE TO RBC (NID_MESSAGE_JRU=10) is recorded."
+      },
+      {
+        "action": "[INT] A timer expires (T_CYCRQST).",
+        "expected": "[RTM] SA-DATA.Request with Euroradio Message \"MA Request\" (NID_MESSAGE=132; Q_MARQSTREASON=<xxx1x>) containing packet 0/1 is transmitted: The on-board equipment carries on requesting the RBC for a MA every T_CYCRQST seconds until the driver presses 'Override EoA' button. Steps 11 and 12 are executed repeatedly until the driver presses 'Override EoA' button. [JRU] MESSAGE TO RBC (NID_MESSAGE_JRU=10) is recorded. Next: L2, FS / AD / LS / OS."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "ETC-905-P1",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.8.2.1.5",
+        "text": "3.8.2.1.5 As long as at least one reason for sending MA requests is applicable and unless it is requested by the RBC not to do so, the ERTMS/ETCS on-board equipment shall repeat the MA requests as indicated by the RBC or with a repetition cycle according to a fixed value (see appendix A.3.1) in case no MA request parameters are stored on-board."
+      },
+      {
+        "id": "ETC-905-P2",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.8.2.1.7",
+        "text": "3.8.2.1.7 Together with any MA request the on-board shall inform the RBC about the reason(s) that is (are) applicable at the time the MA request is sent."
+      },
+      {
+        "id": "ETC-905-P3",
+        "doc": "ERA SUBSET-026-3 v4.0.0",
+        "section": "3.8.2.2.1-3.8.2.2.2",
+        "text": "3.8.2.2.1 The triggering criteria that can be used by the RBC are the following: a) A defined time before the train reaches the perturbation location assuming it is running at the warning speed (see section 3.13.11 for details). b) A defined time before the Section timer (not the End Section timer, not the Overlap timer) for any section of the MA expires, or before the LOA speed timer expires. 3.8.2.2.2 With regard to the above possibilities, the MA request shall be triggered when the train front has passed the location defined by 3.8.2.2.1 a) / when the moment defined by 3.8.2.2.1 b) is reached."
+      },
+      {
+        "id": "ETC-905-P4",
+        "doc": "ERA SUBSET-026-7 v4.0.0",
+        "section": "7.5.1.118.3 Q_MARQSTREASON",
+        "text": "7.5.1.118.3 Q_MARQSTREASON Name Reason for MA request sending Description Qualifier to indicate the reason why the MA request is sent to the RBC Length of variable Minimum Value Maximum Value Resolution/formula 5 bits Bitset Special/Reserved Values xxxx1 Start selected by driver xxx1x Time before reaching the perturbation location reached xx1xx Time before a section timer/LOA speed timer expires reached x1xxx Track description deleted 1xxxx TAF up to level 2 transition location"
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test"
+    ],
+    "method_rationale": "Madde SUBSET-076-7 Tablo 3'te yok; SUBSET-076-5-2'de test vakası var: Test.",
+    "difficulty": "Orta",
+    "note": "TC7 §3.8.2.1.7 ve §3.8.2.2.2'ye dayanıyor; gereksinim metni ikisini kapsar. Adımlar tekrar davranışını (§3.8.2.1.5, T_CYCRQST) da sınar ve bu madde TC'nin dayanak listesinde yok: 2. ve 4. denetim cümleden tek başına çıkmaz (destek parçası P1 bunun için). TC1 (§3.8.2.1.4, §3.8.2.1.7, §3.8.2.2.2) iç tutarsızlıklar (T_MAR 1023/255, T_TIMEOUTREQUEST) nedeniyle seçilmedi. 3. denetim (duruşta konum raporu) gereksinimle ilgisiz bir ara adım; TC'de olduğu için tutuldu."
+  },
+  {
+    "id": "KDH-901",
+    "project": "KDH",
+    "language": "en",
+    "text": "The portal shall enforce the minimum password lengths for passwords used as a single-factor and as part of a multi-factor authentication mechanism, evaluate password length and verify submitted passwords as specified in NIST SP 800-63B-4 §3.1.1.2.",
+    "source": {
+      "doc": "NIST SP 800-63B-4",
+      "section": "3.1.1.2 (items 1, 4, 9)"
+    },
+    "reference_origin": "official",
+    "reference_basis": "NIST SP 800-63-4 conformance criteria v0.1 (OSCAL, 30 Sep 2026): PV-1 (TEST), PV-2 (TEST), PV-7 (EXAMINE, TEST)",
+    "reference_checks": [
+      {
+        "action": "PV-1 TEST: Try to create a password that does not meet the minimum length requirements.",
+        "expected": "The password is not accepted."
+      },
+      {
+        "action": "PV-2 TEST: Create a password containing a Unicode character such as an accented vowel.",
+        "expected": "The password is accepted."
+      },
+      {
+        "action": "PV-2 TEST: Attempt to authenticate with the unaccented version of the same character.",
+        "expected": "The unaccented version does not allow successful authentication."
+      },
+      {
+        "action": "PV-7 EXAMINE: Examine verification code.",
+        "expected": "The entire password is verified."
+      },
+      {
+        "action": "PV-7 TEST: Create long passwords and attempt to authenticate with truncated passwords.",
+        "expected": "Verifiers SHALL verify the entire submitted password (e.g., not truncate it)."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "KDH-901-P1",
+        "doc": "NIST SP 800-63B-4",
+        "section": "3.1.1.2 items 1-4",
+        "text": "3.1.1.2. Password Verifiers The following requirements apply to passwords. 1. Verifiers and CSPs SHALL require passwords that are used as a single-factor authentication mechanism to be a minimum of 15 characters in length. Verifiers and CSPs MAY allow passwords that are only used as part of multi-factor authentication processes to be shorter but SHALL require them to be a minimum of eight characters in length. 2. Verifiers and CSPs SHOULD permit a maximum password length of at least 64 characters. 3. Verifiers and CSPs SHOULD accept all printing ASCII [RFC20] characters and the space character in passwords. 4. Verifiers and CSPs SHOULD accept Unicode [ISO/ISC 10646] characters in passwords. Each Unicode code point SHALL be counted as a single character when evaluating password length."
+      },
+      {
+        "id": "KDH-901-P2",
+        "doc": "NIST SP 800-63B-4",
+        "section": "3.1.1.2 item 9",
+        "text": "9. Verifiers SHALL request the password to be provided in full (not a subset of it) and SHALL verify the entire submitted password (e.g., not truncate it)."
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test",
+      "İnceleme"
+    ],
+    "method_rationale": "Uygunluk kriteri yöntemleri: TEST → Test; EXAMINE (doğrulama kodunun incelenmesi) → İnceleme.",
+    "difficulty": "Kolay",
+    "note": "PV-1 testi eşik vermiyor (15/8 karakter belgede); PV-7 TEST için beklenen sonuç kriter metninde yok, ifade PV-7 statement'tan aynen alındı. PV-2'nin 'accepted' ve 'unaccented ... does not allow' kısımları iki denetime bölündü. Parola kara listesi (PV-8..PV-11) kapsam dışında tutuldu."
+  },
+  {
+    "id": "KDH-902",
+    "project": "KDH",
+    "language": "en",
+    "text": "The portal shall limit consecutive failed authentication attempts on a subscriber account and handle authenticators disabled by this rate limiting as specified in NIST SP 800-63B-4 §3.2.2.",
+    "source": {
+      "doc": "NIST SP 800-63B-4",
+      "section": "3.2.2"
+    },
+    "reference_origin": "official",
+    "reference_basis": "NIST SP 800-63-4 conformance criteria v0.1: PV-12 (TEST), RL-2 (TEST, EXAMINE), RL-3 (TEST, EXAMINE), RL-4 (TEST)",
+    "reference_checks": [
+      {
+        "action": "PV-12 TEST: Make a large number of incorrect authentication attempts.",
+        "expected": "The number and/or rate of attempts is limited."
+      },
+      {
+        "action": "RL-2 TEST + EXAMINE: Make 101 authentication failures with an authenticator; examine the subscriber account.",
+        "expected": "The authenticator has been disabled."
+      },
+      {
+        "action": "RL-3 TEST + EXAMINE: Make excessive authentication failures with two authenticators; examine the subscriber account.",
+        "expected": "Both authenticators have been disabled."
+      },
+      {
+        "action": "RL-4 TEST: Cause an authenticator to be disabled due to excessive authentication failures.",
+        "expected": "There is no way to successfully use the authenticator other than to go through the authenticator binding procedure."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "KDH-902-P1",
+        "doc": "NIST SP 800-63B-4",
+        "section": "3.2.2",
+        "text": "3.2.2. Rate Limiting (Throttling) When required by the authenticator type descriptions in Sec. 3.1, the verifier SHALL implement controls to protect against online guessing attacks. Unless otherwise specified in the description of a given authenticator, the verifier SHALL limit consecutive failed authentication attempts using a specific authenticator on a single subscriber account to no more than 100 by disabling that authenticator. If more than one authenticator is involved with an excessive number of authentication attempts (e.g., single-factor cryptographic authenticator and centrally verified password), both authenticators SHALL be disabled. Authenticators that have been disabled SHALL be required to rebind to the subscriber account, as described in Sec. 4.1, to be usable in the future."
+      },
+      {
+        "id": "KDH-902-P2",
+        "doc": "NIST SP 800-63B-4",
+        "section": "3.1.1.2 (rate limiting)",
+        "text": "Verifiers SHALL implement a rate-limiting mechanism that effectively limits the number of failed authentication attempts that can be made on the subscriber account, as described in Sec. 3.2.2."
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test",
+      "İnceleme"
+    ],
+    "method_rationale": "TEST → Test; EXAMINE (abone hesabının incelenmesi) → İnceleme.",
+    "difficulty": "Orta",
+    "note": "RL-2 ve RL-3'te TEST ile EXAMINE aynı denetime gruplandı (eylem + gözlem). RL-2..RL-4 kriterleri AAL2/AAL3 işaretli, PV-12 ALL; portalın AAL'si proje belgelerinden gelmeli. '101' sınırı kriterde açık, gereksinim cümlesinde yok. Yeniden kimlik doğrulama (REAUTH-*) yerine bu küme seçildi: REAUTH-1, -3, -4, -5 yalnız EXAMINE, REAUTH-2 SB-8.4'e yönlendiriyor; TEST yok."
+  },
+  {
+    "id": "KDH-903",
+    "project": "KDH",
+    "language": "en",
+    "text": "Every page of the portal shall declare its default human language so that it can be programmatically determined, in conformance with WCAG 2.2 Success Criterion 3.1.1 Language of Page (Level A).",
+    "source": {
+      "doc": "WCAG 2.2",
+      "section": "SC 3.1.1 Language of Page (Level A)"
+    },
+    "reference_origin": "official",
+    "reference_basis": "W3C ACT rule b5c3f8 'HTML page has lang attribute' (approved, latest version 31 August 2023) and ACT rule bf051a 'HTML page lang attribute has valid language tag' (approved version 28 January 2022; the newer proposed version of 21 June 2022 not used): Applicability + Expectation",
+    "reference_checks": [
+      {
+        "action": "b5c3f8 Applicability: for any document element that is an html element in a top-level browsing context and has a node document with a content type of text/html, inspect its lang attribute.",
+        "expected": "b5c3f8 Expectation: Each test target has a lang attribute value that is neither empty (\"\") nor only ASCII whitespace."
+      },
+      {
+        "action": "bf051a Applicability: for any document element that is an html element which has a lang attribute that is neither empty nor only ASCII whitespace, is in a top-level browsing context and has a node document with a content type of text/html, inspect its lang attribute.",
+        "expected": "bf051a Expectation: For each test target, the lang attribute has a known primary language tag."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "KDH-903-P1",
+        "doc": "W3C WCAG 2.2 (via WAI ACT rules index)",
+        "section": "SC 3.1.1",
+        "text": "3.1.1 Language of Page: The default human language of each web page can be programmatically determined."
+      },
+      {
+        "id": "KDH-903-P2",
+        "doc": "W3C ACT rule bf051a, Glossary",
+        "section": "Known Primary Language Tag",
+        "text": "Known Primary Language Tag A language tag has a known primary language tag if its primary language subtag exists in the language subtag registry with a Type field whose field-body value is language."
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test"
+    ],
+    "method_rationale": "ACT kuralı uygulanmış sayfa üzerinde (otomatik ya da elle) yürütülen bir test prosedürü: Test.",
+    "difficulty": "Kolay",
+    "note": "Her ACT kuralı tek Applicability+Expectation verir; 2 denetime ulaşmak için SC 3.1.1'e eşlenen iki onaylı kural birleştirildi ('inspect its lang attribute' bağlayıcı ifadesi eklendi). Kuralın geçmesi SC'yi sağlamaz, yalnızca 'daha fazla test gerekir'; başarısızlık SC ihlalidir. P2 sözlük tanımı kural sayfasından (normatif WCAG değil); ilk denetim H57 bilgisiyle belgesiz de yazılabilir."
+  },
+  {
+    "id": "KDH-904",
+    "project": "KDH",
+    "language": "tr",
+    "text": "Portal, kullanıcı oturumlarını Bilgi ve İletişim Güvenliği Rehberi (v1.1) 3.2.2.3 \"Kullanıcı Oturumlarının Sonlandırılması\" tedbirinde tanımlandığı şekilde sonlandırmalıdır.",
+    "source": {
+      "doc": "Bilgi ve İletişim Güvenliği Rehberi v1.1 (Siber Güvenlik Başkanlığı)",
+      "section": "3.2.2.3"
+    },
+    "reference_origin": "official",
+    "reference_basis": "SGB Rehber v1.1, 3.2.2 Oturum Yönetimi, Denetim Maddeleri, tedbir 3.2.2.3 (Denetim Yöntem Önerileri: Mülakat, Gözden Geçirme, Sızma Testi; 5 denetim sorusu)",
+    "reference_checks": [
+      {
+        "action": "Kullanıcı oturumu kapattığında oturumun sonlandığının test edilip edilmediğini denetle.",
+        "expected": "Kullanıcı oturumu kapattığında oturumun sonlandığı test edilmiştir."
+      },
+      {
+        "action": "İşlem yapılmadan beklenecek sürenin ve/veya oturum kimliğinin geçerlilik süresinin yetkisiz güncellenip güncellenemediğini denetle.",
+        "expected": "İşlem yapılmadan beklenecek süre ve/veya oturum kimliğinin geçerlilik süresi yetkisiz güncellenemez."
+      },
+      {
+        "action": "Oluşturulan oturum kimliğinin geçerlilik süresinin belirlenip belirlenmediğini denetle.",
+        "expected": "Oluşturulan oturum kimliğinin geçerlilik süresi belirlenmiştir."
+      },
+      {
+        "action": "İşlem yapılmadan beklenen geçerlilik süresi sonunda oturumun durumunu denetle.",
+        "expected": "Oturum sonlandırılır."
+      },
+      {
+        "action": "Kullanıcının, oturumun geçersiz olmasına sebep olacak bilgilerini değiştirdikten sonra etkin olan tüm oturumlarını sonlandırıp sonlandıramadığını denetle.",
+        "expected": "Kullanıcı etkin olan tüm oturumlarını sonlandırabilir."
+      },
+      {
+        "action": "Oturum sonlandığında oturum ile ilgili geçici depolama alanlarını ve çerezleri denetle.",
+        "expected": "Oturum ile ilgili tüm geçici depolama alanları ve çerezler uygulama tarafından silinir."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "KDH-904-P1",
+        "doc": "Bilgi ve İletişim Güvenliği Rehberi v1.1",
+        "section": "3.2.2.3 Tedbir Tanımı",
+        "text": "Kimlik doğrulamayla erişilen tüm sayfalardan oturum kapatma işlevine erişilebilmelidir. Buna ek olarak, oluşturulan oturum kimliğinin geçerlilik süresi belirlenmelidir. İlgili süre sonunda, belirli süre etkinlik olmadığında veya kullanıcı oturumu kapattığında oturum geçersiz hale gelmelidir. İlgili sürelerin güncellenmesi sürecinde yetkilendirme mekanizmasından faydalanılmalıdır. Ayrıca oturumun geçersiz olmasına sebep olacak bilgilerin değişmesi durumunda (kullanıcı parolasının güncellenmesi, yetkilerin güncellenmesi vb.) etkin oturumların sonlandırılması sağlanmalıdır. Oturum sonlandığında istemci ve sunucuda oturum ile ilgili tüm geçici depolama alanları ve çerezler uygulama tarafından silinmelidir."
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test",
+      "İnceleme"
+    ],
+    "method_rationale": "Rehber tedbir 3.2.2.3 yöntemleri: Mülakat → İnceleme, Gözden Geçirme → İnceleme, Sızma Testi → Test. Yöntemler soru başına değil tedbir başına verilmiş.",
+    "difficulty": "Orta",
+    "note": "Soru-tedbir eşleşmesi PDF'teki tablo çizgilerinin konumuyla doğrulandı (-layout çıktısında 'Hata mesajlarının...' sorusu 3.2.2.2'ye aittir). 3. soru iki soru içeriyor, iki denetime bölündü. 2. sorunun beklenen yanıtı ('yetkisiz güncellenemez') sorudan değil tedbir tanımından ('yetkilendirme mekanizmasından faydalanılmalıdır') çıkarıldı. 1. soru davranışı değil test kanıtını soruyor. Tedbir tanımındaki 'tüm sayfalardan oturum kapatma işlevine erişim' için denetim sorusu yok."
+  },
+  {
+    "id": "KDH-905",
+    "project": "KDH",
+    "language": "en",
+    "text": "The portal shall enforce the organization-defined limit on consecutive invalid logon attempts and automatically take the organization-defined action when the limit is exceeded, in accordance with NIST SP 800-53 Rev. 5 control AC-7 as parameterized in the system security plan.",
+    "source": {
+      "doc": "NIST SP 800-53 Rev. 5",
+      "section": "AC-7"
+    },
+    "reference_origin": "official",
+    "reference_basis": "NIST SP 800-53A Rev. 5 assessment procedure AC-07, assessment objectives AC-07_ODP[01]-[06], AC-07a., AC-07b. (methods EXAMINE/INTERVIEW/TEST given only at control level)",
+    "reference_checks": [
+      {
+        "action": "Determine if the number of consecutive invalid logon attempts by a user allowed during a time period is defined (AC-07_ODP[01]).",
+        "expected": "The number of consecutive invalid logon attempts by a user allowed during a time period is defined."
+      },
+      {
+        "action": "Determine if the time period to which the number of consecutive invalid logon attempts by a user is limited is defined (AC-07_ODP[02]).",
+        "expected": "The time period to which the number of consecutive invalid logon attempts by a user is limited is defined."
+      },
+      {
+        "action": "Determine if one or more of the following parameter values is/are selected: {lock the account or node for <AC-07_ODP[04] time period>; lock the account or node until released by an administrator; delay next logon prompt per <AC-07_ODP[05] delay algorithm>; notify system administrator; take other <AC-07_ODP[06] action>} (AC-07_ODP[03]).",
+        "expected": "One or more of the parameter values is/are selected."
+      },
+      {
+        "action": "Determine if the time period for an account or node to be locked, the delay algorithm for the next logon prompt and the other action to be taken when the maximum number of unsuccessful attempts is exceeded are defined, if selected (AC-07_ODP[04]-[06]).",
+        "expected": "The time period for an account or node to be locked is defined (if selected); the delay algorithm for the next logon prompt is defined (if selected); the other action to be taken when the maximum number of unsuccessful attempts is exceeded is defined (if selected)."
+      },
+      {
+        "action": "Determine if a limit of <AC-07_ODP[01] number> consecutive invalid logon attempts by a user during <AC-07_ODP[02] time period> is enforced (AC-07a.).",
+        "expected": "A limit of <AC-07_ODP[01] number> consecutive invalid logon attempts by a user during <AC-07_ODP[02] time period> is enforced."
+      },
+      {
+        "action": "Determine if the system automatically <AC-07_ODP[03] SELECTED PARAMETER VALUES> when the maximum number of unsuccessful attempts is exceeded (AC-07b.).",
+        "expected": "Automatically <AC-07_ODP[03] SELECTED PARAMETER VALUE(S)> when the maximum number of unsuccessful attempts is exceeded."
+      }
+    ],
+    "support_passages": [
+      {
+        "id": "KDH-905-P1",
+        "doc": "NIST SP 800-53 Rev. 5 (OSCAL catalog)",
+        "section": "AC-7 Control",
+        "text": "AC-7 Unsuccessful Logon Attempts. Control: a. Enforce a limit of [Assignment: organization-defined number] consecutive invalid logon attempts by a user during a [Assignment: organization-defined time period]; and b. Automatically [Selection (one or more): lock the account or node for [Assignment: organization-defined time period]; lock the account or node until released by an administrator; delay next logon prompt per [Assignment: organization-defined delay algorithm]; notify system administrator; take other [Assignment: organization-defined action]] when the maximum number of unsuccessful attempts is exceeded."
+      }
+    ],
+    "needs_documents": true,
+    "verification_methods": [
+      "Test",
+      "İnceleme"
+    ],
+    "method_rationale": "800-53A AC-07 yöntemleri kontrol düzeyinde: EXAMINE → İnceleme, INTERVIEW → İnceleme, TEST → Test. Hedef başına yöntem atanmadı.",
+    "difficulty": "Orta",
+    "note": "800-53A yalnızca değerlendirme hedeflerini verir; adım, girdi ya da beklenen sonuç yok. Eylem 'Determine if ...' hedefi, beklenen sonuç hedefin olumlu hâli; ODP[04]-[06] ('if selected') tek denetimde gruplandı. Gerçek parametre değerleri sistem güvenlik planındadır (sentetik belgeler henüz yok). Denetimler hedef metninden yazılabildiği için resmî referans iddiası zayıf: test edilebilir davranış yalnızca son iki denetimde."
+  }
+]

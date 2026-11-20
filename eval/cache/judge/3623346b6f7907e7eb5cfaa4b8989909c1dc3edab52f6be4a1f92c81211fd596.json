@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": false, "evidence": ""}, {"no": 2, "matched": false, "evidence": ""}, {"no": 3, "matched": false, "evidence": "Replacement before SOLR determination on release from the transition buffer"}], "invented": [], "boundary_ok": false, "ambiguity_flagged": true}

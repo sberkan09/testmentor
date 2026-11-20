@@ -29,3 +29,8 @@ Sınır ve hata durumlarının kapsanma oranı (`boundary_ok_rate`) düşük: d2
 ## Bilgi havuzu ve uzun bağlam (20 Kasım notu)
 
 Stüdyoda projelere tasarım dokümanları, standartlar ve proje yönetim planı gibi belgeler eklenecek; test üretimi bunlardan getirilen parçalarla yapılacak. Bu yüzden istek başına ~12 bin token getirilmiş parça ile yük ölçüldü (`d2-long-*`, parçalar sentetik, öbek başına farklı). İkisi de hatasız: Qwen 16 istekte 392 token/sn, gpt-oss 708; ilk token medyanı ~1,1–1,2 sn. KV kapasitesi 32 bin bağlamda Qwen'de 605 bin token (18,5 eşzamanlı dizi), gpt-oss'ta 254 bin (7,8). Parça boyu, parça sayısı, reranker ve proje kartının kaliteye etkisi D9'un konusu; gerçek belge setiyle ölçülecek.
+
+## D9 pilotu (paket 1b)
+
+Altın set v1 (ERTMS 109, kamu dijital hizmeti 120 gereksinim; 519 resmî kökenli ya da Claude denetimi) üzerinde Qwen3.8-27B ile parçasız ve altın parçalı (kâhin getirme) üretim. Belge gerektiren denetimlerde recall 0,280 → 0,488 (+0,21, %95 aralık [+0,13, +0,28]); belge gerektirmeyenlerde 0,530 → 0,556 (aralık sıfırı içeriyor). Set, D9'u ölçebiliyor. Kâhin parçalarla bile belge gerektiren denetimlerin yarısı karşılanmıyor; uydurma içerik 1,27 → 1,53. Ayrıntı: [D9.md](D9.md).
+

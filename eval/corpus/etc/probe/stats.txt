@@ -1,0 +1,259 @@
+refs/tc median 2 mean 3.2 zero 186 one 447
+3.4 27
+3.5 45
+3.6 59
+3.7 9
+3.8 41
+3.9 13
+3.10 7
+3.11 34
+3.12 32
+3.13 153
+3.14 27
+3.15 44
+3.16 41
+3.17 18
+3.18 53
+3.20 1
+4.4 122
+4.5 1
+4.6 2
+4.7 1
+4.8 17
+4.9 2
+4.10 1
+4.11 3
+4.12 1
+5.3 1
+5.4 7
+5.5 6
+5.6 5
+5.7 9
+5.8 13
+5.9 15
+5.10 41
+5.11 5
+5.12 4
+5.13 1
+5.15 1
+5.16 7
+5.17 1
+5.18 42
+5.19 15
+5.20 36
+5.21 2
+5.22 9
+6.6 58
+7.3 1
+7.4 1
+7.5 4
+8.4 10
+unique clauses 1048
+3040200 6 6 3.4.2: Balise Co-ordinate System
+3040400 22 22 3.4.4: Linking
+3040500 4 4 3.4.5 - Euroloop (level 1 only
+3050300 38 37 3.5.3: Establishing a communication session
+3050400 5 5 3.5.4: Maintaining a communication session
+3050500 11 11 3.5.5: Terminating a communication session
+3050600 11 11 3.5.6: Registering to the Radio Network
+3050700 17 14 3.5.7: Safe Radio Connection Indication
+3060100 12 12 3.6.1: Location Principles and Train Position and 
+3060200 3 3 3.6.2: Location of Data Transmitted to the On-Boar
+3060300 16 16 3.6.3: Validity direction of transmitted Informati
+3060400 23 20 3.6.4: Train Position Confidence Interval
+3060500 51 49 Position Reporting to the RBC
+3060600 7 6 3.6.6: Geographical position reporting
+3060700 2 2 3.6.7: Supervision of distances not referred to ba
+3060800 4 4 3.6.8 Monitoring of odometer accuracy
+3070200 4 4 3.7.2: Responsibility for completeness of informat
+3070300 28 28 3.7.3: Extension, replacement of track description
+3080200 10 8 3.8.2: MA request to the RBC
+3080300 1 1 Structure of a Movement Authority (MA
+3080400 14 14 3.8.4: Use of the MA on-board the train
+3080500 14 14 3.8.5: MA Update and Extension
+3090200 8 8 3.9.2: infill by loop
+3090300 18 18 3.9.3: Infill by radio
+3100200 1 1 3.10.2 Emergency Stop
+3100300 2 2 3.10.3: Revocation of an Emergency Message
+3110200 3 3 3.11.2: Definition of Static Speed Restriction
+3110300 8 7 3.11.3: Static Speed Profile (SSP
+3110400 5 5 3.11.4: Axle Load Speed Profile
+3110500 12 10 3.11.5: Temporary Speed Restrictions
+3110600 8 8 3.11.6: Signalling related speed restrictions
+3110700 4 4 3.11.7: Mode related speed restrictions
+3110800 2 2 3.11.8: Train related speed restriction
+3111100 4 4 Speed restriction to ensure permitted braking dist
+3111200 1 1 3.11.12 Gradients
+3120100 2 2 3.12.1: Track Conditions
+3120200 5 5 3.12.2: Route Suitability
+3120300 25 21 3.12.3: Text Transmission
+3120400 9 9 3.12.4: Mode Profile
+3120500 1 1 3.12.5: Level Crossings
+3130223 2 2 Braking Models
+3130232 9 9 3.13.2.3.2: Trackside related speed restrictions
+3130233 6 6 3.13.2.3.3: Gradients
+3130234 8 8 3.13.2.3.4: Track conditions
+3130235 3 3 3.13.2.3.5 Reduced Adhesion Conditions
+3130237 13 10 3.13.2.3.7 National Values for speed and distance 
+3130700 7 7 3.13.7: Determination of Most Restrictive Speed Pr
+3130810 1 1 3.13.8.1 Determination of targets and brake decele
+3131020 6 6 General requirements
+3131030 25 25 Requirements for Ceiling speed monitoring (Tables 
+3131040 61 59 Requirements for Target speed monitoring (Tables 8
+3131050 12 12 Requirements for Release speed monitoring (Tables 
+3131060 18 17 Transitions between types of Speed and distance mo
+3131100 10 7 Perturbation location
+3140100 6 5 3.14.1: Brake Command Handling
+3140300 3 3 3.14.3: Unauthorised Direction Movement Protection
+3150100 15 15 3.15.1: RBC/RBC Handover
+3150400 2 2 3.15.4: Reversing of movement direction
+3150700 1 1 3.15.7 Tolerance of Big Metal Mass
+3150800 11 10 3.15.8 Cold Movement Detection
+3150900 8 5 3.15.9: Virtual Balise Cover
+3151000 3 3 3.15.10: Advance display of route related informat
+3160200 75 69 3.16.2: Balises
+3160300 15 15 3.16.3: Radio
+3160400 7 6 3.16.4 Error reporting to RBC
+3170200 19 18 3.17.2: Determination of the operated system versi
+3170300 22 22 3.17.3: Management of ERTMS/ETCS system versions
+3180200 2 2 3.18.2: National/Default Values
+3180300 7 7 3.18.3: Train Data
+3180400 16 15 3.18.4 Additional Data
+3180500 1 1 3.18.5: Date and Time
+3180600 2 2 3.18.6 Data view
+4040400 1 1 4.4.4: NO POWER
+4040500 1 1 4.4.5: SYSTEM FAILURE
+4040600 8 8 4.4.6: SLEEPING
+4040700 1 1 4.4.7: STAND BY
+4040800 18 18 4.4.8: SHUNTING
+4041100 12 10 4.4.11: STAFF RESPONSIBLE
+4041300 2 2 4.4.13: TRIP
+4041400 2 2 4.4.14: POST TRIP
+4041500 3 3 4.4.15: NON LEADING
+4041600 24 24 4.4.16: Automatic Driving
+4041800 10 10 4.4.18: REVERSING
+4042000 6 6 4.4.20: PASSIVE SHUNTING
+4042100 8 7 4.4.21: SUPERVISED MANEUVRE
+4050200 34 33 4.5.2 Active Functions Table – Empty case = functi
+4060300 93 88 4.6.3: Transitions Conditions Table
+4070200 9 9 4.7.2: DMI versus Mode Table - Input
+4070201 47 47 4.7.2: DMI versus Mode Table - Output
+4080100 8 8 4.8.1: Acceptance of received information
+4080300 74 73 4.8.3: Accepted information depending on the level
+4080401 1 1 4.8.4: Accepted Information depending on the modes
+4080402 9 4 4.8.4: Accepted Information depending on the modes
+4080403 3 2 4.8.4: Accepted Information depending on the modes
+4080404 9 8 4.8.4: Accepted Information depending on the modes
+4080405 8 7 4.8.4: Accepted Information depending on the modes
+4080406 4 4 4.8.4: Accepted Information depending on the modes
+4080407 5 5 4.8.4: Accepted Information depending on the modes
+4080408 4 4 4.8.4: Accepted Information depending on the modes
+4080409 3 3 4.8.4: Accepted Information depending on the modes
+4080410 12 12 4.8.4: Accepted Information depending on the modes
+4080411 2 2 4.8.4: Accepted Information depending on the modes
+4080413 8 8 4.8.4: Accepted Information depending on the modes
+4080414 8 8 4.8.4: Accepted Information depending on the modes
+4080415 8 8 4.8.4: Accepted Information depending on the modes
+4080416 11 11 4.8.4: Accepted Information depending on the modes
+4080417 7 6 4.8.4: Accepted Information depending on the modes
+4080418 22 22 4.8.4: Accepted Information depending on the modes
+4080419 7 7 4.8.4: Accepted Information depending on the modes
+4080420 13 13 4.8.4: Accepted Information depending on the modes
+4080421 14 14 4.8.4: Accepted Information depending on the modes
+4080422 1 1 4.8.4: Accepted Information depending on the modes
+4080423 2 2 4.8.4: Accepted Information depending on the modes
+4080424 15 10 4.8.4: Accepted Information depending on the modes
+4080425 18 18 4.8.4: Accepted Information depending on the modes
+4080426 7 6 4.8.4: Accepted Information depending on the modes
+4080427 8 8 4.8.4: Accepted Information depending on the modes
+4080428 4 4 4.8.4: Accepted Information depending on the modes
+4080429 6 6 4.8.4: Accepted Information depending on the modes
+4080430 2 2 4.8.4: Accepted Information depending on the modes
+4080431 10 9 4.8.4: Accepted Information depending on the modes
+4080432 3 3 4.8.4: Accepted Information depending on the modes
+4080433 12 12 4.8.4: Accepted Information depending on the modes
+4080434 4 4 4.8.4: Accepted Information depending on the modes
+4080435 4 4 4.8.4: Accepted Information depending on the modes
+4080436 12 12 4.8.4: Accepted Information depending on the modes
+4080437 5 4 4.8.4: Accepted Information depending on the modes
+4080438 4 4 4.8.4: Accepted Information depending on the modes
+4080439 1 1 4.8.4: Accepted Information depending on the modes
+4080440 12 12 4.8.4: Accepted Information depending on the modes
+4080441 12 12 4.8.4: Accepted Information depending on the modes
+4080442 10 9 4.8.4: Accepted Information depending on the modes
+4080443 4 4 4.8.4: Accepted Information depending on the modes
+4080444 10 10 4.8.4: Accepted Information depending on the modes
+Subset-076-5-2-4080445_v400_SV30.txt 18 18 ?
+4080446 3 3 4.8.4: Accepted Information depending on the modes
+4080447 4 4 4.8.4: Accepted Information depending on the modes
+4080450 2 2 4.8.4: Accepted Information depending on the modes
+4080451 2 2 4.8.4: Accepted Information depending on the modes
+4080453 4 4 4.8.4: Accepted Information depending on the modes
+4080454 15 15 4.8.4: Accepted Information depending on the modes
+4080455 9 9 4.8.4: Accepted Information depending on the modes
+4080500 11 10 4.8.5: Handling of transition buffer in case of le
+4090100 2 2 4.9.1: What happens to accepted and stored informa
+4100103 82 82 4.10.1.3 What happens to accepted and stored infor
+4120100 36 34 4.12 What happens to an ongoing brake command when
+5030100 1 1 5.3.1: Scope and Purpose
+5040300 67 61 5.4.3: Table of requirements for 'Start of Mission
+5040500 19 18 5.4.5: Degraded Situations
+5050300 4 4 5.5.3: End of Mission Procedure
+5050400 3 3 5.5.4: Degraded Situation
+5060200 7 7 5.6.2: Table of requirements for 'Shunting Initiat
+5060400 1 1 5.6.4: Degraded Situation
+5070300 4 4 5.7.3: Shunting is requested for a further locatio
+5080200 6 5 5.8.2: Selection of 'Override'
+5080300 8 8 5.8.3: Once the 'Override' procedure has been trig
+5080400 14 13 5.8.4: End of Override procedure
+5090200 5 4 5.9.2: On Sight is requested for current location 
+5090300 4 4 5.9.3: On Sight is requested for a further locatio
+5090400 1 1 5.9.4: On Sight from Unfitted or SN mode
+5100100 39 39 5.10.1: Level Transitions General requirements
+5100200 12 12 5.10.2:Table of priority of trackside supported le
+5100300 21 20 5.10.3: Specific Additional Requirements
+5100315 6 6 5.10.3.15: Transition initiated by driver
+5100400 75 72 5.10.4: Acknowledgement of the level transition
+5110200 17 16 5.11.2: Table of requirements for 'Train Trip' pro
+5110400 2 2 5.11.4: Degraded Situations
+5120200 2 2 5.12.2: The driver uses the same engine
+5120400 1 1 5.12.4: The driver uses the same engine (a Shuntin
+5150400 2 2 5.15.4: Degraded Situations
+5160000 9 9 5.16 : Procedure passing a non protected Level Cro
+5170200 12 9 5.17.2: Table of requirements for 'Changing Train 
+5180200 3 3 5.18.2: Passing a powerless section with pantograp
+5180300 3 3 5.18.3 Passing a powerless section with main power
+5180400 2 1 5.18.4: Passing a non stopping area
+5180500 6 6 5.18.5: Passing a radio hole
+5180600 5 5 5.18.6 Passing an 'air tightness' area
+5180700 8 8 5.18.7: Inhibition of a defined type of brake
+5180800 5 5 5.18.8: Advising a tunnel stopping area
+5180900 2 2 5.18.9: Sounding the horn
+5181000 3 3 5.18.10 Changing the traction system
+5190200 7 6 5.19.2: Limited Supervision is requested for curre
+5190300 6 6 5.19.3: Limited Supervision is requested for a fur
+5190400 1 1 5.19.4: Limited Supervision from Unfitted or SN mo
+5190600 1 1 5.19.6: Exit of Limited Supervision mode
+5200700 3 3 Changing the allowed current consumption
+5200800 3 3 Station platform
+5210200 8 8 5.21.2: Table of requirements for "Supervised Mano
+5210400 1 1 5.21.4: Degraded Situation: Table of requirements 
+5220200 7 6 5.22. Procedure Inhibition of balise transmission 
+6060200 7 7 6.6.2 Specific requirements for on-board operating
+6060302 31 31 6.6.3.2 Handling of air gap data related to system
+6060303 5 4 6.6.3.3 Handling of air gap data related to system
+6060304 17 15 6.6.3.4 Handling of air gap data related to system
+6060400 8 7 6.6.4 Specific requirements for on-board operating
+6060500 18 17 6.6.5 Handling of air gap data related to system v
+6060504 18 18 6.6.5 Handling of air gap data related to system v
+6060505 18 17 6.6.5 Handling of air gap data related to system v
+6060506 15 15 6.6.5 Handling of air gap data related to system v
+7040200 5 5 7.4.2: PACKETS: TRACK TO TRAIN
+7050100 1 1 7.5.1: Definitions of Variables
+8040100 3 3 8.4.1: Common Rules
+8040400 2 2 8.4.4: Rules for Euroradio messages
+9990200 45 43 A3.2: List of National / Default Data
+9990400 68 61 A3.4: Handling of Stored Information in specific S
+9990500 59 58 A3.5: Handling of Actions in Specific Situations
+9990502 1 1 A3.5: Handling of Actions in Specific Situations
+9990600 8 8 A3.6: Deletion of accepted and stored information 

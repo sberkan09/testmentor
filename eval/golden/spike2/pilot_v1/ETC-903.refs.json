@@ -1,0 +1,67 @@
+{
+ "id": "ETC-903",
+ "reference_preconditions": "Level 1, mode FS, OS, LS or AD, with a radio session to the level 2 RBC and a stored order to switch to level 2 at a location ahead. Linking information announcing BGx is stored on-board. The RBC has sent linking information referenced to an earlier-passed, linked balise group (FRBG) that announces a group beyond the transition location but not BGx; because of the pending level transition it is held in the transition buffer. The train then passes BGx, which becomes LRBG and SOLR.",
+ "reference_checks": [
+  {
+   "action": "The train passes the level 2 transition location; the buffered radio linking information, referenced to the earlier balise group FRBG and not announcing BGx, is released from the transition buffer.",
+   "expected": "The OBU takes FRBG (the reference balise group of the released linking information) as the new SOLR instead of BGx.",
+   "clause": "3.6.4.2.2.2",
+   "channel_note": "RTM: message 24 General message with packet 5 (linking) referred to FRBG with Q_LINK=1, received in L1; BTM: BGx with Q_LINK=1, packet 255; DMI: Level 2 symbol after transition; JRU: NID_SOLR=<FRBG> in recorded messages (before transition NID_SOLR=<BGx>). BGx stays LRBG (not a behaviour stated by the requirement).",
+   "basis": {
+    "doc": "SUBSET-076-5-2",
+    "ref": "3060400/TC20",
+    "text": "Info: This radio message is refered to a … FRBG with Q_LINK=1. … Linking information about a balise located … further than the trasition order is available, … no linking information about BGx. … After the transition to L2, linking … information is released from the transition … Any message (NID_MESSAGE_JRU=ALL; … NID_SOLR=<FRBG>) is recorded … BGx remains LRBG but FRBG becomes … the new SOLR since the clause 3.7.3.1 … m) is applied before the clause 3.6.4.2.2"
+   },
+   "passages": [
+    "ETC-903-P1",
+    "ETC-903-P2",
+    "ETC-903-P3",
+    "ETC-903-P4",
+    "ETC-903-P5",
+    "ETC-903-P6"
+   ],
+   "needs_documents": true,
+   "not_in_corpus": false
+  }
+ ],
+ "support_passages": [
+  {
+   "id": "ETC-903-P1",
+   "doc": "SUBSET-026-3",
+   "section": "3.6.4.2.2.2",
+   "text": "3.6.4.2.2.2 Whenever linking information is received (e.g. when it is released from the transition buffer), the clause 3.7.3.1 m) shall be applied before this clause 3.6.4.2.2. For all other information, any relocation to the SOLR resulting from this clause 3.6.4.2.2 shall take place before the corresponding item of the clause 3.7.3.1 is applied."
+  },
+  {
+   "id": "ETC-903-P2",
+   "doc": "SUBSET-026-3",
+   "section": "3.6.4.2.2",
+   "text": "3.6.4.2.2 The Single On-board Location Reference (SOLR) shall be: a) the last received balise group that is the reference of linking information or that is announced in linking information (including if it is announced with a balise group with ID “unknown” and it contains repositioning information), while the linking consistency is checked (see 3.4.4.2.1.1), or b) the last received balise group, while no linking consistency is checked."
+  },
+  {
+   "id": "ETC-903-P3",
+   "doc": "SUBSET-026-3",
+   "section": "3.7.3.1 m)",
+   "text": "m) New linking information received as non-infill information shall replace all stored linking information from the reference balise group of the new linking information."
+  },
+  {
+   "id": "ETC-903-P4",
+   "doc": "SUBSET-026-3",
+   "section": "3.6.4.2.2.3",
+   "text": "3.6.4.2.2.3 Note: the SOLR is generally equal to the LRBGONB. For some cases however, like the transition to level 1/2 area, it might be possible that the linking information released from the transition buffer provokes the change of SOLR to a former LRBG in case this information does not announce every balise group in rear of the border (see Figure 13e)."
+  },
+  {
+   "id": "ETC-903-P5",
+   "doc": "SUBSET-026-4",
+   "section": "4.8.1.6",
+   "text": "4.8.1.6 When evaluating trackside information received by radio or when re-evaluating a set of information released from the transition buffer, linking information, if any, shall be evaluated prior to any other location related information."
+  },
+  {
+   "id": "ETC-903-P6",
+   "doc": "SUBSET-026-3",
+   "section": "3.6.4.2 (Figure 13e)",
+   "text": "The balise group BGi is still the LRBG and SOLR when the on-board performs the transition to level 2. The linking information which was stored in the transition buffer does not announce this BGi but BG1 that therefore becomes the new SOLR."
+  }
+ ],
+ "needs_documents": true,
+ "reference_note": "One test case (3060400/TC20). Kept 1 check (steps 1/3 as setup + step 9). Dropped 6 steps: 2, 4 (JRU recordings of the received messages), 5 (BGx becomes SOLR on passage: clause 3.6.4.2.2 a), setup), 6-8 (level transition and level 2 indication: level transition clauses, setup). The step 9 comment 'BGx remains LRBG' is a second outcome (LRBG vs SOLR) that the requirement does not state; only noted in channel_note. Requirement text: covers only the first sentence of 3.6.4.2.2.2; the second sentence (for all other information, relocation to the SOLR before the corresponding 3.7.3.1 item) is omitted. Not exercised by the test case. Whether FRBG or BGx becomes SOLR follows from 3.7.3.1 m) and 3.6.4.2.2 a), so the check needs the documents."
+}

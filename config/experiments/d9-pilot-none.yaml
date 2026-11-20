@@ -1,0 +1,8 @@
+name: d9-pilot-none
+question: "D9 pilotu (paket 1b aşama 6): altın set v1, bilgi havuzu parçası olmadan üretim; altın parçalı koşuyla karşılaştırılır."
+variable: passages=none
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: none
+quality: true

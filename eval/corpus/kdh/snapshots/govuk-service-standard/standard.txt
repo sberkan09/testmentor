@@ -1,0 +1,77 @@
+Service Standard
+
+The Service Standard helps teams to create and run great public services.
+
+1.
+Understand users and their needs
+
+Read more about point 1
+
+2.
+Solve a whole problem for users
+
+Read more about point 2
+
+3.
+Provide a joined up experience across all channels
+
+Read more about point 3
+
+4.
+Make the service simple to use
+
+Read more about point 4
+
+5.
+Make sure everyone can use the service
+
+Read more about point 5
+
+6.
+Have a multidisciplinary team
+
+Read more about point 6
+
+7.
+Use agile ways of working
+
+Read more about point 7
+
+8.
+Iterate and improve frequently
+
+Read more about point 8
+
+9.
+Create a secure service which protects users’ privacy
+
+Read more about point 9
+
+10.
+Define what success looks like and publish performance data
+
+Read more about point 10
+
+11.
+Choose the right tools and technology
+
+Read more about point 11
+
+12.
+Make new source code open
+
+Read more about point 12
+
+13.
+Use and contribute to open standards, common components and patterns
+
+Read more about point 13
+
+14.
+Operate a reliable service
+
+Read more about point 14
+
+Get notifications
+
+Get emails when any guidance within this topic is updated

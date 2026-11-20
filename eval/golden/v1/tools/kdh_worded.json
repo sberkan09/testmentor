@@ -1,0 +1,1940 @@
+[
+ {
+  "pool": "nist63",
+  "ref": "PV-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "When evaluating the length of a company representative's password, the portal shall count each Unicode code point as a single character, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 #4"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-5",
+  "language": "en",
+  "stratum": "core",
+  "text": "The portal shall not permit a company representative to store a password hint that is accessible to an unauthenticated claimant, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 #7"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-7",
+  "language": "en",
+  "stratum": "core",
+  "text": "When verifying a company representative's password, VBP shall request the password in full rather than a subset of it and shall verify the entire submitted password without truncating it, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 #9"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-8",
+  "language": "en",
+  "stratum": "core",
+  "text": "When processing a request to establish or change a company representative's password, VBP shall compare the prospective password against a blocklist of commonly used, expected or compromised passwords, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 A"
+  ],
+  "difficulty": "Orta",
+  "note": "Liste içeriği tasarım §4.5'te; gereksinim yalnızca karşılaştırmanın yapılmasını ister."
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-9",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall subject the entire prospective password to the blocklist comparison, not substrings or individual words contained in it, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 B"
+  ],
+  "difficulty": "Zor",
+  "note": "Tuzak: listedeki bir sözcüğü içeren uzun parola salt bu nedenle reddedilmemeli."
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-10",
+  "language": "en",
+  "stratum": "core",
+  "text": "If a password chosen by a company representative is found on the blocklist, VBP shall require the representative to select a different password and shall state the reason for the rejection, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 C"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-11",
+  "language": "en",
+  "stratum": "core",
+  "text": "The portal shall offer company representatives guidance on choosing a strong password, in particular after a chosen password has been rejected because it is on the blocklist, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 D"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-13",
+  "language": "en",
+  "stratum": "core",
+  "text": "On the pages where a company representative enters a password, the portal shall allow the use of password managers and autofill functionality, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 F"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PASSAUTH-3",
+  "language": "en",
+  "stratum": "core",
+  "text": "Beyond the length and blocklist checks, VBP shall not impose any other composition requirements, such as mandatory character classes, on company representative passwords, as specified in NIST SP 800-63B-4 §3.1.1.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.1"
+  },
+  "clauses": [
+   "3.1.1.1 C"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-6",
+  "language": "en",
+  "stratum": "core",
+  "text": "When a company representative chooses a password, VBP shall not prompt the representative to use knowledge-based authentication or security questions, such as the name of a first pet, as specified in NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 #8"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "RL-3",
+  "language": "en",
+  "stratum": "core",
+  "text": "If more than one authenticator is involved in consecutive failed authentication attempts on a company representative account that reach the threshold defined in the VBP Software Design Document §14, for example the password and the second factor, VBP shall disable all of the authenticators involved, as specified in NIST SP 800-63B-4 §3.2.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.2.2"
+  },
+  "clauses": [
+   "3.2.2 C"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "RL-4",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall require an authenticator that has been disabled after reaching the failed-attempt threshold defined in the VBP Software Design Document §14 to be bound to the company representative account again, as described in NIST SP 800-63B-4 §4.1, before it can be used, as specified in §3.2.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.2.2"
+  },
+  "clauses": [
+   "3.2.2 D"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "OBV-4",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall accept a given SMS one-time code as valid only once during its validity period, as specified in NIST SP 800-63B-4 §3.1.3.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.3.2"
+  },
+  "clauses": [
+   "3.1.3.2 D"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "OBV-7",
+  "language": "en",
+  "stratum": "core",
+  "text": "Generating a new SMS one-time code for a company representative shall not reset the failed authentication count of the account, as specified in NIST SP 800-63B-4 §3.1.3.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.3.2"
+  },
+  "clauses": [
+   "3.1.3.2 G"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "OBA-3",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall not use email for out-of-band authentication of any user, as specified in NIST SP 800-63B-4 §3.1.3.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.3.1"
+  },
+  "clauses": [
+   "3.1.3.1 C"
+  ],
+  "difficulty": "Kolay",
+  "note": "E-posta yalnızca adres doğrulama ve kurtarma kodu için kullanılır; bunlar bu hükmün kapsamında değildir."
+ },
+ {
+  "pool": "nist63",
+  "ref": "AUPSTN-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall treat setting or changing a company representative's pre-registered telephone number for SMS codes as the binding of a new authenticator and shall allow it only through the binding process of NIST SP 800-63B-4 §4.1.2, as specified in §3.1.3.3.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.3.3"
+  },
+  "clauses": [
+   "3.1.3.3 B"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SFOV-4",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall accept a given TOTP code only once while it is valid, as specified in NIST SP 800-63B-4 §3.1.4.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.4.2"
+  },
+  "clauses": [
+   "3.1.4.2 D"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "AAL2PAT-1",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall authenticate company representatives at AAL2 using either a multi-factor authenticator or a combination of two separate authentication factors, as specified in NIST SP 800-63B-4 §2.2.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "2.2.1"
+  },
+  "clauses": [
+   "2.2.1 A"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "AAL2AVR-6",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall offer company representatives at least one phishing-resistant authentication option at AAL2, as described in NIST SP 800-63B-4 §3.2.5 and specified in §2.2.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "2.2.2"
+  },
+  "clauses": [
+   "2.2.2 F"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "BAA-1",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall permit the binding of multiple authenticators to a company representative account, as specified in NIST SP 800-63B-4 §4.1.2.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.1.2.1"
+  },
+  "clauses": [
+   "4.1.2.1 A"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "BAA-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "When a new authenticator is bound to a company representative account, VBP shall require authentication at the lower of the maximum AAL currently available in the account and the maximum AAL at which the new authenticator will be used, as specified in NIST SP 800-63B-4 §4.1.2.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.1.2.1"
+  },
+  "clauses": [
+   "4.1.2.1 B"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "BAA-3",
+  "language": "en",
+  "stratum": "core",
+  "text": "When an authenticator is added to a company representative account, VBP shall notify the representative through a mechanism independent of the transaction that binds the new authenticator, as specified in NIST SP 800-63B-4 §4.1.2.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.1.2.1"
+  },
+  "clauses": [
+   "4.1.2.1 C"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SRC-5",
+  "language": "en",
+  "stratum": "core",
+  "text": "Following the use of a saved recovery code, VBP shall invalidate that code and issue a new saved recovery code to the company representative, as specified in NIST SP 800-63B-4 §4.2.1.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.2.1.1"
+  },
+  "clauses": [
+   "4.2.1.1 E"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SRC-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "Whenever a replacement saved recovery code is issued to a company representative, VBP shall send an account recovery notification as described in NIST SP 800-63B-4 §4.6, as specified in §4.2.1.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.2.1.1"
+  },
+  "clauses": [
+   "4.2.1.1 B"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "RAAL2-1",
+  "language": "en",
+  "stratum": "core",
+  "text": "To recover a company representative account, which authenticates at most at AAL2, VBP shall require one of: two recovery codes obtained by different methods; one recovery code plus authentication with a bound single-factor authenticator; or repeated identity proofing, as specified in NIST SP 800-63B-4 §4.2.2.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.2.2.2"
+  },
+  "clauses": [
+   "4.2.2.2 A"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "ACCRN-1",
+  "language": "en",
+  "stratum": "core",
+  "text": "In all cases, recovery of a company representative account shall cause a notification to be sent to the representative or their designee, as specified in NIST SP 800-63B-4 §4.2.3.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.2.3"
+  },
+  "clauses": [
+   "4.2.3 A"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "ANOT-4",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall send account notifications to all notification addresses registered in the company representative account, except postal addresses, as specified in NIST SP 800-63B-4 §4.6.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "4.6"
+  },
+  "clauses": [
+   "4.6 D"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SB-9",
+  "language": "en",
+  "stratum": "core",
+  "text": "Following authentication, VBP shall not allow an authenticated session to fall back to an insecure transport, for example from HTTPS to HTTP, as specified in NIST SP 800-63B-4 §5.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "5.1"
+  },
+  "clauses": [
+   "5.1 I"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SB-7",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall not treat a session at a higher AAL than the authentication event that created it; treating it at a lower AAL is permitted, as specified in NIST SP 800-63B-4 §5.1.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "5.1"
+  },
+  "clauses": [
+   "5.1 G"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "AAL2REA-1",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall perform periodic reauthentication of citizen and company representative AAL2 sessions, as described in NIST SP 800-63B-4 §5.2, using the inactivity and overall timeouts defined in the VBP Software Design Document §14, as specified in §2.2.3.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "2.2.3"
+  },
+  "clauses": [
+   "2.2.3 A"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "IDPRF-14",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall not use knowledge-based verification for identity verification when proofing company representatives, as specified in NIST SP 800-63A-4 §2.5.1.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "2.5.1"
+  },
+  "clauses": [
+   "2.5.1 B"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "FRAUD-5",
+  "language": "en",
+  "stratum": "core",
+  "text": "In the company representative proofing and enrolment flow, VBP shall take measures to prevent unsuccessful applicants from inferring whether their self-asserted information matches that confirmed by authoritative or credible sources, as specified in NIST SP 800-63A-4 §3.2.1.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "3.2.1"
+  },
+  "clauses": [
+   "3.2.1 #5"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SECURITY-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall implement automated attack protections, such as bot detection and mitigation, behavioural analytics, web application firewall settings and network traffic analysis, for the company representative identity proofing process, as specified in NIST SP 800-63A-4 §3.5.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "3.5"
+  },
+  "clauses": [
+   "3.5 #2"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "IAL2-6",
+  "language": "en",
+  "stratum": "core",
+  "text": "When proofing a company representative at IAL2, VBP shall validate all core attributes either by comparing the government identifier and other core attributes against an authoritative or credible source, or by validating digitally signed attributes on SUPERIOR evidence with the issuer's public key, as specified in NIST SP 800-63A-4 §4.2.5.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "4.2.5"
+  },
+  "clauses": [
+   "4.2.5 #1"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "IAL2-29",
+  "language": "en",
+  "stratum": "core",
+  "text": "Upon successful completion of IAL2 identity proofing of a company representative, VBP shall send a notification of proofing to a validated address of the applicant, meeting the requirements of NIST SP 800-63A-4 §3.10, as specified in §4.2.11.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "4.2.11"
+  },
+  "clauses": [
+   "4.2.11"
+  ],
+  "difficulty": "Orta",
+  "note": "Şüpheli: §3.10 IAL2'de posta adresi ya da telefon ister; tasarım yalnızca e-posta etkinleştirme bağlantısından söz ediyor (olası boşluk)."
+ },
+ {
+  "pool": "nist63",
+  "ref": "SUB-5",
+  "language": "en",
+  "stratum": "core",
+  "text": "Because company representative accounts contain personal information, VBP shall let representatives authenticate and access information in their account only through AAL2 or AAL3 authentication with authenticators registered to that account, as specified in NIST SP 800-63A-4 §5.2.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "5.2"
+  },
+  "clauses": [
+   "5.2 B"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SUB-8",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall notify the company representative of any update made to information in their representative account, as specified in NIST SP 800-63A-4 §5.3.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "5.3"
+  },
+  "clauses": [
+   "5.3 C"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "SUB-9",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall provide company representatives with the capability to report any unauthorized access to, or potential compromise of, information in their account, as specified in NIST SP 800-63A-4 §5.3.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "5.3"
+  },
+  "clauses": [
+   "5.3 D"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "FAL1-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall validate the signature of each assertion received from e-Devlet using the verification key associated with e-Devlet as the expected IdP, as specified in NIST SP 800-63C-4 §2.2.",
+  "source": {
+   "doc": "NIST-SP-800-63C-4",
+   "section": "2.2"
+  },
+  "clauses": [
+   "2.2 B"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "FAL1-5",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall enforce replay protection so that the same e-Devlet assertion is not accepted by VBP more than once, as specified in NIST SP 800-63C-4 §2.2.",
+  "source": {
+   "doc": "NIST-SP-800-63C-4",
+   "section": "2.2"
+  },
+  "clauses": [
+   "2.2 E"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "AUDR-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall check that the audience of every e-Devlet assertion contains an identifier for VBP, so that an assertion generated for another RP cannot be injected or replayed at VBP, as specified in NIST SP 800-63C-4 §3.13.4.",
+  "source": {
+   "doc": "NIST-SP-800-63C-4",
+   "section": "3.13.4"
+  },
+  "clauses": [
+   "3.13.4 B"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "FAL2-2",
+  "language": "en",
+  "stratum": "core",
+  "text": "Every federation transaction between VBP and e-Devlet shall be initiated by VBP as the RP, as specified in NIST SP 800-63C-4 §2.3.",
+  "source": {
+   "doc": "NIST-SP-800-63C-4",
+   "section": "2.3"
+  },
+  "clauses": [
+   "2.3 B"
+  ],
+  "difficulty": "Orta",
+  "note": "IdP tarafından başlatılan (istenmemiş) yanıtın kabul edilmemesi gözlemlenebilir davranıştır."
+ },
+ {
+  "pool": "nist63",
+  "ref": "ARTRQ-1",
+  "language": "en",
+  "stratum": "core",
+  "text": "When VBP initiates a federation transaction, its assertion request to e-Devlet shall contain an identifier for VBP and a cryptographic nonce to be returned in the assertion, as specified in NIST SP 800-63C-4 §4.10.",
+  "source": {
+   "doc": "NIST-SP-800-63C-4",
+   "section": "4.10"
+  },
+  "clauses": [
+   "4.10 A"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "RXAL-9",
+  "language": "en",
+  "stratum": "core",
+  "text": "If an e-Devlet response does not meet the IAL, AAL or FAL that VBP requires, VBP shall address the request through a defined mechanism, such as declining it or routing the citizen to the exception handling described in the VBP Software Design Document §4.2, as specified in NIST SP 800-63C-4 §2.5.",
+  "source": {
+   "doc": "NIST-SP-800-63C-4",
+   "section": "2.5"
+  },
+  "clauses": [
+   "2.5 I"
+  ],
+  "difficulty": "Zor",
+  "note": "Tasarım §4.2'deki sınırlı kip bu hükmün VBP karşılığıdır."
+ },
+ {
+  "pool": "nist63",
+  "ref": "ARTC-12",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall not use the validity time window of an e-Devlet assertion to limit the citizen's session at VBP, as specified in NIST SP 800-63C-4 §4.9.",
+  "source": {
+   "doc": "NIST-SP-800-63C-4",
+   "section": "4.9"
+  },
+  "clauses": [
+   "4.9 L"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V3.3.4",
+  "language": "en",
+  "stratum": "core",
+  "text": "The portal shall set the HttpOnly attribute on the session cookie and on any other cookie not meant to be accessible to client-side scripts, and shall transfer the session token to the client only via the Set-Cookie header field, as specified in OWASP ASVS 5.0.0 V3.3.4.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V3.3.4"
+  },
+  "clauses": [
+   "V3.3.4"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V3.4.1",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall include a Strict-Transport-Security header field on all responses, with the maximum age and subdomain coverage defined in the VBP Software Design Document §14, as specified in OWASP ASVS 5.0.0 V3.4.1.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V3.4.1"
+  },
+  "clauses": [
+   "V3.4.1"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V5.2.2",
+  "language": "en",
+  "stratum": "core",
+  "text": "When accepting an uploaded file, VBP shall check that the file extension matches an expected extension and that the file contents correspond to the type represented by that extension, as specified in OWASP ASVS 5.0.0 V5.2.2.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V5.2.2"
+  },
+  "clauses": [
+   "V5.2.2"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V5.2.6",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall reject uploaded images whose pixel size exceeds the maximum defined in the VBP Software Design Document §14, as specified in OWASP ASVS 5.0.0 V5.2.6.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V5.2.6"
+  },
+  "clauses": [
+   "V5.2.6"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V6.3.8",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall prevent valid users from being deduced from failed sign-in, registration or forgotten-password responses, whether by error messages, HTTP response codes or response times, as specified in OWASP ASVS 5.0.0 V6.3.8.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V6.3.8"
+  },
+  "clauses": [
+   "V6.3.8"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V6.4.6",
+  "language": "en",
+  "stratum": "core",
+  "text": "Help Desk staff shall be able to initiate the password reset process for a company representative, but shall not be able to change or choose the representative's password, as specified in OWASP ASVS 5.0.0 V6.4.6.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V6.4.6"
+  },
+  "clauses": [
+   "V6.4.6"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V7.2.4",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall generate a new session token whenever a user authenticates, including on reauthentication, and shall terminate the previous session token, as specified in OWASP ASVS 5.0.0 V7.2.4.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V7.2.4"
+  },
+  "clauses": [
+   "V7.2.4"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V7.4.1",
+  "language": "en",
+  "stratum": "core",
+  "text": "When session termination is triggered, for example by logout or expiration, VBP shall disallow any further use of the session by invalidating the session data at the backend, as specified in OWASP ASVS 5.0.0 V7.4.1.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V7.4.1"
+  },
+  "clauses": [
+   "V7.4.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V8.2.2",
+  "language": "en",
+  "stratum": "core",
+  "text": "VBP shall restrict access to each application, document and related data item to users with explicit permission for that specific item, so that changing an identifier in a request does not expose another user's data, as specified in OWASP ASVS 5.0.0 V8.2.2.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V8.2.2"
+  },
+  "clauses": [
+   "V8.2.2"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "asvs",
+  "ref": "V16.5.1",
+  "language": "en",
+  "stratum": "core",
+  "text": "When an unexpected or security-sensitive error occurs, VBP shall return a generic message to the user that exposes no internal details such as stack traces, queries, secret keys or tokens, as specified in OWASP ASVS 5.0.0 V16.5.1.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V16.5.1"
+  },
+  "clauses": [
+   "V16.5.1"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist63",
+  "ref": "PV-1",
+  "language": "en",
+  "stratum": "control",
+  "text": "VBP shall require every password set for a company representative's local account, whether at account activation, password change or account recovery, to be at least 15 characters long. A password of 14 characters or fewer shall be rejected and shall not be stored as the representative's password; a password of 15 or more characters shall pass the length check. Source: NIST SP 800-63B-4 §3.1.1.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.1.2"
+  },
+  "clauses": [
+   "3.1.1.2 #1"
+  ],
+  "difficulty": "Kolay",
+  "note": "Kontrol maddesi; uzunluk tasarım §14 ve Ç-1'den alındı."
+ },
+ {
+  "pool": "nist63",
+  "ref": "RL-2",
+  "language": "en",
+  "stratum": "control",
+  "text": "When 50 consecutive failed authentication attempts, with no successful authentication in between, have been made using the same authenticator (for example the password) on a single company representative account, VBP shall disable that authenticator. After the 50th consecutive failure, any further attempt with that authenticator, even with the correct value, shall not authenticate the representative. Source: NIST SP 800-63B-4 §3.2.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.2.2"
+  },
+  "clauses": [
+   "3.2.2 B"
+  ],
+  "difficulty": "Orta",
+  "note": "Kontrol maddesi; 50 eşiği tasarım §14'ten (NIST üst sınırı 100)."
+ },
+ {
+  "pool": "nist63",
+  "ref": "OBV-3",
+  "language": "en",
+  "stratum": "control",
+  "text": "When a company representative signs in using an SMS one-time code as the second factor, VBP shall consider the authentication invalid unless the correct code is submitted within 5 minutes of the code being sent. A correct code submitted more than 5 minutes after sending shall be rejected and the representative shall not be signed in; a correct code submitted earlier shall complete the second-factor step. Source: NIST SP 800-63B-4 §3.1.3.2.",
+  "source": {
+   "doc": "NIST-SP-800-63B-4",
+   "section": "3.1.3.2"
+  },
+  "clauses": [
+   "3.1.3.2 C"
+  ],
+  "difficulty": "Orta",
+  "note": "Kontrol maddesi; 5 dakika tasarım §14'ten (NIST üst sınırı 10 dakika)."
+ },
+ {
+  "pool": "nist63",
+  "ref": "CONFIRM-3",
+  "language": "en",
+  "stratum": "control",
+  "text": "When VBP sends a confirmation code to a company representative's email address to confirm access to that address during enrolment, VBP shall invalidate the code as soon as it has been used successfully. A second submission of the same code shall be rejected, even if it is made within the code's 60-minute validity period. Source: NIST SP 800-63A-4 §3.8.",
+  "source": {
+   "doc": "NIST-SP-800-63A-4",
+   "section": "3.8"
+  },
+  "clauses": [
+   "3.8 C"
+  ],
+  "difficulty": "Kolay",
+  "note": "Kontrol maddesi; 60 dakika tasarım §14'ten, yalnızca bağlam için."
+ },
+ {
+  "pool": "asvs",
+  "ref": "V7.5.1",
+  "language": "en",
+  "stratum": "control",
+  "text": "Before allowing a company representative to change the account's email address, phone number or second-factor settings, or to renew recovery codes, VBP shall require a full authentication completed within the last 5 minutes. If the representative's most recent full authentication is older than 5 minutes, VBP shall not apply the change until the representative has fully reauthenticated; after a successful reauthentication the change may proceed. Source: OWASP ASVS 5.0.0 V7.5.1.",
+  "source": {
+   "doc": "OWASP-ASVS-5.0.0",
+   "section": "V7.5.1"
+  },
+  "clauses": [
+   "V7.5.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Kontrol maddesi; 5 dakikalık tazelik tasarım §5.4 ve §14'ten."
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.1.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.1.1'e uygun olarak kullanıcıya sunulan tüm metin dışı içerik (görseller, simgeler, görsel düğmeler) için eşdeğer amaca hizmet eden bir metin alternatifi sağlamalıdır; denetim ve girdi öğelerinin amacını açıklayan bir adı bulunmalı, yalnızca süsleme amaçlı görseller yardımcı teknolojilerce yok sayılabilecek biçimde işaretlenmelidir.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.1.1"
+  },
+  "clauses": [
+   "1.1.1"
+  ],
+  "difficulty": "Kolay",
+  "note": "Zaman tabanlı ortam, test ve duyusal içerik istisnaları metne alınmadı; portalda bu tür içerik beklenmiyor."
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.3.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.3.1'e uygun olarak başvuru formları, tablolar, başlıklar ve listeler gibi sunumla aktarılan bilgi, yapı ve ilişkilerin programlı olarak belirlenebilmesini ya da metin olarak sunulmasını sağlamalıdır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.3.1"
+  },
+  "clauses": [
+   "1.3.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.3.4",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.3.4'e uygun olarak içeriğin görüntülenmesini ve kullanımını dikey ya da yatay gibi tek bir ekran yönüyle sınırlamamalıdır; belirli bir ekran yönünün zorunlu olduğu durumlar bunun dışındadır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.3.4"
+  },
+  "clauses": [
+   "1.3.4"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.3.5",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.3.5'e uygun olarak kullanıcının kendisine ilişkin bilgi toplayan ve WCAG'deki girdi amaçları listesinde yer alan amaçlardan birine hizmet eden her form alanının (ad, e-posta, telefon, adres vb.) amacını programlı olarak belirlenebilir kılmalıdır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.3.5"
+  },
+  "clauses": [
+   "1.3.5"
+  ],
+  "difficulty": "Orta",
+  "note": "Tasarım §10.2 bunu autocomplete özniteliğiyle karşılıyor."
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.4.3",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.4.3'e uygun olarak metin ve metin görüntülerinde en az 4,5:1, büyük boyutlu metinde en az 3:1 kontrast oranı sağlamalıdır; etkin olmayan bileşenler, salt süsleme amaçlı ya da görünmeyen metinler ve logolar bu şartın dışındadır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.4.3"
+  },
+  "clauses": [
+   "1.4.3"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.4.4",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.4.4'e uygun olarak altyazılar ve metin görüntüleri dışındaki metnin yardımcı teknoloji kullanılmadan yüzde 200'e kadar büyütülebilmesini, bu sırada içerik ya da işlev kaybı yaşanmamasını sağlamalıdır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.4.4"
+  },
+  "clauses": [
+   "1.4.4"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.4.5",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.4.5'e uygun olarak kullanılan teknolojiyle aynı görsel sunum elde edilebiliyorsa bilgiyi metin görüntüsü yerine metinle aktarmalıdır; kullanıcının özelleştirebildiği metin görüntüleri ile logolar gibi belirli sunumun zorunlu olduğu görüntüler istisnadır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.4.5"
+  },
+  "clauses": [
+   "1.4.5"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "1.4.12",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 1.4.12'ye uygun olarak kullanıcı satır yüksekliğini yazı boyutunun en az 1,5 katına, paragraf aralığını 2 katına, harf aralığını 0,12 katına ve sözcük aralığını 0,16 katına çıkardığında içerik ya da işlev kaybı olmamasını sağlamalıdır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "1.4.12"
+  },
+  "clauses": [
+   "1.4.12"
+  ],
+  "difficulty": "Orta",
+  "note": "Bu özellikleri kullanmayan dil ve yazı sistemleri istisnası Türkçe ve İngilizce arayüz için geçerli değil."
+ },
+ {
+  "pool": "wcag",
+  "ref": "2.1.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 2.1.1'e uygun olarak dosya yükleme dahil tüm işlevlerin, tek tek tuş vuruşları için belirli bir zamanlama gerektirmeden klavye arayüzüyle kullanılabilmesini sağlamalıdır; yalnızca uç noktalara değil hareketin izlediği yola bağlı girdi gerektiren işlevler istisnadır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "2.1.1"
+  },
+  "clauses": [
+   "2.1.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "2.4.2",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 2.4.2'ye uygun olarak her web sayfasına konusunu ya da amacını tanımlayan bir sayfa başlığı vermelidir.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "2.4.2"
+  },
+  "clauses": [
+   "2.4.2"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "2.4.4",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 2.4.4'e uygun olarak her bağlantının amacının yalnızca bağlantı metninden ya da bağlantı metniyle birlikte programlı olarak belirlenen bağlamından anlaşılabilmesini sağlamalıdır; amacın kullanıcılar için genel olarak belirsiz olduğu durumlar istisnadır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "2.4.4"
+  },
+  "clauses": [
+   "2.4.4"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "2.4.7",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 2.4.7'ye uygun olarak klavyeyle kullanılabilen her kullanıcı arayüzünde klavye odak göstergesinin görünür olduğu bir çalışma kipi sağlamalıdır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "2.4.7"
+  },
+  "clauses": [
+   "2.4.7"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "3.1.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 3.1.1'e uygun olarak Türkçe ve İngilizce sunulan her sayfanın varsayılan insan dilini programlı olarak belirlenebilir kılmalıdır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "3.1.1"
+  },
+  "clauses": [
+   "3.1.1"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "3.1.2",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 3.1.2'ye uygun olarak sayfa dilinden farklı dildeki her bölüm ya da ifadenin (örneğin İngilizce arayüzdeki Türkçe resmî belge adları) dilini programlı olarak belirlenebilir kılmalıdır; özel adlar, teknik terimler, dili belirsiz sözcükler ve çevre metnin diline yerleşmiş sözcükler istisnadır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "3.1.2"
+  },
+  "clauses": [
+   "3.1.2"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "4.1.2",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, WCAG 2.2 Başarı Ölçütü 4.1.2'ye uygun olarak tüm kullanıcı arayüzü bileşenlerinin adını ve rolünü programlı olarak belirlenebilir kılmalı; kullanıcının ayarlayabildiği durum, özellik ve değerlerin programlı olarak ayarlanabilmesini ve bunlardaki değişikliklerin yardımcı teknolojiler dahil kullanıcı aracılarına bildirilmesini sağlamalıdır.",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "4.1.2"
+  },
+  "clauses": [
+   "4.1.2"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.1.2",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.1.2'ye uygun olarak ortak hesap kullanımına izin vermemeli; portal ve arka ofisteki her kullanıcı tanımını yapılan işlemlerin izlenebilmesini sağlayacak biçimde tek bir kişiyi ya da sistemi gösterecek şekilde oluşturmalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.1.2"
+  },
+  "clauses": [
+   "3.2.1.2"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.1.6",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.1.6'ya uygun olarak veri tabanı, uygulama sunucusu ve paket programlar dahil tüm yazılım bileşenlerindeki varsayılan ya da tahmin edilebilir kullanıcı adı ve parolaları değiştirmeli, bu bilgilere sahip hesapları kaldırarak kullanılmamalarını sağlamalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.1.6"
+  },
+  "clauses": [
+   "3.2.1.6"
+  ],
+  "difficulty": "Orta",
+  "note": "Kaçınılmaz varsayılan hesaplarla ilgili ikinci cümle metne alınmadı; tasarımda varsayılan hesap yok (§4.1)."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.1.9",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.1.9'a uygun olarak kimlik doğrulama işlevlerini istek sınırlandırma gibi etkin yöntemlerle kaba kuvvet saldırılarına karşı korumalı; oturum açma, parola sıfırlama ve hesap kurtarma işlevleri sıralı denemelerle bilgi edinilmesine izin vermemeli ve kimlik doğrulamanın başarılı olup olmadığı yanıt boyutu gibi değerlerden anlaşılamamalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.1.9"
+  },
+  "clauses": [
+   "3.2.1.9"
+  ],
+  "difficulty": "Zor",
+  "note": "Tedbirin yeniden oynatma ve parola sıfırlama faktörü cümleleri bu maddeye alınmadı."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.1.10",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.1.10'a uygun olarak Yazılım Tasarım Belgesi §5.4'te hassas olarak tanımlanan işlemler gerçekleştirilmeden önce yeniden kimlik doğrulama ya da daha güçlü bir mekanizmayla kimlik doğrulama gibi bir yöntem uygulamalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.1.10"
+  },
+  "clauses": [
+   "3.2.1.10"
+  ],
+  "difficulty": "Orta",
+  "note": "Yönetim arayüzü ve açık anahtar altyapısı cümleleri kapsam dışı bırakıldı."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.1.13",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.1.13'e uygun olarak vatandaş kimlik doğrulamasında e-Devlet sistemiyle entegrasyon sağlamalı, personel kimlik doğrulamasında kurumsal merkezi kimlik yönetim ve doğrulama sistemini (KKS) kullanmalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.1.13"
+  },
+  "clauses": [
+   "3.2.1.13"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.2.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.2.1'e uygun olarak her kimlik doğrulama ve yeniden kimlik doğrulama işleminin sonunda yeni bir oturum ve yeni bir oturum kimliği üretmelidir; oturum kimlikleri yeterince uzun, rastgele ve etkin oturumlar arasında tekil olmalı ve yalnızca bir kez kullanılmalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.2.1"
+  },
+  "clauses": [
+   "3.2.2.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.2.3",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.2.3'e uygun olarak kimlik doğrulamayla erişilen tüm sayfalardan oturum kapatma işlevi sunmalı; oturum, belirlenen geçerlilik süresi sonunda, belirli süre etkinlik olmadığında, kullanıcı çıkış yaptığında ya da parola ve yetki gibi bilgiler değiştiğinde geçersiz kılınmalı ve oturuma ait istemci ile sunucudaki geçici depolama ve çerezler silinmelidir.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.2.3"
+  },
+  "clauses": [
+   "3.2.2.3"
+  ],
+  "difficulty": "Zor",
+  "note": "Süre değerleri Tasarım §14'te; sürelerin yetkilendirmeyle güncellenmesi cümlesi metne alınmadı."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.2.5",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.2.5'e uygun olarak kullanıcıların uygulamadaki etkin oturumlarını görüntüleyebilmesini ve bunlardan istediklerini sonlandırabilmesini sağlamalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.2.5"
+  },
+  "clauses": [
+   "3.2.2.5"
+  ],
+  "difficulty": "Kolay",
+  "note": "Havuz metni 3.2.2.4 çerez bayraklarıyla karışık; ölçüt tedbirin son cümlesidir."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.3.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.3.1'e uygun olarak kullanıcı erişimlerini tanımlayan ve belirli aralıklarla güncellenen bir yetki matrisi kullanmalı, kullanıcının yalnızca yetkilendirildiği bileşen ve kaynaklara erişmesine izin vermeli ve uygulamaya yapılan her istekte yetki denetimi uygulamalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.3.1"
+  },
+  "clauses": [
+   "3.2.3.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.3.2",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.3.2'ye uygun olarak yönettiği başvuru verisine, kişisel veriye ve kritik kaynaklara yapılan erişimleri kayıt altına alan denetim kayıtları üretebilmelidir.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.3.2"
+  },
+  "clauses": [
+   "3.2.3.2"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.4.3",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.4.3'e uygun olarak kritik veri içeren tüm formlarda istemci tarafında yapılan ön bellekleme işlevini kapatmalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.4.3"
+  },
+  "clauses": [
+   "3.2.4.3"
+  ],
+  "difficulty": "Orta",
+  "note": "Parola yöneticisi ve otomatik doldurmanın engellenmemesi (Tasarım §4.5) ile birlikte değerlendirilmeli."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.4.5",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.4.5'e uygun olarak kullanıcıların yüklediği dosyaların önce türünü ve içeriğini doğrulamalı, güvenlik açığına yol açabilecek içerik barındırıp barındırmadığını denetlemeli; bu dosyaları kısıtlı izinlerle uygulama ana dizini dışında saklamalı ve çalıştırılmalarına ya da çalışan koda dahil edilmelerine izin vermemelidir.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.4.5"
+  },
+  "clauses": [
+   "3.2.4.5"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.4.6",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.4.6'ya uygun olarak kökler arası kaynak paylaşımında (CORS) güvenilmeyen kaynakların uygulama verisine erişmesini engellemeli; URL yönlendirmelerini yalnızca bilinen beyaz liste adreslerine yapmalı, bilinmeyen bir adrese yönlendirme gerekiyorsa kullanıcıyı uyararak onayını almalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.4.6"
+  },
+  "clauses": [
+   "3.2.4.6"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.8.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.8.1'e uygun olarak oluşabilecek tüm hataları yakalamalı ve hata durumunda varsayılan olarak güvenli duruma geçmelidir: yetkilendirme sırasında hata olursa işlem durdurulmalı ve kullanıcı yetkilendirilmemeli, kimlik doğrulama sırasında hata olursa giriş engellenmeli ve hata ayrıntıları kullanıcıya gösterilmemelidir.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.8.1"
+  },
+  "clauses": [
+   "3.2.8.1"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.8.6",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.8.6'ya uygun olarak iz kayıtlarına yazılan girdiler üzerinde girdi denetimi yaparak kayıt sahteciliğini (log forging) önlemeli; kayıtların görüntülendiği arayüzlerde XSS gibi zafiyetlere karşı karakter kodlama ve filtreleme uygulamalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.8.6"
+  },
+  "clauses": [
+   "3.2.8.6"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.9.3",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.9.3'e uygun olarak web sayfalarına yapılan bağlantıların ve kullanılan kaynakların güvenliği için HTTP Sıkı Taşıma Güvenliği (HSTS) kullanmalıdır; HSTS süresi ve kapsamı Yazılım Tasarım Belgesi §14'e göredir.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.9.3"
+  },
+  "clauses": [
+   "3.2.9.3"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.10.1",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.10.1'e uygun olarak kabul ettiği her veri tipi için girdi doğrulama denetimini sunucu tarafında yapmalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.10.1"
+  },
+  "clauses": [
+   "3.2.10.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.10.5",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.10.5'e uygun olarak siteler arası istek sahteciliğine (CSRF) karşı CSRF belirteci ve SameSite bayrağı gibi gerekli önlemleri almalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.10.5"
+  },
+  "clauses": [
+   "3.2.10.5"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.10.6",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, Rehber 3.2.10.6'ya uygun olarak tüm veri tabanı sorgularını parametrik olarak yapmalı ve SQL, NoSQL gibi veri tabanı erişim dillerine yönelik enjeksiyon saldırılarını engelleyen önlemler almalıdır.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.10.6"
+  },
+  "clauses": [
+   "3.2.10.6"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.10.14",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Rehber 3.2.10.14'e uygun olarak uygulama sunucusuna gelen isteklerin öngörülmeyen sayıda ya da büyüklükte olup olmadığını denetleyebilmelidir.",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.10.14"
+  },
+  "clauses": [
+   "3.2.10.14"
+  ],
+  "difficulty": "Orta",
+  "note": "Kaynak metinde 3.2.10.13 ve 3.2.10.14 satırları karışık; numara tasarım belgesindeki atıfla tutarlı seçildi."
+ },
+ {
+  "pool": "nist53",
+  "ref": "AC-5",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, NIST SP 800-53 AC-5'e uygun olarak Yazılım Tasarım Belgesi §6'da görevler ayrılığı gerektirdiği belirlenen görevleri belgelemeli ve arka ofis erişim yetkilerini bu görevlerin ayrılığını destekleyecek biçimde tanımlamalıdır.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "AC-5"
+  },
+  "clauses": [
+   "AC-5"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "nist53",
+  "ref": "AC-12",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, NIST SP 800-53 AC-12'ye uygun olarak kullanıcı oturumunu Yazılım Tasarım Belgesi §5.2'de tanımlanan koşullar oluştuğunda, özellikle §14'te AAL düzeyine göre belirlenen hareketsizlik ve toplam oturum süreleri dolduğunda otomatik olarak sonlandırmalıdır.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "AC-12"
+  },
+  "clauses": [
+   "AC-12"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist53",
+  "ref": "IA-6",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, NIST SP 800-53 IA-6'ya uygun olarak kimlik doğrulama sürecinde parola ve tek kullanımlık kod gibi kimlik doğrulama bilgilerinin geri bildirimini, yetkisiz kişilerce görülüp kullanılmasını önleyecek biçimde gizlemelidir.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "IA-6"
+  },
+  "clauses": [
+   "IA-6"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "pool": "nist53",
+  "ref": "IA-11",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, NIST SP 800-53 IA-11'e uygun olarak kullanıcıların Yazılım Tasarım Belgesi §5.4'te sayılan hassas işlemleri gerçekleştirmeden önce, §14'te belirlenen tazelik süresi içinde yeniden kimlik doğrulama yapmasını zorunlu tutmalıdır.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "IA-11"
+  },
+  "clauses": [
+   "IA-11"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist53",
+  "ref": "AU-3",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, NIST SP 800-53 AU-3'e uygun olarak her denetim kaydının olayın türünü, ne zaman ve nerede gerçekleştiğini, kaynağını, sonucunu ve olayla ilişkili kişi, özne ya da nesnelerin kimliğini belirleyen bilgileri içermesini sağlamalıdır.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "AU-3"
+  },
+  "clauses": [
+   "AU-3"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist53",
+  "ref": "AU-8",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, NIST SP 800-53 AU-8'e uygun olarak denetim kayıtlarının zaman damgalarını iç sistem saatlerinden üretmeli ve zaman damgalarını Yazılım Tasarım Belgesi §14'te belirlenen ayrıntı düzeyini karşılayacak biçimde Koordineli Evrensel Zaman (UTC) cinsinden kaydetmelidir.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "AU-8"
+  },
+  "clauses": [
+   "AU-8"
+  ],
+  "difficulty": "Orta",
+  "note": "Kontrol UTC ofsetli seçeneklere de izin verir; tasarım UTC'yi seçmiştir."
+ },
+ {
+  "pool": "nist53",
+  "ref": "AU-9",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, NIST SP 800-53 AU-9'a uygun olarak denetim bilgilerini ve kayıt araçlarını yetkisiz erişime, değişikliğe ve silmeye karşı korumalı ve bu tür bir yetkisiz erişim, değişiklik ya da silme saptandığında kuruluşça belirlenen sorumluları uyarmalıdır.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "AU-9"
+  },
+  "clauses": [
+   "AU-9"
+  ],
+  "difficulty": "Zor",
+  "note": "Tasarım belgesi AU-9 uyarı alıcısını açıkça doldurmuyor."
+ },
+ {
+  "pool": "nist53",
+  "ref": "SI-10",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, NIST SP 800-53 SI-10'a uygun olarak kullanıcılardan ve entegre dış sistemlerden aldığı bilgi girdilerinin geçerliliğini denetlemelidir.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "SI-10"
+  },
+  "clauses": [
+   "SI-10"
+  ],
+  "difficulty": "Orta",
+  "note": "Denetlenecek girdi listesi (si-10_odp) tasarımda ayrıca sayılmamış."
+ },
+ {
+  "pool": "nist53",
+  "ref": "SI-11",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, NIST SP 800-53 SI-11'e uygun olarak düzeltici işlem için gerekli bilgiyi veren ancak istismar edilebilecek bilgiyi açığa çıkarmayan hata mesajları üretmeli; ayrıntılı hata bilgisini yalnızca Yazılım Tasarım Belgesi §11 ve §7.2 uyarınca iz kayıtlarına erişim yetkisi olan personele göstermelidir.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "SI-11"
+  },
+  "clauses": [
+   "SI-11"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist53",
+  "ref": "SC-8",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Sistem, NIST SP 800-53 SC-8'e uygun olarak tarayıcı ile portal arasında ve sunucular arasında iletilen bilgilerin gizliliğini ve bütünlüğünü korumalıdır.",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "SC-8"
+  },
+  "clauses": [
+   "SC-8"
+  ],
+  "difficulty": "Kolay",
+  "note": "sc-08_odp (gizlilik/bütünlük) tasarımda açıkça seçilmemiş; TLS ve karşılıklı TLS ikisini de karşılıyor."
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §4.5",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi Ç-2 kararı uyarınca en uzun parola geçerlilik süresini yalnızca VBP'nin doğruladığı şirket temsilcisi parolalarına uygulamalı, süre dolmadan §14'te belirlenen sürede kullanıcıya bildirim göndermeli ve sızıntı eşleşmesi ya da şüpheli giriş gibi ele geçirme kanıtı olduğunda parola değişikliğini süreyi beklemeden zorunlu tutmalıdır.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§4.5"
+  },
+  "clauses": [
+   "§4.5",
+   "§13 Ç-2",
+   "§14"
+  ],
+  "difficulty": "Zor",
+  "note": "Rehber 3.2.1.8 ile NIST/ASVS arasındaki sapma; vatandaş ve personel kapsam dışı olmalı."
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §4.7",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi §4.7 uyarınca aynı doğrulayıcıda başarılı giriş olmadan §14'teki devre dışı bırakma eşiği kadar başarısız deneme olduğunda doğrulayıcıyı (parola ve ikinci faktör birlikte denenmişse ikisini) devre dışı bırakmalı, yalnızca hesap kurtarmayla yeniden bağlanmasına izin vermeli ve başarılı girişte kullanılan doğrulayıcıların sayaçlarını sıfırlamalıdır.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§4.7"
+  },
+  "clauses": [
+   "§4.7",
+   "§13 Ç-3",
+   "§14"
+  ],
+  "difficulty": "Zor",
+  "note": "Dış kullanıcılar için; personel kilidi ayrı kuraldır."
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §10.4",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi Ç-4 kararı uyarınca kimlik doğrulamada metin tabanlı CAPTCHA kullanmamalı; §14'teki bot doğrulama sorgusu eşiği aşıldığında önce etkileşimsiz tarayıcı kanıtı istemeli, bu yetmezse yalnızca WCAG 2.2 SC 3.3.8 nesne tanıma istisnasına giren bir sorgu göstermelidir.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§10.4"
+  },
+  "clauses": [
+   "§10.4",
+   "§4.7",
+   "§13 Ç-4",
+   "§14"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §4.6",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi Ç-5 kararı uyarınca TOTP doğrulamasında §14'te belirlenen adım süresine göre yalnızca geçerli adımın ve bir önceki adımın kodunu kabul etmeli, daha eski ya da ileri adımların kodlarını reddetmeli ve her kodu yalnızca bir kez kabul etmelidir.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§4.6"
+  },
+  "clauses": [
+   "§4.6",
+   "§13 Ç-5",
+   "§14"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §10.3",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi Ç-6 kararı uyarınca toplam oturum süresinin etkinlikle ya da uzatma düğmesiyle uzatılmasına izin vermemeli; bitişten §14'te belirlenen süre önce yeniden doğrulama uyarısı göstermeli, yanıtları her adımda taslak olarak kaydetmeli ve yeniden doğrulamadan sonra kullanıcıyı veri kaybı olmadan kaldığı adıma döndürmelidir.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§10.3"
+  },
+  "clauses": [
+   "§10.3",
+   "§13 Ç-6",
+   "§14"
+  ],
+  "difficulty": "Zor",
+  "note": "Kabul edilmiş erişilebilirlik sapması (WCAG 2.2.1)."
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §4.2",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi §4.2 uyarınca e-Devlet'ten gelen kimlik belirtecinde bildirilen doğrulama düzeyi AAL2'nin altındaysa ya da ilgili alanlar yoksa oturumu sınırlı kipte açmalı; bu kipte kişisel veri ve başvuru içeriği göstermemeli ve kullanıcıya daha güçlü bir yöntemle yeniden giriş önermelidir.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§4.2"
+  },
+  "clauses": [
+   "§4.2",
+   "§15"
+  ],
+  "difficulty": "Zor",
+  "note": "Test için e-Devlet test ortamında acr/amr değeri değiştirilmiş belirteç gerekir."
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §9",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi §9 uyarınca yalnızca §14'te izin verilen dosya türlerini kabul etmeli, uzantıyı içerik imzasıyla karşılaştırmalı ve §14'teki dosya, başvuru ve hesap boyut ile sayı sınırlarını aşan yüklemeleri reddederek ret nedenini dosya adıyla birlikte metin olarak bildirmelidir.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§9"
+  },
+  "clauses": [
+   "§9",
+   "§14"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §5.3",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi §5.3 uyarınca vatandaş ve temsilci için §14'teki eşzamanlı oturum sınırı aşıldığında yeni oturumu açarken en eski oturumu sonlandırmalı ve bunu kullanıcıya bildirmelidir; personel ve sistem yöneticisinde sınır aşımı olayı SIEM'e iletilmelidir.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§5.3"
+  },
+  "clauses": [
+   "§5.3",
+   "§14"
+  ],
+  "difficulty": "Orta",
+  "note": "AC-10 parametresinin tasarımdaki karşılığı."
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §11",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi §11 uyarınca ödeme sonucunu yalnızca imzası doğrulanan KÖA sunucu bildirimiyle kabul etmeli; sonuç belirsizse ya da KÖA erişilemezse başvuruyu \"ödendi\" durumuna geçirmeden §14'teki ödeme bekleme süresi boyunca \"ödeme bekliyor\" durumunda tutmalı ve belirsiz işlemleri §14'teki aralıkla sorgulamalıdır.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§11"
+  },
+  "clauses": [
+   "§11",
+   "§14"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "system",
+  "ref": "VBP-YTB-001 §5.2",
+  "language": "tr",
+  "stratum": "core",
+  "text": "Portal, Yazılım Tasarım Belgesi §5.2 uyarınca AAL2 oturumunda hareketsizlik süresi dolup toplam süre dolmadıysa şirket temsilcisinin oturum sırrıyla birlikte yalnızca parolasını girerek devam etmesine izin vermeli, vatandaşı ise e-Devlet'te taze doğrulamaya yönlendirmelidir; AAL3 personel oturumunda hareketsizlik dolduğunda oturum sırrı sunucudan hemen silinmelidir.",
+  "source": {
+   "doc": "VBP-YTB-001",
+   "section": "§5.2"
+  },
+  "clauses": [
+   "§5.2",
+   "§14"
+  ],
+  "difficulty": "Zor",
+  "note": ""
+ },
+ {
+  "pool": "wcag",
+  "ref": "2.2.1",
+  "language": "tr",
+  "stratum": "control",
+  "text": "Portal, vatandaş ve şirket temsilcisi oturumlarında (AAL2) 30 dakikalık hareketsizlik zaman aşımının 25. dakikasında erişilebilir bir iletişim kutusu açmalı, kalan süreyi ekran okuyucuya duyurmalı ve kullanıcının süreyi tek bir düğmeyle uzatmasına izin vermelidir. Uyarıdan sonra kullanıcıya en az 120 saniye tanınmalı, uzatma sayısı sınırlanmamalı ve süre uzatılmazsa hareketsizlik zaman aşımı yalnızca 30. dakikada uygulanmalıdır. (WCAG 2.2 Başarı Ölçütü 2.2.1, uzatma seçeneği; Yazılım Tasarım Belgesi §10.3)",
+  "source": {
+   "doc": "W3C-WCAG-2.2",
+   "section": "2.2.1"
+  },
+  "clauses": [
+   "2.2.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Toplam oturum süresi bu maddenin kapsamı dışında (Ç-6)."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.2.11.8",
+  "language": "tr",
+  "stratum": "control",
+  "text": "Portal, web servisi ve API çağrılarının sayısını kullanıcı ve istemci bazında sınırlamalıdır: oturum açmış kullanıcı için dakikada en çok 120 istek (anlık en çok 30), oturumsuz istemci için IP adresi başına dakikada en çok 60 istek, kimlik doğrulama uç noktaları için IP adresi başına dakikada en çok 20 istek ve dosya yüklemede kullanıcı başına saatte en çok 60 dosya. Sınır aşıldığında aşan çağrılar yanıtlanmamalı ya da engellenmelidir. (Rehber 3.2.11.8)",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.2.11.8"
+  },
+  "clauses": [
+   "3.2.11.8"
+  ],
+  "difficulty": "Orta",
+  "note": "\"Anlık 30\" tasarımdaki kısa süreli tepe (burst) sınırıdır."
+ },
+ {
+  "pool": "rehber",
+  "ref": "3.1.8.6",
+  "language": "tr",
+  "stratum": "control",
+  "text": "Portal ve arka ofis bileşenlerinin iz kayıtları, analiz ve inceleme için uygulamadan ayrı merkezi kayıt yönetim sisteminde toplanmalı ve yetkili personelce düzenli olarak gözden geçirilmelidir: ayrıcalıklı işlemler her iş günü, genel güvenlik kayıtları haftalık. Kayıt üretimi ya da merkezi sisteme aktarımı sırasında hata oluştuğunda KHGM SOME ve nöbetçi yönetici 15 dakika içinde otomatik olarak uyarılmalı ve uyarılar izlenmelidir. (Rehber 3.1.8.6)",
+  "source": {
+   "doc": "SGB-REHBER-1.1",
+   "section": "3.1.8.6"
+  },
+  "clauses": [
+   "3.1.8.6"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "pool": "nist53",
+  "ref": "AC-7",
+  "language": "tr",
+  "stratum": "control",
+  "text": "Portal, şirket temsilcisi hesaplarında (vatandaşlar e-Devlet Kapısı'nda doğrulandığı için yalnızca VBP'nin doğruladığı yerel hesaplarda) aynı kullanıcı 15 dakika içinde 10 ardışık geçersiz giriş denemesi yaptığında hesabı kilitlemek yerine sonraki giriş istemini otomatik olarak geciktirmelidir. Gecikme ilk aşımda 1 dakika olmalı, sonraki her başarısız denemede iki katına çıkmalı ve 60 dakikayı aşmamalıdır; gecikme süresince giriş denemesi kabul edilmemelidir. (NIST SP 800-53 AC-7)",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "AC-7"
+  },
+  "clauses": [
+   "AC-7a",
+   "AC-7b"
+  ],
+  "difficulty": "Orta",
+  "note": "Personel için kural farklıdır (10 denemede yönetici kilidi); bu madde yalnızca dış kullanıcıyı kapsar."
+ },
+ {
+  "pool": "nist53",
+  "ref": "AC-11",
+  "language": "tr",
+  "stratum": "control",
+  "text": "Arka ofis uygulaması, personel oturumunda 10 dakika hareketsizlikten sonra ekranı kilitleyerek ekrandaki kişisel verileri gizlemeli ve uygulamaya daha fazla erişimi engellemelidir. Kilit, personel KKS üzerinden FIDO2 donanım güvenlik anahtarı ve PIN ile AAL3 düzeyinde yeniden kimlik doğrulayana kadar korunmalıdır. (NIST SP 800-53 AC-11)",
+  "source": {
+   "doc": "NIST-SP-800-53r5",
+   "section": "AC-11"
+  },
+  "clauses": [
+   "AC-11a",
+   "AC-11b"
+  ],
+  "difficulty": "Orta",
+  "note": "Kilit sonrası 15. dakikada sonlandırma AC-12 kapsamındadır, buraya alınmadı."
+ }
+]

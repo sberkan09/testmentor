@@ -1,0 +1,292 @@
+# Kamu dijital hizmeti (vatandaş başvuru portalı): belge derlemi (paket 1b, aşama 3). Şema: eval/corpus/manifest.py
+# python -m eval.corpus fetch --project kdh   (isteğe bağlılar için --all)
+project: KDH
+downloads:
+  sp800_63_4:
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63-4.pdf
+    sha256: 2f5b107de218a0fc3fe7f7e91b2ece5babb001eda5745b7c568a3cc876002f2d
+    bytes: 858054
+  sp800_63a_4:
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63A-4.pdf
+    sha256: f83654182f0b012f17f6901e6d03e12ef2ba422b341aee875e837094f23e9ad3
+    bytes: 1071442
+  sp800_63b_4:
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63B-4.pdf
+    sha256: d9ab89576b5ae2cfb3ba37781110788dea27a85a5079496dbfc1a79834670afd
+    bytes: 993734
+  sp800_63c_4:
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63C-4.pdf
+    sha256: dce901711d044dcdd672fe28c2b012558786db0532e634bd65fa9506f88b3cdb
+    bytes: 1542269
+  cc63:
+    url: https://pages.nist.gov/800-63-4-Implementation-Resources/_static/downloads/sp800-63-4-conformance-criteria-v0.1-oscal.json
+    sha256: 6f72311030d25653ec91c362516f00276654c8a28204a87c13deb3337e434e50
+    bytes: 2349738
+  oscal53:
+    url: https://raw.githubusercontent.com/usnistgov/oscal-content/f0de6d8d8c059d374f15e0ae07508d82e370fc1d/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+    sha256: 64ca6b4161de51ab6af098a7d101d326f14c95e1abf721396cd8a049e8115eeb
+    bytes: 10448237
+  sp800_53a_xlsx:
+    url: https://csrc.nist.gov/files/pubs/sp/800/53/a/r5/final/docs/sp800-53ar5-assessment-procedures.xlsx
+    sha256: 6508c470d9ab943f7b591301c6380e38637f0b70fd2eeb2e38807cc03119392d
+    bytes: 393827
+  asvs:
+    url: https://raw.githubusercontent.com/OWASP/ASVS/5cf9b032440be53ce345ab3c130fda46ba1ce7a2/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.csv
+    sha256: 98c8fe911b9edb403af8ee05d3ce8201ecac2659e313b053890a62847cdcf680
+    bytes: 105100
+  wcag22:
+    url: https://www.w3.org/TR/2024/REC-WCAG22-20241212/
+    sha256: 6e3c5fe397257cae509a2fb4752b73062cf8cbeb92c2cec618989b17e4cf7057
+    bytes: 512457
+  sgb_rehber:
+    url: https://cdn.siberguvenlik.gov.tr/public/docs/bg_rehber.pdf
+    sha256: ba63da98a45daae2f2b40295e4faa351bdb6ee10591409d336142371aa51bf0c
+    bytes: 10528227
+  sgb_denetim:
+    url: https://cdn.siberguvenlik.gov.tr/dokuman/26/05/260515154356_Denetim%20Rehberi_v1.1.pdf
+    sha256: 79b4599b99646ef55e851ae0cdcbca2a34a811779da20a24f0ca22ff9af71647
+    bytes: 26917069
+    optional: true
+documents:
+- id: NIST-SP-800-63-4
+  title: Digital Identity Guidelines
+  publisher: NIST
+  version: 4 (final)
+  kind: standard
+  role: corpus
+  language: en
+  download: sp800_63_4
+  extract: &id001
+    method: pdftotext
+  license: Kamu malı (ABD federal hükümet eseri)
+  license_evidence: 'Belge künyesi: ''not subject to copyright in the United States'''
+  repo_text: 'yes'
+- id: NIST-SP-800-63A-4
+  title: 'Digital Identity Guidelines: Identity Proofing and Enrollment'
+  publisher: NIST
+  version: 4 (final)
+  kind: standard
+  role: corpus
+  language: en
+  download: sp800_63a_4
+  extract: *id001
+  license: Kamu malı (ABD federal hükümet eseri)
+  license_evidence: 'Belge künyesi: ''not subject to copyright in the United States'''
+  repo_text: 'yes'
+- id: NIST-SP-800-63B-4
+  title: 'Digital Identity Guidelines: Authentication and Authenticator Management'
+  publisher: NIST
+  version: 4 (final)
+  kind: standard
+  role: corpus
+  language: en
+  download: sp800_63b_4
+  extract: *id001
+  license: Kamu malı (ABD federal hükümet eseri)
+  license_evidence: 'Belge künyesi: ''not subject to copyright in the United States'''
+  repo_text: 'yes'
+- id: NIST-SP-800-63C-4
+  title: 'Digital Identity Guidelines: Federation and Assertions'
+  publisher: NIST
+  version: 4 (final)
+  kind: standard
+  role: corpus
+  language: en
+  download: sp800_63c_4
+  extract: *id001
+  license: Kamu malı (ABD federal hükümet eseri)
+  license_evidence: 'Belge künyesi: ''not subject to copyright in the United States'''
+  repo_text: 'yes'
+- id: NIST-800-63-4-CC
+  title: SP 800-63-4 Conformance Criteria (OSCAL)
+  publisher: NIST
+  version: 0.1 (30 Sep 2026)
+  kind: test_procedure
+  role: reference
+  language: en
+  download: cc63
+  extract:
+    method: raw
+  license: Kamu malı (ABD federal hükümet eseri)
+  license_evidence: NIST Implementation Resources sitesi; ABD federal hükümet eseri
+  repo_text: 'yes'
+  notes: 'Cevap anahtarı: 1.024 kriter, TEST/EXAMINE/INTERVIEW yönergeli.'
+- id: NIST-SP-800-53r5
+  title: Security and Privacy Controls (OSCAL catalog, controls and assessment procedures)
+  publisher: NIST
+  version: 5.2.0
+  kind: catalog
+  role: mixed
+  language: en
+  download: oscal53
+  extract:
+    method: raw
+  license: Kamu malı (ABD federal hükümet eseri)
+  license_evidence: usnistgov/oscal-content deposu; ABD federal hükümet eseri
+  repo_text: 'yes'
+  reference_parts:
+  - marker: 'OSCAL parts: assessment-objective, assessment-method, assessment-objects'
+    note: 800-53A değerlendirme hedefleri, yöntemleri ve nesneleri; test yazarına verilen görünümden çıkarılır.
+    strip: oscal_parts
+    names:
+    - assessment-objective
+    - assessment-method
+    - assessment-objects
+  notes: usnistgov/oscal-content@f0de6d8d8c05 (main, 20 Kasım 2026). Katalog 5.2.0; değerlendirme bölümleri 800-53A
+    ile aynı kaynaktır.
+- id: NIST-SP-800-53Ar5
+  title: 'Assessing Security and Privacy Controls: assessment procedures (XLSX)'
+  publisher: NIST
+  version: Rev.5 (XLSX, 2022-03)
+  kind: test_procedure
+  role: reference
+  language: en
+  download: sp800_53a_xlsx
+  extract:
+    method: xlsx
+  license: Kamu malı (ABD federal hükümet eseri)
+  license_evidence: csrc.nist.gov yayın sayfası; ABD federal hükümet eseri
+  repo_text: 'yes'
+  notes: 'KDH-905 referansının kaynağı. PDF yerine XLSX: PDF''te ''ti'' bağları düşüyor (aşama 2a). Sürüm farkı:
+    XLSX 2022''de oluşturulmuş (800-53A Rev.5 ilk yayın); OSCAL kataloğu 5.2.0. Aşama 5''te değerlendirme hedefleri
+    farklıysa kataloğun kendi değerlendirme bölümlerinden alınır.'
+- id: OWASP-ASVS-5.0.0
+  title: Application Security Verification Standard (CSV)
+  publisher: OWASP
+  version: 5.0.0
+  kind: standard
+  role: corpus
+  language: en
+  download: asvs
+  extract:
+    method: raw
+  license: CC BY-SA 4.0
+  license_evidence: OWASP/ASVS deposu LICENSE.md
+  repo_text: 'yes'
+  notes: 'OWASP/ASVS@5cf9b032440b (etiket v5.0.0_release). 345 gereksinim, test prosedürü yok: referanslar Claude
+    tarafından yazılır.'
+- id: W3C-WCAG-2.2
+  title: Web Content Accessibility Guidelines 2.2
+  publisher: W3C
+  version: REC 2024-12-12
+  kind: standard
+  role: corpus
+  language: en
+  download: wcag22
+  extract:
+    method: html
+  license_evidence: 'Belge başlığı: ''Copyright © 2020-2024 World Wide Web Consortium. W3C® liability, trademark
+    and document use rules apply.'''
+  license: W3C Document License
+  repo_text: 'yes'
+- id: W3C-ACT-RULES
+  title: ACT Rules approved by AG WG (37 rules)
+  publisher: W3C
+  version: w3c/wcag-act-rules@9a2d7f903357
+  kind: test_procedure
+  role: reference
+  language: en
+  path: eval/corpus/kdh/snapshots/act-rules/*.md
+  origin: 'https://github.com/w3c/wcag-act-rules/tree/9a2d7f903357eb728a0f83f00db75d4f32417ab4/content/rules (proposed:
+    false olan index.md dosyaları, değiştirilmeden; 20 Kasım 2026)'
+  extract:
+    method: raw
+  license_evidence: 'w3c/wcag-act-rules LICENSE.md: ''licensed by contributors under the W3C Document License'''
+  license: W3C Document License
+  repo_text: 'yes'
+  notes: 'Cevap anahtarı: Applicability ve Expectation bölümleri. Başarısızlık SC ihlalidir; geçme yalnızca ''daha
+    fazla test gerekir''.'
+- id: SGB-REHBER-1.1
+  title: Bilgi ve İletişim Güvenliği Rehberi
+  publisher: Cumhurbaşkanlığı Siber Güvenlik Başkanlığı
+  version: '1.1'
+  kind: guidance
+  role: mixed
+  language: tr
+  download: sgb_rehber
+  extract: *id001
+  license: CC BY 4.0
+  license_evidence: 'Künye: ''Creative Commons Atıf 4.0 Uluslararası lisansı ile lisanslanmıştır'''
+  repo_text: 'yes'
+  reference_parts:
+  - marker: '''Denetim Maddeleri'' tablosu, sonraki grup ya da bölüm başlığına kadar'
+    note: Tedbir grubu başına 62 tablo (tedbir no, yöntem önerileri, soru önerileri). Cevap anahtarıdır; test yazarına
+      verilen görünümden çıkarılır. Giriş bölümündeki tanım satırı tablo değildir.
+    strip: regex_block
+    start: ^Denetim Maddeleri\s*$
+    end: ^(\d+\.){2,3}\s+\S|^\d+\.\s+[A-ZÇĞİÖŞÜ]|^KAYNAKÇA
+    expect: 62
+  notes: '-layout kullanılmaz: denetim sorularını yanlış tedbire atıyor (aşama 2a).'
+- id: SGB-DENETIM-1.1
+  title: Bilgi ve İletişim Güvenliği Denetim Rehberi
+  publisher: Cumhurbaşkanlığı Siber Güvenlik Başkanlığı
+  version: '1.1'
+  kind: guidance
+  role: corpus
+  language: tr
+  download: sgb_denetim
+  extract: *id001
+  license: CC BY 4.0
+  license_evidence: 'Künye: ''Creative Commons Atıf 4.0 Uluslararası lisansı ile lisanslanmıştır'''
+  repo_text: 'yes'
+  notes: İsteğe bağlı (27 MB). Yalnızca denetim yöntemlerini anlatır; tedbir başına denetim maddeleri Rehber'dedir.
+- id: GOVUK-SERVICE-STANDARD
+  title: Service Standard (14 points)
+  publisher: UK Government Digital Service
+  version: 2026-11-20 snapshot
+  kind: guidance
+  role: corpus
+  language: en
+  path: eval/corpus/kdh/snapshots/govuk-service-standard/*.txt
+  origin: https://www.gov.uk/service-manual/service-standard ve 14 madde sayfası, <main> metni, 20 Kasım 2026
+  extract:
+    method: raw
+  license: Open Government Licence v3.0
+  license_evidence: 'Sayfa altbilgisi: ''All content is available under the Open Government Licence v3.0'''
+  repo_text: 'yes'
+- id: VBP-KIB-001
+  title: Vatandaş Başvuru Portalı Kavramsal İşletim Belgesi
+  publisher: Kamu Hizmetleri Genel Müdürlüğü (kurgusal)
+  version: 1.0 (2026-11-20)
+  kind: system
+  role: corpus
+  language: tr
+  path: eval/corpus/kdh/system/kavramsal-isletim.md
+  extract: &id002
+    method: raw
+  license: Sentetik; bu projede yazıldı
+  license_evidence: Paket 1b aşama 4'te alt ajan yazdı; yalnızca test yazarına görünür standart metinlerini gördü,
+    referans testleri ve denetim tablolarını görmedi
+  repo_text: 'yes'
+- id: VBP-PYP-001
+  title: Vatandaş Başvuru Portalı Proje Yönetim Planı
+  publisher: Kamu Hizmetleri Genel Müdürlüğü (kurgusal)
+  version: 1.0 (2026-11-20)
+  kind: system
+  role: corpus
+  language: tr
+  path: eval/corpus/kdh/system/proje-yonetim-plani.md
+  extract: *id002
+  license: Sentetik; bu projede yazıldı
+  license_evidence: Paket 1b aşama 4'te alt ajan yazdı; yalnızca test yazarına görünür standart metinlerini gördü,
+    referans testleri ve denetim tablolarını görmedi
+  repo_text: 'yes'
+  notes: Teste ilgisiz gerçekçi içerik de taşır.
+- id: VBP-YTB-001
+  title: Vatandaş Başvuru Portalı Yazılım Tasarım Belgesi
+  publisher: Kamu Hizmetleri Genel Müdürlüğü (kurgusal)
+  version: 1.0 (2026-11-20)
+  kind: system
+  role: corpus
+  language: tr
+  path: eval/corpus/kdh/system/tasarim.md
+  extract: *id002
+  license: Sentetik; bu projede yazıldı
+  license_evidence: Paket 1b aşama 4'te alt ajan yazdı; yalnızca test yazarına görünür standart metinlerini gördü,
+    referans testleri ve denetim tablolarını görmedi
+  repo_text: 'yes'
+  notes: Standart çatışmalarının çözümü (Ç-1..Ç-9) ve kuruma bırakılan parametrelerin değerleri (§13, §14).
+excluded:
+  KVKK (6698 sayılı Kanun, İngilizce metin): kvkk.gov.tr bu konteynerden sertifika hatası veriyor; metin doğrulanamadı.
+    Gerekirse kullanıcıdan istenir.
+  NIST SP 800-53A Rev.5 PDF: PDF metninde 'ti' bağları düşüyor; aynı içerik XLSX ve OSCAL kataloğunda.

@@ -1,0 +1,500 @@
+{
+  "ETC-901": [
+    {
+      "id": "ETC-901-TC01",
+      "title": "Linking checked: linked balise group contained in linking information becomes the position reference",
+      "covers": ["ETC-901"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "On-board equipment is in a level where position reports are sent to the RBC; radio session established; linking information announcing BG1 and BG2 has been received and linking consistency is checked on-board.",
+      "test_inputs": "BG1 and BG2 marked as linked (Q_LINK = 1) and contained in the received linking information.",
+      "assumptions": "All balise groups in the test fulfil the conditions of SUBSET-026 §3.6.5.1.8.",
+      "steps": [
+        {"no": 1, "action": "Run the train over BG1 and trigger a position report.", "expected": "The position report to the RBC uses BG1 as LRBG."},
+        {"no": 2, "action": "Run the train over BG2 and trigger a position report.", "expected": "The position report to the RBC uses BG2 as LRBG."}
+      ]
+    },
+    {
+      "id": "ETC-901-TC02",
+      "title": "Linking checked: balise group not contained in linking information or marked unlinked is not LRBG compliant",
+      "covers": ["ETC-901"],
+      "type": "Hata",
+      "priority": "Yüksek",
+      "preconditions": "As in ETC-901-TC01; linking consistency is checked on-board; BG1 (linked, announced in linking information) has been passed and is the current LRBG.",
+      "test_inputs": "Scenario A: BG2 marked as linked (Q_LINK = 1) but not contained in the previously received linking information. Scenario B: BG2 marked as unlinked (Q_LINK = 0).",
+      "assumptions": "All balise groups fulfil the conditions of SUBSET-026 §3.6.5.1.8.",
+      "steps": [
+        {"no": 1, "action": "Scenario A: run the train over BG2 and trigger a position report.", "expected": "The position report still uses BG1 as LRBG; BG2 is not used as reference."},
+        {"no": 2, "action": "Scenario B: run the train over BG2 and trigger a position report.", "expected": "The position report still uses BG1 as LRBG; BG2 is not used as reference."}
+      ]
+    },
+    {
+      "id": "ETC-901-TC03",
+      "title": "Linking not checked: only balise groups not marked as unlinked are LRBG compliant",
+      "covers": ["ETC-901"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "On-board equipment is in a level where position reports are sent to the RBC; radio session established; linking consistency is not checked when the balise groups are passed.",
+      "test_inputs": "BG1 marked as linked (Q_LINK = 1), followed by BG2 marked as unlinked (Q_LINK = 0).",
+      "assumptions": "All balise groups fulfil the conditions of SUBSET-026 §3.6.5.1.8.",
+      "steps": [
+        {"no": 1, "action": "Run the train over BG1 and trigger a position report.", "expected": "The position report uses BG1 as LRBG (BG1 is not marked as unlinked)."},
+        {"no": 2, "action": "Run the train over BG2 and trigger a position report.", "expected": "The position report still uses BG1 as LRBG; BG2, marked as unlinked, is not LRBG compliant."}
+      ]
+    }
+  ],
+  "ETC-902": [
+    {
+      "id": "ETC-902-TC01",
+      "title": "Balise information is filtered by Q_DIR relative to the balise group orientation",
+      "covers": ["ETC-902"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "On-board equipment in a mode other than SL, PS or SH; train orientation such that the train passes balise group BG in its nominal direction.",
+      "test_inputs": "Three packets from BG with Q_DIR = 01 (nominal), Q_DIR = 10 (both directions) and Q_DIR = 00 (reverse).",
+      "assumptions": "The information is not part of a Supervised Manoeuvre authorisation.",
+      "steps": [
+        {"no": 1, "action": "Pass BG transmitting the packet with Q_DIR = 01.", "expected": "The information is taken into account."},
+        {"no": 2, "action": "Pass BG transmitting the packet with Q_DIR = 10.", "expected": "The information is taken into account."},
+        {"no": 3, "action": "Pass BG transmitting the packet with Q_DIR = 00.", "expected": "The information is ignored; on-board data remain unchanged."}
+      ]
+    },
+    {
+      "id": "ETC-902-TC02",
+      "title": "Radio information is filtered by Q_DIR relative to the LRBG orientation",
+      "covers": ["ETC-902"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "Radio session established; mode other than SL, PS or SH; train orientation is opposite to the nominal orientation of the current LRBG.",
+      "test_inputs": "Radio messages with Q_DIR = 00 (reverse) and Q_DIR = 01 (nominal), both referenced to the current LRBG.",
+      "assumptions": "The information is not part of a Supervised Manoeuvre authorisation.",
+      "steps": [
+        {"no": 1, "action": "Send the radio message with Q_DIR = 00.", "expected": "The information is taken into account, since its validity direction (reverse of the LRBG) matches the train orientation."},
+        {"no": 2, "action": "Send the radio message with Q_DIR = 01.", "expected": "The information is ignored."}
+      ]
+    },
+    {
+      "id": "ETC-902-TC03",
+      "title": "Exception 1: in SL, PS and SH the balise group crossing direction is considered",
+      "covers": ["ETC-902"],
+      "type": "Sınır",
+      "priority": "Orta",
+      "preconditions": "Engine in SL, PS or SH mode (each run separately); balise group BG is crossed in its nominal direction while the train orientation is reverse relative to BG.",
+      "test_inputs": "Packet from BG with Q_DIR = 01 (nominal).",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "In SL, cross BG and observe handling of the packet.", "expected": "Validity is evaluated against the balise group crossing direction: the nominal-direction information is taken into account."},
+        {"no": 2, "action": "Repeat in PS.", "expected": "Same result as step 1."},
+        {"no": 3, "action": "Repeat in SH.", "expected": "Same result as step 1."}
+      ]
+    },
+    {
+      "id": "ETC-902-TC04",
+      "title": "Exception 2: Supervised Manoeuvre authorisation is taken into account in the opposite direction",
+      "covers": ["ETC-902"],
+      "type": "Sınır",
+      "priority": "Orta",
+      "preconditions": "On-board equipment operational with a known train orientation.",
+      "test_inputs": "Supervised Manoeuvre authorisation whose validity direction is opposite to the current train orientation; for comparison, other information with the same opposite validity direction.",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Transmit the Supervised Manoeuvre authorisation with opposite validity direction.", "expected": "The information in the authorisation is taken into account."},
+        {"no": 2, "action": "Transmit the other information with the same opposite validity direction.", "expected": "The other information is ignored."}
+      ]
+    }
+  ],
+  "ETC-903": [
+    {
+      "id": "ETC-903-TC01",
+      "title": "Received linking information replaces stored linking from its reference balise group before SOLR is determined",
+      "covers": ["ETC-903"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "Linking consistency is checked; on-board holds stored linking information from an earlier reference balise group; stored linking information and SOLR are observable via test interface or log.",
+      "test_inputs": "New non-infill linking information with reference balise group BGr, announcing balise groups that differ from those in the stored linking information beyond BGr.",
+      "assumptions": "The order of internal processing is observable through the test interface or on-board log.",
+      "steps": [
+        {"no": 1, "action": "Transmit the new linking information.", "expected": "All stored linking information from BGr onward is replaced by the new linking information (SUBSET-026 §3.7.3.1 m)); stored linking in rear of BGr is kept."},
+        {"no": 2, "action": "Inspect the SOLR determined after reception.", "expected": "SOLR is determined after the replacement: it is the last received balise group that is the reference of, or announced in, the linking information as replaced."}
+      ]
+    },
+    {
+      "id": "ETC-903-TC02",
+      "title": "Linking information released from the transition buffer is applied before SOLR determination",
+      "covers": ["ETC-903"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "Train approaching a level 1/2 transition border; linking information held in the transition buffer; balise groups in rear of the border have been passed; internal state observable via test interface or log.",
+      "test_inputs": "Buffered linking information that does not announce every balise group passed in rear of the border.",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Pass the transition border so the buffered linking information is released.", "expected": "The stored linking information is replaced by the released linking information from its reference balise group before SOLR is determined."},
+        {"no": 2, "action": "Inspect the SOLR after the release.", "expected": "SOLR is the last received balise group that is the reference of, or announced in, the released linking information; this may be a former LRBG rather than the last passed balise group."}
+      ]
+    }
+  ],
+  "ETC-904": [
+    {
+      "id": "ETC-904-TC01",
+      "title": "New SSP replaces all stored SSP from its start location, including beyond its end",
+      "covers": ["ETC-904"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "On-board equipment holds a stored Static Speed Profile covering locations A to D.",
+      "test_inputs": "New Static Speed Profile from location B to location C (A < B < C < D) with speed values different from the stored profile.",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Transmit the new Static Speed Profile.", "expected": "The information is accepted."},
+        {"no": 2, "action": "Inspect the stored SSP between A and B.", "expected": "The previously stored profile is unchanged between A and B."},
+        {"no": 3, "action": "Inspect the stored SSP between B and C.", "expected": "The new profile values apply."},
+        {"no": 4, "action": "Inspect the stored SSP beyond C.", "expected": "No previously stored SSP information remains beyond C; all stored SSP from B onward was replaced."}
+      ]
+    },
+    {
+      "id": "ETC-904-TC02",
+      "title": "New SSP starting exactly at the stored SSP start replaces the whole stored profile",
+      "covers": ["ETC-904"],
+      "type": "Sınır",
+      "priority": "Orta",
+      "preconditions": "On-board equipment holds a stored Static Speed Profile starting at location A.",
+      "test_inputs": "New Static Speed Profile starting at location A, shorter than the stored profile, with different speed values.",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Transmit the new Static Speed Profile.", "expected": "The information is accepted."},
+        {"no": 2, "action": "Inspect the stored SSP from A onward.", "expected": "Only the new profile is stored from A; no value of the old profile remains."}
+      ]
+    }
+  ],
+  "ETC-905": [
+    {
+      "id": "ETC-905-TC01",
+      "title": "MA request triggered when the train front passes the location a defined time before the perturbation location",
+      "covers": ["ETC-905"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "Radio session established; the RBC has set the triggering criterion 'defined time before reaching the perturbation location at warning speed'; train running under an MA.",
+      "test_inputs": "Defined time T; perturbation location P; warning speed as per SUBSET-026 §3.13.11.",
+      "assumptions": "T = 30 s; no other reason for an MA request applies until the trigger location.",
+      "steps": [
+        {"no": 1, "action": "Run the train with the front just before the location from which P is reached in T at warning speed.", "expected": "No MA request is sent."},
+        {"no": 2, "action": "Let the train front pass that location.", "expected": "An MA request is sent to the RBC."},
+        {"no": 3, "action": "Inspect Q_MARQSTREASON in the MA request.", "expected": "Bit 'Time before reaching the perturbation location reached' (xxx1x) is set."}
+      ]
+    },
+    {
+      "id": "ETC-905-TC02",
+      "title": "MA request triggered a defined time before a section timer expires",
+      "covers": ["ETC-905"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "Radio session established; MA with a section having a Section timer; the RBC has set the triggering criterion 'defined time before the Section timer expires'.",
+      "test_inputs": "Defined time T before Section timer expiry.",
+      "assumptions": "T = 20 s; no other reason for an MA request applies until the trigger moment.",
+      "steps": [
+        {"no": 1, "action": "Let the Section timer run until just before T before expiry.", "expected": "No MA request is sent."},
+        {"no": 2, "action": "Let the moment T before Section timer expiry be reached.", "expected": "An MA request is sent to the RBC."},
+        {"no": 3, "action": "Inspect Q_MARQSTREASON.", "expected": "Bit 'Time before a section timer/LOA speed timer expires reached' (xx1xx) is set."}
+      ]
+    },
+    {
+      "id": "ETC-905-TC03",
+      "title": "End Section timer and Overlap timer do not trigger the section-timer criterion; LOA speed timer does",
+      "covers": ["ETC-905"],
+      "type": "Hata",
+      "priority": "Orta",
+      "preconditions": "Radio session established; the RBC has set the triggering criterion 'defined time before the Section timer / LOA speed timer expires'; MA containing an End Section timer, an Overlap timer and an LOA speed timer.",
+      "test_inputs": "Defined time T.",
+      "assumptions": "T = 20 s; the timers are arranged so that each reaches T before expiry at a distinct moment; no other reason for an MA request applies.",
+      "steps": [
+        {"no": 1, "action": "Let the End Section timer reach T before expiry.", "expected": "No MA request is sent."},
+        {"no": 2, "action": "Let the Overlap timer reach T before expiry.", "expected": "No MA request is sent."},
+        {"no": 3, "action": "Let the LOA speed timer reach T before expiry.", "expected": "An MA request is sent with Q_MARQSTREASON bit xx1xx set."}
+      ]
+    },
+    {
+      "id": "ETC-905-TC04",
+      "title": "All reasons applicable at sending time are reported in Q_MARQSTREASON",
+      "covers": ["ETC-905"],
+      "type": "Normal",
+      "priority": "Orta",
+      "preconditions": "Radio session established; the RBC has set the perturbation-location triggering criterion; track description has been deleted on-board so that this reason is also applicable.",
+      "test_inputs": "",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Let the train front pass the perturbation-location trigger location.", "expected": "An MA request is sent."},
+        {"no": 2, "action": "Inspect Q_MARQSTREASON.", "expected": "Both bits 'Track description deleted' (x1xxx) and 'Time before reaching the perturbation location reached' (xxx1x) are set; no bit for a non-applicable reason is set."}
+      ]
+    }
+  ],
+  "KDH-901": [
+    {
+      "id": "KDH-901-TC01",
+      "title": "Single-factor passwords require at least 15 characters",
+      "covers": ["KDH-901"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "User is on the password set/change page for an account using the password as a single-factor authentication mechanism.",
+      "test_inputs": "Passwords of 14 and 15 ASCII characters.",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Submit a 14-character password.", "expected": "The password is rejected as too short."},
+        {"no": 2, "action": "Submit a 15-character password.", "expected": "The password is accepted."}
+      ]
+    },
+    {
+      "id": "KDH-901-TC02",
+      "title": "Passwords used only in multi-factor authentication require at least 8 characters",
+      "covers": ["KDH-901"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "User is on the password set/change page for an account where the password is used only as part of multi-factor authentication.",
+      "test_inputs": "Passwords of 7 and 8 ASCII characters.",
+      "assumptions": "The portal uses the permitted shorter minimum (8) for passwords used only in multi-factor authentication. If it applies 15 instead, steps use 14/15.",
+      "steps": [
+        {"no": 1, "action": "Submit a 7-character password.", "expected": "The password is rejected as too short."},
+        {"no": 2, "action": "Submit an 8-character password.", "expected": "The password is accepted."}
+      ]
+    },
+    {
+      "id": "KDH-901-TC03",
+      "title": "Password length counts each Unicode code point as one character",
+      "covers": ["KDH-901"],
+      "type": "Sınır",
+      "priority": "Orta",
+      "preconditions": "User is on the password set/change page for a single-factor password account.",
+      "test_inputs": "Password A: 15 code points including multi-byte characters (e.g. 'şğüçöıİ' plus 8 ASCII letters), more than 15 bytes in UTF-8. Password B: 14 code points including multi-byte characters.",
+      "assumptions": "The portal accepts Unicode characters in passwords.",
+      "steps": [
+        {"no": 1, "action": "Submit password A.", "expected": "The password is accepted (length 15)."},
+        {"no": 2, "action": "Submit password B.", "expected": "The password is rejected as too short (length 14), although its byte length exceeds 15."}
+      ]
+    },
+    {
+      "id": "KDH-901-TC04",
+      "title": "Full password is requested and the entire submitted password is verified",
+      "covers": ["KDH-901"],
+      "type": "Hata",
+      "priority": "Yüksek",
+      "preconditions": "An account with a known valid 80-character password exists.",
+      "test_inputs": "The valid password; the same password with only the last character changed; the valid password's first 64 characters.",
+      "assumptions": "80 characters is chosen to exceed common truncation boundaries.",
+      "steps": [
+        {"no": 1, "action": "Open the login page.", "expected": "The full password is requested in one field; no subset (e.g. selected character positions) is requested."},
+        {"no": 2, "action": "Log in with the valid password.", "expected": "Authentication succeeds."},
+        {"no": 3, "action": "Log in with the password whose last character is changed.", "expected": "Authentication fails; the password is not truncated before verification."},
+        {"no": 4, "action": "Log in with only the first 64 characters.", "expected": "Authentication fails."}
+      ]
+    }
+  ],
+  "KDH-902": [
+    {
+      "id": "KDH-902-TC01",
+      "title": "Authenticator is disabled after the configured limit (at most 100) of consecutive failures",
+      "covers": ["KDH-902"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "A subscriber account with a password authenticator and no recent failed attempts.",
+      "test_inputs": "Invalid password; valid password.",
+      "assumptions": "The configured limit is 100 (the maximum allowed); if a lower limit L is configured, use L.",
+      "steps": [
+        {"no": 1, "action": "Make 99 consecutive failed attempts with the password authenticator.", "expected": "Each attempt fails."},
+        {"no": 2, "action": "Make the 100th consecutive failed attempt.", "expected": "The attempt fails and the password authenticator is disabled."},
+        {"no": 3, "action": "Attempt to authenticate with the valid password.", "expected": "Authentication is refused; no 101st attempt is evaluated."}
+      ]
+    },
+    {
+      "id": "KDH-902-TC02",
+      "title": "Successful authentication interrupts the consecutive failure count",
+      "covers": ["KDH-902"],
+      "type": "Sınır",
+      "priority": "Orta",
+      "preconditions": "A subscriber account with a password authenticator and no recent failed attempts.",
+      "test_inputs": "Invalid password; valid password.",
+      "assumptions": "Configured limit 100.",
+      "steps": [
+        {"no": 1, "action": "Make 99 consecutive failed attempts, then authenticate successfully.", "expected": "Authentication succeeds."},
+        {"no": 2, "action": "Make 99 further failed attempts, then authenticate with the valid password.", "expected": "Authentication succeeds; the authenticator is not disabled."}
+      ]
+    },
+    {
+      "id": "KDH-902-TC03",
+      "title": "All authenticators involved in excessive attempts are disabled",
+      "covers": ["KDH-902"],
+      "type": "Hata",
+      "priority": "Yüksek",
+      "preconditions": "A subscriber account authenticating with a single-factor cryptographic authenticator and a centrally verified password.",
+      "test_inputs": "Failed authentication attempts involving both authenticators.",
+      "assumptions": "Configured limit 100.",
+      "steps": [
+        {"no": 1, "action": "Make 100 consecutive failed authentication attempts involving both authenticators.", "expected": "Both authenticators are disabled."},
+        {"no": 2, "action": "Attempt to authenticate with each authenticator using valid credentials.", "expected": "Authentication is refused for both."}
+      ]
+    },
+    {
+      "id": "KDH-902-TC04",
+      "title": "Disabled authenticator is usable again only after rebinding",
+      "covers": ["KDH-902"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "An authenticator on the account has been disabled by rate limiting.",
+      "test_inputs": "",
+      "assumptions": "The rebinding procedure is the one implemented according to NIST SP 800-63B-4 §4.1.",
+      "steps": [
+        {"no": 1, "action": "Attempt to authenticate with the disabled authenticator before rebinding.", "expected": "Authentication is refused."},
+        {"no": 2, "action": "Rebind the authenticator to the subscriber account per §4.1.", "expected": "Rebinding completes."},
+        {"no": 3, "action": "Authenticate with the rebound authenticator.", "expected": "Authentication succeeds."}
+      ]
+    }
+  ],
+  "KDH-903": [
+    {
+      "id": "KDH-903-TC01",
+      "title": "Every portal page declares its default human language",
+      "covers": ["KDH-903"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "Access to the full list of portal pages, including authenticated pages.",
+      "test_inputs": "",
+      "assumptions": "Portal pages are HTML; the language is declared with the lang attribute of the html element. The default language of the portal content is Turkish (tr).",
+      "steps": [
+        {"no": 1, "action": "For each portal page, inspect the html element in the rendered DOM.", "expected": "A non-empty lang attribute is present."},
+        {"no": 2, "action": "Compare the declared value with the main language of the page content.", "expected": "The declared language matches the default human language of the page."}
+      ]
+    },
+    {
+      "id": "KDH-903-TC02",
+      "title": "Declared language tag has a known primary language subtag",
+      "covers": ["KDH-903"],
+      "type": "Hata",
+      "priority": "Orta",
+      "preconditions": "",
+      "test_inputs": "lang values found on all pages.",
+      "assumptions": "Portal pages are HTML; the language is declared with the lang attribute of the html element.",
+      "steps": [
+        {"no": 1, "action": "Extract the primary language subtag of each lang value (e.g. 'tr' in 'tr-TR').", "expected": "Each value has a primary language subtag."},
+        {"no": 2, "action": "Look up each primary subtag in the IANA language subtag registry.", "expected": "Each subtag exists with Type 'language'; values such as 'turkish', 'xx' or empty are not found on any page."}
+      ]
+    },
+    {
+      "id": "KDH-903-TC03",
+      "title": "Language is declared also on error and dynamically generated pages",
+      "covers": ["KDH-903"],
+      "type": "Sınır",
+      "priority": "Orta",
+      "preconditions": "",
+      "test_inputs": "A non-existent URL, the login page, a server error page, a page rendered after client-side navigation.",
+      "assumptions": "Portal pages are HTML; the language is declared with the lang attribute of the html element.",
+      "steps": [
+        {"no": 1, "action": "Open each listed page and inspect the html element.", "expected": "Each page has a lang attribute with a known primary language tag matching its default language."}
+      ]
+    }
+  ],
+  "KDH-904": [
+    {
+      "id": "KDH-904-TC01",
+      "title": "Oturum kapatma tüm kimlik doğrulamalı sayfalardan erişilebilir ve oturumu geçersiz kılar",
+      "covers": ["KDH-904"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "Kullanıcı portala kimlik doğrulamasıyla giriş yapmıştır; tarayıcı geliştirici araçları ve sunucu oturum deposu incelenebilir.",
+      "test_inputs": "",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Kimlik doğrulamayla erişilen tüm sayfaları tek tek aç.", "expected": "Her sayfada oturum kapatma işlevine erişilebilir."},
+        {"no": 2, "action": "Oturum kimliğini kaydet ve oturumu kapat.", "expected": "Oturum sonlanır; kullanıcı oturum açılmamış duruma döner."},
+        {"no": 3, "action": "Kaydedilen oturum kimliğiyle kimlik doğrulamalı bir sayfaya istek gönder.", "expected": "İstek reddedilir; oturum kimliği geçersizdir."},
+        {"no": 4, "action": "İstemcideki çerezleri ve geçici depolama alanlarını (localStorage, sessionStorage) ve sunucudaki oturum kaydını incele.", "expected": "Oturumla ilgili çerezler ve geçici veriler istemcide ve sunucuda silinmiştir."}
+      ]
+    },
+    {
+      "id": "KDH-904-TC02",
+      "title": "Oturum etkinlik olmadığında ve geçerlilik süresi dolduğunda sonlanır",
+      "covers": ["KDH-904"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "Kullanıcı portala giriş yapmıştır.",
+      "test_inputs": "",
+      "assumptions": "Etkinliksizlik süresi 15 dakika, oturum kimliğinin en uzun geçerlilik süresi 8 saat olarak yapılandırılmıştır; değerler rehberde verilmemiştir.",
+      "steps": [
+        {"no": 1, "action": "15 dakikadan kısa bir süre işlem yapmadan bekle, sonra bir sayfa aç.", "expected": "Oturum geçerlidir; sayfa açılır."},
+        {"no": 2, "action": "15 dakikayı aşan süre işlem yapmadan bekle, sonra bir sayfa aç.", "expected": "Oturum geçersizdir; yeniden kimlik doğrulaması istenir ve oturum çerezleri silinmiştir."},
+        {"no": 3, "action": "Yeniden giriş yap ve 8 saat boyunca düzenli etkinlikle oturumu kullan; 8 saat dolduktan sonra bir sayfa aç.", "expected": "Etkinlik olsa da oturum geçerlilik süresi sonunda geçersiz hale gelir; yeniden kimlik doğrulaması istenir."}
+      ]
+    },
+    {
+      "id": "KDH-904-TC03",
+      "title": "Parola ya da yetki değişikliğinde etkin oturumlar sonlandırılır",
+      "covers": ["KDH-904"],
+      "type": "Normal",
+      "priority": "Yüksek",
+      "preconditions": "Aynı kullanıcı iki farklı tarayıcıda (A ve B) portalda etkin oturuma sahiptir; yetki değiştirebilecek bir yönetici hesabı vardır.",
+      "test_inputs": "",
+      "assumptions": "",
+      "steps": [
+        {"no": 1, "action": "Tarayıcı A'da kullanıcının parolasını güncelle; ardından tarayıcı B'de bir sayfa aç.", "expected": "Tarayıcı B'deki oturum sonlandırılmıştır; yeniden kimlik doğrulaması istenir."},
+        {"no": 2, "action": "Kullanıcı iki tarayıcıda yeniden giriş yapsın; yönetici kullanıcının yetkilerini güncellesin; ardından her iki tarayıcıda bir sayfa aç.", "expected": "Kullanıcının etkin oturumları sonlandırılmıştır; yeniden kimlik doğrulaması istenir."}
+      ]
+    },
+    {
+      "id": "KDH-904-TC04",
+      "title": "Oturum sürelerinin güncellenmesi yetkilendirmeye tabidir",
+      "covers": ["KDH-904"],
+      "type": "Hata",
+      "priority": "Orta",
+      "preconditions": "Oturum sürelerini güncelleme yetkisi olan bir hesap ve bu yetkisi olmayan bir hesap vardır.",
+      "test_inputs": "",
+      "assumptions": "Oturum süreleri portalda bir yönetim işleviyle güncellenebilir.",
+      "steps": [
+        {"no": 1, "action": "Yetkisiz hesapla oturum sürelerini güncellemeyi dene (arayüzden ve doğrudan API isteğiyle).", "expected": "Güncelleme reddedilir; süreler değişmez."},
+        {"no": 2, "action": "Yetkili hesapla oturum sürelerini güncelle.", "expected": "Güncelleme kabul edilir ve yeni süreler uygulanır."}
+      ]
+    }
+  ],
+  "KDH-905": [
+    {
+      "id": "KDH-905-TC01",
+      "title": "Organization-defined action is taken when the limit within the time period is exceeded",
+      "covers": ["KDH-905"],
+      "type": "Sınır",
+      "priority": "Yüksek",
+      "preconditions": "A user account with known valid credentials exists and has no recent invalid logon attempts.",
+      "test_inputs": "Invalid password; valid password.",
+      "assumptions": "The system security plan sets: limit 3 consecutive invalid attempts within 15 minutes; action: lock the account for 30 minutes.",
+      "steps": [
+        {"no": 1, "action": "Make 3 consecutive invalid logon attempts within 15 minutes.", "expected": "Each attempt is rejected; no lock is applied yet."},
+        {"no": 2, "action": "Make a 4th invalid logon attempt within the same 15 minutes.", "expected": "The maximum is exceeded; the account is locked automatically."},
+        {"no": 3, "action": "Attempt to log on with valid credentials before 30 minutes have elapsed.", "expected": "Logon is refused."},
+        {"no": 4, "action": "Attempt to log on with valid credentials after 30 minutes.", "expected": "Logon succeeds."}
+      ]
+    },
+    {
+      "id": "KDH-905-TC02",
+      "title": "Invalid attempts spread beyond the time period do not trigger the action",
+      "covers": ["KDH-905"],
+      "type": "Sınır",
+      "priority": "Orta",
+      "preconditions": "A user account with known valid credentials exists and has no recent invalid logon attempts.",
+      "test_inputs": "Invalid password; valid password.",
+      "assumptions": "Limit 3 within 15 minutes, as in KDH-905-TC01; the time period is counted from the first invalid attempt.",
+      "steps": [
+        {"no": 1, "action": "Make 2 invalid attempts, wait more than 15 minutes, then make 2 more invalid attempts.", "expected": "Each attempt is rejected; no lock is applied."},
+        {"no": 2, "action": "Log on with valid credentials.", "expected": "Logon succeeds."}
+      ]
+    },
+    {
+      "id": "KDH-905-TC03",
+      "title": "Alternative organization-defined actions are applied as configured",
+      "covers": ["KDH-905"],
+      "type": "Normal",
+      "priority": "Orta",
+      "preconditions": "Test environment where the AC-7 action can be configured; an administrator account exists.",
+      "test_inputs": "Invalid password; valid password.",
+      "assumptions": "The actions under test are those selectable in AC-7 b. that the system security plan may choose: lock until released by an administrator, delay next logon prompt (5 s fixed delay), notify system administrator. Only the action(s) actually selected in the plan are mandatory.",
+      "steps": [
+        {"no": 1, "action": "Configure 'lock until released by an administrator' and exceed the limit.", "expected": "The account stays locked regardless of elapsed time until an administrator releases it; after release, logon with valid credentials succeeds."},
+        {"no": 2, "action": "Configure 'delay next logon prompt' and exceed the limit.", "expected": "The next logon prompt is delayed according to the configured delay algorithm."},
+        {"no": 3, "action": "Configure 'notify system administrator' and exceed the limit.", "expected": "The system administrator receives a notification of the exceeded limit."}
+      ]
+    }
+  ]
+}

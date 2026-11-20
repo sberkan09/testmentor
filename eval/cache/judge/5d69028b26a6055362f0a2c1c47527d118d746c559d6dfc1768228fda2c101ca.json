@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": true, "evidence": "Sinyal balisesi okunduktan sonra gelen RIU bilgilerinin yok sayılması, step 1: infill info after the balise group was read; OBU ignores it and takes no action"}, {"no": 2, "matched": false, "evidence": ""}], "invented": [], "boundary_ok": false, "ambiguity_flagged": false}

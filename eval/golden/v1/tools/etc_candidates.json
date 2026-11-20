@@ -1,0 +1,3375 @@
+[
+ {
+  "clause": "3.5.3.4",
+  "kind": "core",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "The on-board shall establish a communication session a) At Start of Mission (only if level 2). b) If ordered from trackside. c) If a mode change, neither considered as an End of Mission nor triggered from condition g) below, has to be reported to the RBC (only if level 2) d) If the driver has manually changed the level to 2 e) When the engine rear end reaches the end of an announced radio hole f) When the previous communication session is considered as terminated due to loss of safe radio connection (refer to 3.5.4.2.1) g) When a Start of Mission procedure, during which no communication session could be established, is completed in level 2 h) When outside the Start of Mission procedure, the driver has manually selected the RBC contact information (only if level)",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050300/TC30",
+    "clauses": [
+     "3.5.3.4",
+     "3.5.3.7"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "5100315/TC2",
+    "clauses": [
+     "3.5.3.4",
+     "5.10.3.15.2"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "5100315/TC3",
+    "clauses": [
+     "3.5.3.4",
+     "5.10.3.15.2"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3180400/TC12",
+    "clauses": [
+     "3.18.4.3.1",
+     "3.5.3.4",
+     "3.5.3.7"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.5.3.4.1",
+  "kind": "core",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "In respect of a), b), c), d), e) and h) of 3.5.3.4, the on-board shall not establish a new communication session with an RBC/RIU in case a communication session: • is currently being established with this RBC/RIU or • is already established with this RBC/RIU and no Termination of Communication Session message has been sent to this RBC/RIU.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050300/TC18",
+    "clauses": [
+     "3.5.3.4.1"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.5.3.5.2",
+  "kind": "core",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "If the ERTMS/ETCS on-board equipment has to establish a communication session with an RBC whilst in session with one or more other RBC(s), the existing communication session(s) shall be terminated (see 3.5.5.2 for details) and the new one shall be established.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050300/TC2",
+    "clauses": [
+     "3.5.3.5.2"
+    ],
+    "steps": 24
+   }
+  ]
+ },
+ {
+  "clause": "3.5.3.7",
+  "kind": "core",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "The establishment of a communication session shall be performed according to the following steps: a) The on-board shall request the set-up of a safe radio connection with the trackside. If this request is part of an ongoing Start of Mission procedure or is related to the establishment of a communication session due to condition 3.5.3.4 c), it shall be repeated until successful or a defined number of times (see Appendix A.3.1). If this request is not part of an ongoing Start of Mission procedure and is not related to the establishment of a communication session due to condition 3.5.3.4 c), it shall be repeated until successful. A request shall be repeated immediately after EURORADIO has indicated that setting up the safe radio connection has failed. b) As soon as the safe radio connection is set-up, the on-board shall send the message Initiation of communication session to the trackside. c) As soon as the trackside receives the information, it shall send the system version. d) When the on-board receives the system version it shall consider the communication session established and: • If one of its supported system versions is compatible with the one sent by trackside, it shall send a session established report, including its supported system versions, to the trackside. • If none of its supported system versions is compatible with the one sent by trackside, it shall send a version independent message indicating “No compatible version supported”. It shall inform the driver and shall terminate the communication session. e) When the trackside receives the session established report or the information that no compatible system version is supported by the on-board, it shall consider the communication session established. Upon reception of a session established report, the trackside shall acknowledge the establishment of the communication session to the on-board. On-Board Trackside Set-up of the safe connection According to EURORADIO specifications Initiation of a communication session Communication session RBC/RIU established for System Version on-board Session Communication established session established for trackside Acknowledgement of Session Establishment Figure 3: Establishment initiated by on-board",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050300/TC30",
+    "clauses": [
+     "3.5.3.4",
+     "3.5.3.7"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "3180400/TC12",
+    "clauses": [
+     "3.18.4.3.1",
+     "3.5.3.4",
+     "3.5.3.7"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.5.3.7.1",
+  "kind": "non_testable",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "Regarding a), if both radio systems are installed on-board it shall request the set-up of a safe radio connection according to the following (by priority order): 1) In case of order received from trackside, depending on whether the order relates to an RBC interfaced with FRMCS only, OR 2) If the stored Radio Network type is FRMCS+GSM-R and if during the SoM the driver has elected to perform the mission with only one radio system, by using either the FRMCS on-board equipment or a GSM-R Mobile Terminal, depending on the radio system to which the registration was successful during the SoM, OR 3) According to the stored Radio Network information (Radio Network type and, if relevant, GSM-R Radio Network ID). If the Radio Network type is FRMCS+GSM- R, the ERTMS/ETCS on-board shall use, if available, the preferred radio system stored when establishing the previous communication session with the RBC (see SUBSET-037-1 for details)",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": []
+ },
+ {
+  "clause": "3.5.3.7.2",
+  "kind": "non_testable",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "Regarding b), if both radio systems are installed on-board it shall store the radio system through which the safe radio connection is successfully set up.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050400/TC1",
+    "clauses": [
+     "3.5.3.7.2",
+     "3.5.4.2",
+     "3.5.4.3"
+    ],
+    "steps": 18
+   }
+  ]
+ },
+ {
+  "clause": "3.5.3.8",
+  "kind": "core",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "When a communication session is currently being established (i.e. at any time from the first request the set-up of a safe radio connection to the reception of the system version from trackside), the on-board shall no longer apply 3.5.3.7 a), 3.5.3.7 b) and 3.5.3.7 d) (i.e. it aborts the process of establishing it) and shall release the safe radio connection (if any) if at least one of the following conditions is met: a) The driver closes the desk during Start of Mission b) End of Mission is performed c) An order to terminate the communication session is received from trackside d) The train passes with its min safe rear end a level transition border from a level 2 area to an area where level 2 operation is not supported e) An order to establish a communication session with a different RBC is received from trackside and the order does not request to contact an Accepting RBC f) The train passes an RBC/RBC border with its min safe rear end g) The engine front end passes the start of an announced radio hole h) Regards RIUs only: Level 1 is left i) The driver elects to modify the Radio Network type or the GSM-R Radio Network ID",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050300/TC10",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 11
+   },
+   {
+    "id": "3050300/TC11",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3050300/TC12",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3050300/TC29",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 20
+   },
+   {
+    "id": "3050300/TC6",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3050300/TC7",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 11
+   },
+   {
+    "id": "3050300/TC8",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 17
+   },
+   {
+    "id": "3050300/TC9",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "3050500/TC3",
+    "clauses": [
+     "3.5.3.8"
+    ],
+    "steps": 17
+   },
+   {
+    "id": "5040300/TC54",
+    "clauses": [
+     "3.5.3.8",
+     "5.4.3.2"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "5040300/TC55",
+    "clauses": [
+     "3.5.3.8",
+     "5.4.3.2"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "9990500/TC44",
+    "clauses": [
+     "3.5.3.8",
+     "3.6.4.1.5",
+     "5.10.1.5"
+    ],
+    "steps": 25
+   }
+  ]
+ },
+ {
+  "clause": "3.5.3.13",
+  "kind": "core",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "An order to establish a communication session with the RBC may contain a special value for the RBC identity indicating that the on-board shall contact the last known RBC (i.e., using the stored RBC contact information, if any); the phone number indicated in the order shall be ignored by the on-board equipment.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050300/TC1",
+    "clauses": [
+     "3.5.3.13",
+     "3.5.3.13.1"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.5.3.13.1",
+  "kind": "core",
+  "heading": "3.5.3 Establishing a communication session",
+  "text": "If there is no RBC contact information stored on-board, the order to establish a communication session with the last known RBC shall be ignored.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050300/TC1",
+    "clauses": [
+     "3.5.3.13",
+     "3.5.3.13.1"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.5.4.2",
+  "kind": "non_testable",
+  "heading": "3.5.4 Maintaining a communication session",
+  "text": "When EURORADIO indicates the loss of the safe radio connection, the ERTMS/ETCS on-board equipment shall immediately try to set-up a new safe radio connection using the radio system through which the safe radio connection was successfully set up beforehand (see SUBSET-037-1 for details).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050400/TC1",
+    "clauses": [
+     "3.5.3.7.2",
+     "3.5.4.2",
+     "3.5.4.3"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3050700/TC15",
+    "clauses": [
+     "3.5.4.2",
+     "3.5.7.1",
+     "3.5.7.5"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "3180300/TC1",
+    "clauses": [
+     "3.18.3.4",
+     "3.18.3.4.2",
+     "3.5.4.2"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3180300/TC7",
+    "clauses": [
+     "3.18.3.10.2",
+     "3.5.4.2",
+     "4.8.4.2"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.5.4.3",
+  "kind": "core",
+  "heading": "3.5.4 Maintaining a communication session",
+  "text": "The attempts shall be repeated, until at least one of the following conditions is met: • The safe radio connection is set-up. • The session is considered as terminated. • The train passes the location indicated in the RIU order “Terminate the communication session”",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050400/TC1",
+    "clauses": [
+     "3.5.3.7.2",
+     "3.5.4.2",
+     "3.5.4.3"
+    ],
+    "steps": 18
+   }
+  ]
+ },
+ {
+  "clause": "3.5.5.1",
+  "kind": "core",
+  "heading": "3.5.5 Terminating a communication session",
+  "text": "The termination of a communication session shall be initiated only by the on-board and in the following cases: a) If an order is received from trackside (RBC, RIU or balise groups) (see section 3.5.2 concerning the content of the order). b) If a condition requiring the termination of the communication session is fulfilled without any explicit trackside order. The situations in which such condition is met are detailed in other sections of this specification. c) Intentionally deleted. d) Intentionally deleted. e) Intentionally deleted. f) Intentionally deleted.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050500/TC4",
+    "clauses": [
+     "3.5.5.1",
+     "8.4.4.4"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "5050300/TC2",
+    "clauses": [
+     "3.5.5.1",
+     "5.5.3.1.2"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "5050300/TC1",
+    "clauses": [
+     "3.5.5.1",
+     "4.6.3",
+     "5.5.3.1.2"
+    ],
+    "steps": 11
+   }
+  ]
+ },
+ {
+  "clause": "3.5.5.3.1",
+  "kind": "core",
+  "heading": "3.5.5 Terminating a communication session",
+  "text": "Exception: In case a communication session is established and no acknowledgement is received within a fixed waiting time (see Appendix A.3.1) after sending the “Termination of communication session” message, the message shall be repeated with the fixed waiting time after each repetition.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050500/TC2",
+    "clauses": [
+     "3.5.5.3.1",
+     "3.5.5.3.2",
+     "8.4.4.4"
+    ],
+    "steps": 27
+   }
+  ]
+ },
+ {
+  "clause": "3.5.5.3.2",
+  "kind": "core",
+  "heading": "3.5.5 Terminating a communication session",
+  "text": "After a defined number of repetitions (see Appendix A.3.1), and if no acknowledgment is received within the fixed waiting time from the time of the last sending of “Termination of communication session”, the ERTMS/ETCS onboard equipment shall consider the communication session terminated.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050500/TC2",
+    "clauses": [
+     "3.5.5.3.1",
+     "3.5.5.3.2",
+     "8.4.4.4"
+    ],
+    "steps": 27
+   }
+  ]
+ },
+ {
+  "clause": "3.5.6.1",
+  "kind": "core",
+  "heading": "3.5.6 Managing the Radio Networks",
+  "text": "ERTMS/ETCS on-board equipment shall order the registration of its connected GSM-R Mobile Terminal(s) to a GSM-R Radio Network: a) At power-up b) Following driver entry of a new GSM-R Radio Network identity c) If ordered from the trackside",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050600/TC2",
+    "clauses": [
+     "3.5.6.1"
+    ],
+    "steps": 5
+   }
+  ]
+ },
+ {
+  "clause": "3.5.6.4",
+  "kind": "core",
+  "heading": "3.5.6 Managing the Radio Networks",
+  "text": "If no Radio Network type received from trackside or from driver could have been memorized by ERTMS/ETCS on-board equipment (e.g. after a System Failure or at very first power-up), this latter shall use a default value configured on-board.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050600/TC11",
+    "clauses": [
+     "3.5.6.4"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.5.6.7",
+  "kind": "non_testable",
+  "heading": "3.5.6 Managing the Radio Networks",
+  "text": "Any order to establish a communication session with an RBC received from trackside shall not lead to any request to set-up a safe radio connection by ERTMS/ETCS on- board equipment if: a) the stored Radio Network type is FRMCS or is FRMCS+GSM-R while FRMCS is the only radio system installed on-board and the FRMCS on-board is not registered to the FRMCS Radio Network, OR b) the stored Radio Network type is FRMCS+GSM-R while both radio systems are installed on-board, and, unless the driver has elected to perform the mission with only one radio system, either the FRMCS on-board is not registered to the FRMCS Radio Network or no GSM-R Mobile Terminal is duly registered to a GSM-R Radio Network, OR c) the stored Radio Network type is FRMCS+GSM-R while both radio systems are installed on-board, and, while the driver has elected to perform the mission with only one radio system, the concerned on-board radio system is no longer registered to the Radio Network, OR d) the stored Radio Network type is GSM-R or is FRMCS+GSM-R while GSM-R is the only radio system installed on-board and no GSM-R Mobile Terminal is duly registered to a GSM-R Radio Network.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050600/TC10",
+    "clauses": [
+     "3.5.6.7"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3050600/TC5",
+    "clauses": [
+     "3.5.6.7"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3050600/TC8",
+    "clauses": [
+     "3.5.6.7"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3050600/TC9",
+    "clauses": [
+     "3.5.6.7"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.5.6.8",
+  "kind": "core",
+  "heading": "3.5.6 Managing the Radio Networks",
+  "text": "Any order to establish a communication session with an RIU received from trackside shall not lead to any request to set-up a safe radio connection by ERTMS/ETCS on- board equipment if no GSM-R Mobile Terminal is duly registered to a GSM-R Radio Network.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050600/TC4",
+    "clauses": [
+     "3.5.6.8"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.5.7.1",
+  "kind": "core",
+  "heading": "3.5.7 Safe Radio Connection Indication",
+  "text": "The ERTMS/ETCS on-board equipment shall inform the driver about the status of the safe radio connection. To that purpose, the following indication statuses of the safe radio connection are defined: “No Connection”, “Connection Lost/Set-Up failed”, “Connection Up”.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050700/TC9",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.5"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3050700/TC10",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.5",
+     "3.5.7.7"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3050700/TC14",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.3",
+     "3.5.7.5"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "3050700/TC15",
+    "clauses": [
+     "3.5.4.2",
+     "3.5.7.1",
+     "3.5.7.5"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.5.7.3",
+  "kind": "core",
+  "heading": "3.5.7 Safe Radio Connection Indication",
+  "text": "The ERTMS/ETCS on-board equipment shall start the “connection status” timer as soon as the first request to set-up a safe radio connection with the relevant RBC/RIU is sent: a) regarding the session establishment, see items b), c), d), e) in 3.5.3.4. b) regarding maintaining a communication session, see 3.5.4.2 and 3.5.4.4",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050700/TC14",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.3",
+     "3.5.7.5"
+    ],
+    "steps": 4
+   }
+  ]
+ },
+ {
+  "clause": "3.5.7.5",
+  "kind": "core",
+  "heading": "3.5.7 Safe Radio Connection Indication",
+  "text": "The ERTMS/ETCS on-board equipment shall execute the transitions between the different indication statuses of the safe radio connection with the relevant RBC/RIU as described in Table 1 according to the conditions in Table 2 (see section 4.6.1 for details about the symbols). No <3 < 5, 6, 7 Connection -p2- -p1- Connection 1, 2 > <2 Lost / -p2- -p2- Set-Up failed 4> 4> Connection -p1- -p1- Up Table 1: Transitions between the indication statuses of the safe radio connection Condition Content of the conditions Id [1] (a Start of mission procedure is ongoing) AND (the final attempt to set-up the safe radio connection failed) [2] (the “connection status” timer expires) [3] (no Start of mission procedure is ongoing) AND (the requests to set-up a safe radio connection are stopped with the relevant RBC/RIU for reason other than the successful set-up) [4] (the safe radio connection is set-up) [5] (the safe radio connection is released) [6] (the safe radio connection is lost) AND (the requests to set-up a safe radio connection are stopped with the relevant RBC/RIU for reason other than the successful set-up) [7] (the safe radio connection is lost) AND (the engine, taking into account its front and rear ends, overlaps an announced radio hole) Table 2: Transition conditions for the indication statuses of the safe radio connection",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050700/TC9",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.5"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3050700/TC10",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.5",
+     "3.5.7.7"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3050700/TC14",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.3",
+     "3.5.7.5"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "3050700/TC15",
+    "clauses": [
+     "3.5.4.2",
+     "3.5.7.1",
+     "3.5.7.5"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.5.7.7",
+  "kind": "core",
+  "heading": "3.5.7 Safe Radio Connection Indication",
+  "text": "For the case of safe radio connection with RIU’s, the safe radio connection indicated to the driver shall be the one related to the current infill area.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3050700/TC10",
+    "clauses": [
+     "3.5.7.1",
+     "3.5.7.5",
+     "3.5.7.7"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.6.1.4",
+  "kind": "core",
+  "heading": "3.6.1 General",
+  "text": "When the train position is unknown or invalid, the ERTMS/ETCS on-board equipment shall consider that a valid train position is stored on-board as soon as an LRBG or an ORBG has been passed and any previously stored invalid train position shall be deleted.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060100/TC10",
+    "clauses": [
+     "3.6.1.4"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3060100/TC11",
+    "clauses": [
+     "3.6.1.4"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "3060100/TC12",
+    "clauses": [
+     "3.6.1.4"
+    ],
+    "steps": 4
+   }
+  ]
+ },
+ {
+  "clause": "3.6.1.5",
+  "kind": "core",
+  "heading": "3.6.1 General",
+  "text": "If there is an active cab, this one defines the orientation of the train, i.e. the side of the active cab shall be considered as determining the front of the train. If no cab is active, the train orientation shall be defined by the last active cab.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060100/TC8",
+    "clauses": [
+     "3.6.1.5",
+     "3.6.2.2.2"
+    ],
+    "steps": 5
+   }
+  ]
+ },
+ {
+  "clause": "3.6.1.6",
+  "kind": "core",
+  "heading": "3.6.1 General",
+  "text": "The estimated front end shall be used when supervising location based information, unless stated otherwise.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4070201/TC22",
+    "clauses": [
+     "3.6.1.6",
+     "4.4.12.1.7",
+     "4.7.2.1.4"
+    ],
+    "steps": 5
+   }
+  ]
+ },
+ {
+  "clause": "3.6.2.2.2",
+  "kind": "core",
+  "heading": "3.6.2 Location reference of Data Transmitted to the On-Board Equipment",
+  "text": "For the LRBG the following requirements have to be met: a) The on-board equipment shall use as a reference for reporting the train position to the RBC the last passed LRBG compliant balise group that fulfils the conditions of the clause 3.6.5.1.8. This balise group is termed as LRBGONB in the following. Only • balise groups marked as linked and contained in the previously received linking information, if linking consistency is checked on-board or • balise groups not marked as unlinked, if linking consistency was not checked when such a balise group was passed shall be regarded as LRBG compliant balise groups. b) The RBC shall use a balise group which was reported by the on-board equipment as a reference (in the following termed as LRBGRBC). At a certain moment LRBGRBC and LRBGONB can be different. c) The on-board equipment shall be able to accept information referring to one of at least eight LRBGONB last reported to the RBC.",
+  "has_shall": true,
+  "spike": true,
+  "test_cases": [
+   {
+    "id": "3060200/TC1",
+    "clauses": [
+     "3.6.2.2.2"
+    ],
+    "steps": 80
+   },
+   {
+    "id": "3060200/TC2",
+    "clauses": [
+     "3.6.2.2.2"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "3060200/TC3",
+    "clauses": [
+     "3.6.2.2.2"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3060100/TC8",
+    "clauses": [
+     "3.6.1.5",
+     "3.6.2.2.2"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "3060500/TC12",
+    "clauses": [
+     "3.6.2.2.2",
+     "3.6.5.1.4",
+     "4.5.2.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3060500/TC51",
+    "clauses": [
+     "3.6.2.2.2",
+     "3.6.5.1.4",
+     "4.5.2.2"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "4080418/TC2",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "4080418/TC21",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 9
+   },
+   {
+    "id": "4080418/TC22",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "4080420/TC12",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 11
+   },
+   {
+    "id": "4080420/TC13",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "4080420/TC2",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 9
+   },
+   {
+    "id": "4080427/TC1",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "4080427/TC5",
+    "clauses": [
+     "3.6.2.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.6.3.1.3",
+  "kind": "core",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "When receiving information from any transmission medium, the ERTMS/ETCS on-board equipment shall only take into account information valid for the train orientation. Other information shall be ignored.",
+  "has_shall": true,
+  "spike": true,
+  "test_cases": [
+   {
+    "id": "3060300/TC2",
+    "clauses": [
+     "3.6.3.1.3"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "3060300/TC3",
+    "clauses": [
+     "3.6.3.1.3"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "3060300/TC6",
+    "clauses": [
+     "3.6.3.1.3"
+    ],
+    "steps": 11
+   },
+   {
+    "id": "3060300/TC8",
+    "clauses": [
+     "3.4.2.3.2.2",
+     "3.6.3.1.3"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "3060300/TC1",
+    "clauses": [
+     "3.6.3.1.3",
+     "3.6.3.1.4",
+     "4.8.2.1"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.6.3.1.3.1",
+  "kind": "core",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "Exception 1: for SL, PS and SH engines, balise group crossing direction shall be considered.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060300/TC10",
+    "clauses": [
+     "3.6.3.1.3.1"
+    ],
+    "steps": 11
+   },
+   {
+    "id": "3060300/TC11",
+    "clauses": [
+     "3.6.3.1.3.1"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "3060300/TC9",
+    "clauses": [
+     "3.6.3.1.3.1",
+     "4.6.3"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.6.3.1.4",
+  "kind": "core",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "If the train orientation cannot be referred to a direction of the trackside device to which the transmitted information refers (or for SL, PS and SH engines if the balise group crossing direction is unknown), data received from any transmission medium valid for one direction only (nominal or reverse) shall be rejected by the onboard equipment. Data valid for both directions shall be evaluated (see section 4.8).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060300/TC14",
+    "clauses": [
+     "3.6.3.1.4",
+     "4.6.3"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "3060300/TC15",
+    "clauses": [
+     "3.6.3.1.4",
+     "4.6.3"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3060300/TC16",
+    "clauses": [
+     "3.6.3.1.4",
+     "4.6.3"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "3060300/TC1",
+    "clauses": [
+     "3.6.3.1.3",
+     "3.6.3.1.4",
+     "4.8.2.1"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.6.3.1.4.1",
+  "kind": "non_testable",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "Exception: if not rejected due to balise group message consistency check (see 3.16.2.4.4.1 and 3.16.2.5.1.1), data to be forwarded to a National System (see section 3.15.6) valid for one direction only shall be accepted. Justification: the co-ordinate system of the balise group might be known to the National System by other means inherent to the National System itself.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": []
+ },
+ {
+  "clause": "3.6.3.2.2",
+  "kind": "core",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "With regard to Figure 12 the following applies to continuous profile data: a) Value (n) shall be valid for distance (n+1) b) For distance (1) the previously received data shall be used (in case of an SSP this includes train length delay, refer to 3.11.3.1.3). c) Distances shall be given as unsigned incremental values representing the distance between value(n) and value(n-1). d) The last value (n) transmitted shall be valid for an unlimited distance unless value(n) represents a special \"end of profile\" value. e) If distance (n+1) = 0 then the corresponding profile value n shall still be taken into account.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060300/TC13",
+    "clauses": [
+     "3.6.3.2.2"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "4080418/TC13",
+    "clauses": [
+     "3.6.3.2.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.6.3.2.3",
+  "kind": "core",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "With regard to Figure 12 the following shall apply to location data: a) Distances shall be given as unsigned incremental values representing the distance between value(n) and value(n-1). b) For distance (1) the previously received data shall be used. c) Each value (n) may represent a single value or a set of data.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060300/TC12",
+    "clauses": [
+     "3.6.3.2.3"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "5100100/TC6",
+    "clauses": [
+     "3.6.3.2.3",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.6.3.2.4",
+  "kind": "core",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "According to Figure 12 the structure for non-continuous profile data shall allow to contain multiple elements (value(n) for length(n)) inside the profile. a) Distance to the start of each element (value(n) for length(n)) shall be given as unsigned incremental values, each increment representing the distance between starts of element (n) and element (n-1). b) For distance (1) the previously received data (or initial data/default values, see section 3.7) shall be used. c) Each value (n) may represent a single value or a set of data. d) Note: There is no relationship between length of element (n-1) and distance (n), i.e., elements may overlap.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4080424/TC8",
+    "clauses": [
+     "3.6.3.2.4",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "4080445/TC16",
+    "clauses": [
+     "3.6.3.2.4",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "4080445/TC8",
+    "clauses": [
+     "3.6.3.2.4",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "4080454/TC8",
+    "clauses": [
+     "3.6.3.2.4",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 11
+   }
+  ]
+ },
+ {
+  "clause": "3.6.3.2.6",
+  "kind": "core",
+  "heading": "3.6.3 Validity direction of transmitted information",
+  "text": "With regards to Figure 12 the following applies to linking information a) The distance (1) shall be given to the first balise group included in the linking information b) The distance (n) shall be given as the distance between two consecutive balise groups c) Each value (n) shall represent the linking information related to that balise group.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4080420/TC10",
+    "clauses": [
+     "3.6.3.2.6",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.6.4.1.3",
+  "kind": "core",
+  "heading": "3.6.4 Train Position Confidence Interval and Relocation",
+  "text": "The value of the Location Accuracy shall be determined by Linking information when it becomes available, or, if it has not been previously determined by Linking information when the balise group becomes LRBG or ORBG, by the corresponding National Value or the corresponding Default Value if the National Value is not applicable.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060400/TC8",
+    "clauses": [
+     "3.6.4.1.3",
+     "3.6.4.1.5"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "9990200/TC40",
+    "clauses": [
+     "3.6.4.1.3",
+     "3.6.4.1.4"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "3060400/TC1",
+    "clauses": [
+     "3.6.4.1.3",
+     "3.6.4.1.5",
+     "4.5.2.2"
+    ],
+    "steps": 5
+   }
+  ]
+ },
+ {
+  "clause": "3.6.4.1.4",
+  "kind": "core",
+  "heading": "3.6.4 Train Position Confidence Interval and Relocation",
+  "text": "Once the location accuracy of a balise group has been determined according to the clause 3.6.4.1.3, it shall not be updated (e.g. neither upon reception of further Linking information, nor when linking is no longer checked, nor when new National Values becomes applicable).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990200/TC40",
+    "clauses": [
+     "3.6.4.1.3",
+     "3.6.4.1.4"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.6.4.1.5",
+  "kind": "core",
+  "heading": "3.6.4 Train Position Confidence Interval and Relocation",
+  "text": "The confidence interval to the train front end position shall be delimited by: a) The min(imum) safe front end position, which is in rear (in relation to the orientation of the train) of the estimated train front end position at a distance calculated as follows: 𝐿𝑑𝑜𝑢𝑏𝑡𝑜𝑣𝑒𝑟 = 𝑄𝑙𝑜𝑐𝑎𝑐𝑐−𝑟𝑒𝑓𝐵𝐺 + overreading amount + 𝛾 ⋅ 𝐿𝑡𝑟𝑎𝑖𝑛𝑜𝑣𝑒𝑟 b) The max(imum) safe front end position, which is in advance (in relation to the orientation of the train) of the estimated train front end position at a distance calculated as follows: 𝐿𝑑𝑜𝑢𝑏𝑡𝑢𝑛𝑑𝑒𝑟 = 𝑄𝑙𝑜𝑐𝑎𝑐𝑐−𝑟𝑒𝑓𝐵𝐺 + underreading amount + 𝛾 ⋅ 𝐿𝑡𝑟𝑎𝑖𝑛𝑢𝑛𝑑𝑒𝑟 With 𝛾 = 1 only in Stand-By mode while no valid Train Data is available but the safe consist length information is available, in Supervised Manoeuvre requests, and from the time the first Supervised Manoeuvre authorisation is received to the time the mission is either ended or continued in Non Leading mode, and with 𝐿𝑡𝑟𝑎𝑖𝑛𝑜𝑣𝑒𝑟 & 𝐿𝑡𝑟𝑎𝑖𝑛𝑢𝑛𝑑𝑒𝑟 determined as follows: • 𝐿𝑡𝑟𝑎𝑖𝑛𝑢𝑛𝑑𝑒𝑟 is the difference between the Train Data max safe consist length and nominal consist length in front of/in rear of the engine, depending on whether the train orientation is the same as/opposite to the active cab respectively. • 𝐿𝑡𝑟𝑎𝑖𝑛𝑜𝑣𝑒𝑟 is the difference between the Train Data nominal consist length and min safe consist length in front of/in rear of the engine, depending on whether the train orientation is the same as/opposite to the active cab respectively. Otherwise 𝛾 = 0 LRBG 1 Estimated front end Q_LOCACC(1) Q_LOCACC(1) measured distance location over-reading under-reading reference of Q_LOCACC(1) amount amount Q_LOCACC(1) the LRBG as detected by on-board L_DOUBTOVER L_DOUBTUNDER Confidence interval min safe front end max safe front end Figure 13a: Train confidence interval and train front end position in reference to LRBG",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990500/TC10",
+    "clauses": [
+     "3.6.4.1.5"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "9990500/TC13",
+    "clauses": [
+     "3.6.4.1.5"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "9990500/TC33",
+    "clauses": [
+     "3.6.4.1.5"
+    ],
+    "steps": 19
+   },
+   {
+    "id": "9990500/TC40",
+    "clauses": [
+     "3.6.4.1.5"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "3060400/TC8",
+    "clauses": [
+     "3.6.4.1.3",
+     "3.6.4.1.5"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "9990500/TC16",
+    "clauses": [
+     "3.6.4.1.5",
+     "5.10.4.1"
+    ],
+    "steps": 14
+   },
+   {
+    "id": "9990500/TC26",
+    "clauses": [
+     "3.15.5.2",
+     "3.6.4.1.5"
+    ],
+    "steps": 20
+   },
+   {
+    "id": "9990500/TC27",
+    "clauses": [
+     "3.6.4.1.5",
+     "5.10.4.1"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "9990500/TC28",
+    "clauses": [
+     "3.15.5.2",
+     "3.6.4.1.5"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "9990500/TC31",
+    "clauses": [
+     "3.12.3.4.3.1",
+     "3.6.4.1.5"
+    ],
+    "steps": 21
+   },
+   {
+    "id": "9990500/TC35",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.9.3.10"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "9990500/TC41",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.8.4.1.1"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "9990500/TC42",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.8.4.4.1"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3060400/TC1",
+    "clauses": [
+     "3.6.4.1.3",
+     "3.6.4.1.5",
+     "4.5.2.2"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "9990500/TC18",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.9.3.10",
+     "3.9.3.5"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "9990500/TC32",
+    "clauses": [
+     "3.12.3.4.3.1",
+     "3.12.3.4.6",
+     "3.6.4.1.5"
+    ],
+    "steps": 15
+   },
+   {
+    "id": "9990500/TC44",
+    "clauses": [
+     "3.5.3.8",
+     "3.6.4.1.5",
+     "5.10.1.5"
+    ],
+    "steps": 25
+   }
+  ]
+ },
+ {
+  "clause": "3.6.4.2.2",
+  "kind": "core",
+  "heading": "3.6.4 Train Position Confidence Interval and Relocation",
+  "text": "The Single On-board Location Reference (SOLR) shall be: a) the last received balise group that is the reference of linking information or that is announced in linking information (including if it is announced with a balise group with ID “unknown” and it contains repositioning information), while the linking consistency is checked (see 3.4.4.2.1.1), or b) the last received balise group, while no linking consistency is checked.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3070300/TC15",
+    "clauses": [
+     "3.6.4.2.2",
+     "3.7.3.1"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.6.4.2.2.2",
+  "kind": "core",
+  "heading": "3.6.4 Train Position Confidence Interval and Relocation",
+  "text": "Whenever linking information is received (e.g. when it is released from the transition buffer), the clause 3.7.3.1 m) shall be applied before this clause 3.6.4.2.2. For all other information, any relocation to the SOLR resulting from this clause 3.6.4.2.2 shall take place before the corresponding item of the clause 3.7.3.1 is applied.",
+  "has_shall": true,
+  "spike": true,
+  "test_cases": [
+   {
+    "id": "3060400/TC20",
+    "clauses": [
+     "3.6.4.2.2.2",
+     "3.7.3.1"
+    ],
+    "steps": 9
+   }
+  ]
+ },
+ {
+  "clause": "3.6.4.2.4",
+  "kind": "core",
+  "heading": "3.6.4 Train Position Confidence Interval and Relocation",
+  "text": "For a given location based information (e.g. EOA), up to three individual location items can be defined, as stipulated in Table 2a. Whenever a (or a part of a) clause of the ETCS specifications is mentioned in this Table 2a, it shall be applied by the ERTMS/ETCS on- board equipment using the corresponding types of location item. Information Location \"min\" location item \"estimated\" \"max\" location item location item National Values start of validity 3.18.2.3 Linking balise group(s) first 3.4.4.4.3 1st bullet possible location together with 3.4.4.4.3.1 balise group(s) last 3.4.4.4.3 2nd bullet possible location together with 3.4.4.4.3.1 Movement Authority section ends 3.8.5.1 b) (MA partially 3.8.5.2.2 (determination 3.8.4.2.2 a) (SvL replaced) of the current section) withdrawal) 3.8.4.2.2 a) & c) 3.8.4.2.2 a) & c) Other clauses in row EBD (EOA/LOA withdrawal) (EOA/LOA withdrawal) based target Other clauses in row Other clauses in row EOA EOA section timer stop 3.8.4.2.3 locations 3.8.4.2.4 3.8.4.2.5 End Section timer start 3.8.4.1.1 3.8.4.1.3 3.8.4.1.4 Overlap timer start 3.8.4.4.1 3.8.4.4.4 3.8.4.4.5 End of MA as EOA 3.8.4.3.2, 3.8.4.4.2 c) 3.8.4.3.2, 3.8.4.4.2 c) (LOA becomes EOA) (LOA becomes EOA) Other clauses in row Other clauses in row EOA EOA 3.10.2.2 b) 1st & 2nd bullets (comparison vs. CES stop loc.) Information Location \"min\" location item \"estimated\" \"max\" location item location item End of MA as LOA 3.10.2.2 b) 1st & 4th See clauses in row EBD bullets (comparison vs. based target CES stop loc.) 3.12.4.7 b) & c) (comparison vs. Mode Profile area start) 3.13.10.2.6 a) 3.13.10.2.7 4.4.19.1.4 a) 4.6.3 [12], [16] & [43] SUBSET-041 § 5.2.1.9 SUBSET-041 § 5.2.1.13 End of MA as SvL 3.8.4.5.1 c) Other clauses in row EBD based target 3.10.2.2 b) 2nd & 3rd bullet (comparison vs. CES stop loc.) Danger Point as SvL 3.8.4.5.1 b) Other clauses in row EBD based target End of overlap as SvL 3.8.4.5.1 a) Other clauses in row EBD based target Signalling related speed start Not relevant restriction from an infill device Justification: The signalling speed restriction received by infill MA can only be accepted if the infill reference is known by linking with known ID. Moreover, SOLR at that time is also part of linking, because the existence of BG(s) announced by linking provokes a change of SOLR by 3.6.4.2.2a. As a consequence, the start location of this infill signalling speed restriction is always relocated through linking distance as per 3.6.4.2.5a, so that its classification as \"min\", \"max\" or \"estimated\" location item has no influence. Mode Profile acknowledgement area 5.7.3.2 a) start(s) 5.9.3.2 a) 5.19.3.2 a) 4.6.3 [73], [74], [75] & [76], 4.8.4 [10] (sub- condition “The estimated front end of the train is not inside an OS/LS acknowledgement area”) Information Location \"min\" location item \"estimated\" \"max\" location item location item area start(s) 3.12.4.7 (Temporary 3.12.4.7 (Temporary 4.6.3 [10], [25], [31], EOA) EOA) [32], [34], [40], [71], Other clauses in row Other clauses in row [72], [73], [74], [75] & EOA EOA [76], 4.8.4 [9] & [10] (Check of train position confidence interval vs. MP area) 4.6.3 [51], [61] 5.7.3.6 5.7.4.1 5.9.2.2 5.9.3.7 5.9.5.1 5.19.2.2 5.19.3.7 5.19.5.1 4.6.3 [73], [74], [75] & 3.12.4.3.1 b) & c) [76] (sub-condition “The estimated front end of the train is not inside an 3.12.4.7 a) (temporary OS/LS acknowledgement SvL) area”) 3.12.4.7 b) (comparison with LOA location) 3.12.4.7 c) (temporary SvL and comparison with LOA location) 3.13.7.2 together with 3.11.2.2 f) (start of speed element for MRSP) Other clauses in row EBD based target A.3.4.1.3 [7] A.3.4.1.3 [12] area end(s) (**) 4.6.3 [10], [25], [31], [32], [34], [40], [71], [72], [73], [74], [75] & [76], 4.8.4 [9] & [10] (Check of train position confidence interval vs. MP area) 5.9.2.2 5.9.5.1 5.9.6.1.1 5.19.2.2 5.19.5.1 5.19.6.1.1 Information Location \"min\" location item \"estimated\" \"max\" location item location item 3.13.7.2 together with 3.11.2.2 f) & 3.13.2.3.2.1 (end of speed element for MRSP) 3.15.10.2 A.3.4.1.3 [14] Gradient Profile profile start (***) 3.7.3.1.2 together with 3.7.2.3 together with 3.7.3.1.2 together with 3.7.3.1 b) (replacing 3.7.2.3.1 & 3.7.2.3.2 3.7.3.1 b) (replacing profile: end of the (comparison vs. train profile: start of the overlap distance front to determine full overlap distance between replaced profile coverage of the MA) between replaced profile and replacing profile) 4.6.3 [69] and replacing profile) Change(s) to lower value 3.13.4.2.1 (A_gradient(d) 3.13.4.2.1 (A_gradient(d) for 3.13.6.3.1.3 & for 3.13.6.2.1.3) 3.13.6.4.3) 3.13.6.4.3 (grad(d)) 3.15.10.3 Change(s) to higher 3.13.4.2.1 (A_gradient(d) 3.13.4.2.1 (A_gradient(d) value for 3.13.6.2.1.3) for 3.13.6.3.1.3 & 3.13.6.4.3) 3.13.6.4.3 (grad(d)) 3.15.10.3 profile end (*) 3.7.3.1 b) (profile 3.7.2.3 together with partially replaced) 3.7.2.3.1 & 3.7.2.3.2 (comparison vs. SvL to determine full coverage of the MA) International SSP profile start (***) 3.7.3.1.1 together with 3.7.2.3 together with 3.7.3.1.1 together with 3.7.3.1 a) (replacing 3.7.2.3.1 & 3.7.2.3.2 3.7.3.1 a) (replacing profile: end of the (comparison vs. train profile: start of the overlap distance front to determine full overlap distance between replaced profile coverage of the MA) between replaced profile and replacing profile) and replacing profile) 3.13.7.2 together with 4.6.3 [69] 3.13.7.2 together with 3.11.2.2 a) & 3.13.2.3.2.1 3.11.2.2 a) & 3.13.2.3.2.1 (replacing profile: (replacing profile: start/end of SSP element start/end of SSP element for MRSP if, at this for MRSP, if the speed of location, the speed of the 1st element of the the element of the replacing profile is lower replacing profile, taking than the speed of the into account the possible element of the replaced relocation of change(s) profile at this location) Information Location \"min\" location item \"estimated\" \"max\" location item location item to lower value in rear of No profile previously this location, is higher stored on-board or than the speed of the replaced profile: element of the replaced 3.13.7.2 together with profile) 3.11.2.2 a) & 3.13.2.3.2.1 (start of 1st SSP element for MRSP) Change(s) to lower value 3.13.7.2 together with 3.11.2.2 a) & 3.13.2.3.2.1 (start/end of SSP element for MRSP) Other clauses in row EBD based target Change(s) to higher 3.13.7.2 together with value 3.11.2.2 a) & 3.13.2.3.2.1 (start/end of SSP element for MRSP) 3.15.10.2 profile end (*) 3.7.3.1 a) (profile 3.7.2.3 together with partially replaced) 3.7.2.3.1 & 3.7.2.3.2 3.13.7.2 together with (comparison vs. SvL to 3.11.2.2 a) & 3.13.2.3.2.1 determine full coverage (end of last SSP element of the MA) for MRSP) 3.15.10.2 Axle load speed profile resume initial state 3.7.3.2 b) 1st area start 3.7.3.1.3 together with 3.7.3.1.3 together with 3.7.3.1 c) (replacing 3.7.3.1 c) (replacing profile: end of the profile: start of the overlap distance overlap distance between replaced profile between replaced profile and replacing profile) and replacing profile) area start(s) (***) 3.13.7.2 together with 3.11.2.2 b) & 3.13.2.3.2.1 (start of speed element for MRSP) Other clauses in row EBD based target area end(s) (*) 3.13.7.2 together with 3.11.2.2 b) & 3.13.2.3.2.1 (end of speed element for MRSP) 3.15.10.2 Level Transition Order acknowledgement area 5.10.4.1 a) start Information Location \"min\" location item \"estimated\" \"max\" location item location item border 3.13.7.2 together with 5.10.1.5 3.13.7.2 together with 3.11.2.2 h) & 5.10.2.9 a) 3.11.2.2 g) & h), 3.13.2.3.2.1 (end of 5.10.3.7.5 3.13.2.3.2.1 (start of speed element for speed element for MRSP) MRSP) 3.15.10.2 Other clauses in row EBD 3.5.3.8 d) based target 3.6.5.1.4 f) 5.10.3.3.3 5.10.3.3.5 5.10.3.6.2 5.10.3.6.5 5.10.3.10.3 5.10.3.10.6 Position Report parameters location to report with 3.6.5.1.5 c) min safe rear end location to report with 3.6.5.1.5 c) max safe front end SR distance information from distance in SR mode 4.6.3 [42] 4.4.11.1.3.1 c) loop 5.8.4.1 h) Other clauses in row EBD based target Temporary Speed Restriction area start (***) 3.13.7.2 together with 3.11.2.2 c), 3.13.2.3.2.1 (start of speed element for MRSP) Other clauses in row EBD based target area end (*) 3.13.7.2 together with 3.11.2.2 c) & 3.13.2.3.2.1 (end of speed element for MRSP) 3.15.10.2 Route Suitability Data resume initial state 3.7.3.2 d) unsuitability location(s) 3.12.2.4 (Temporary 3.12.2.4 (Temporary SvL) EOA) Other clauses in row EBD Other clauses in row based target EOA Adhesion Factor slippery rail area start 3.13.5.3 (***) 3.13.6.2.1.3 slippery rail area end 3.13.5.3 3.13.6.2.1.3 Plain/Fixed Text Information start display 3.12.3.4.2 1st bullet A.3.4.1.3 [8] A.3.4.1.3 [13] end display 3.12.3.4.3 1st bullet Geographical Position offset from the location 3.6.6.1 together with reference 3.6.6.10 2nd bullet 3.6.6.4.2 Information Location \"min\" location item \"estimated\" \"max\" location item location item RBC Transition Order border 3.5.3.8 f) 3.15.1.3.7 3.5.7.6 a) 3.5.7.6 b) 3.6.5.1.4 k) 3.6.5.1.4 e) 3.11.5.14 2nd bullet 3.15.1.3.1 c) 3.15.1.3.1 b) 3.15.1.3.9 3.15.1.3.2 4.6.3 [84] 3.15.1.3.5 3.15.1.3.6 3.17.2.8 c) & e) 4.6.3 [84] 5.15.1.4 Radio Infill Area information location where to 3.9.3.5 connect/disconnect 3.9.3.10 a) EOLM information loop area start 3.4.5.1.6 together with 3.4.5.1.5 loop area end 3.4.5.1.6 together with 3.4.5.1.5 Track Condition… resume initial state 3.7.3.2 c) …powerless section with area start 5.20.2.3 3.7.3.1 g) pantograph to be lowered 5.20.2.4 3.12.1.2.1 3.15.10.2 5.18.2.2 5.18.2.3 5.20.2.2 5.20.2.3 1st bullet area end (*) 3.12.1.2.1.3 3.15.10.2 5.18.2.5 5.18.2.6 5.20.2.3 2nd bullet 5.20.2.4 5.20.2.5 …powerless section with main resume initial state 3.7.3.2 c) power switch to be switched off area start 5.20.3.3 3.7.3.1 g) 5.20.3.4 3.12.1.2.1 3.15.10.2 5.18.3.2 5.18.3.3 5.20.3.2 5.20.3.3 1st bullet area end (*) 3.12.1.2.1.3 3.15.10.2 5.18.3.4 5.18.3.5 5.20.3.3 2nd bullet 5.20.3.4 5.20.3.5 …non stopping area resume initial state 3.7.3.2 c) Information Location \"min\" location item \"estimated\" \"max\" location item location item area start 3.7.3.1 g) 3.12.1.2.1 3.15.10.2 5.18.4.2 a) & b) 5.18.4.3 5.18.4.4 area end (*) 3.12.1.2.1 3.15.10.2 5.18.4.2 b) & c) …radio hole resume initial state 3.7.3.2 c) area start 3.5.3.8 g) 3.5.4.4 3.7.3.1 g) 3.12.1.2.1.5 3.15.10.2 3.16.3.4.1.3 5.18.5.2 area end (*) 3.5.3.4 e) 3.5.4.4 3.5.7.5 (table 2 [7]) 3.15.10.2 3.16.3.4.1.3 5.18.5.3 …air tightness resume initial state 3.7.3.2 c) area start 3.7.3.1 g) 3.12.1.2.1 3.15.10.2 5.18.6.2 5.18.6.3 5.20.4.2 5.20.4.3 5.20.4.4 area end (*) 3.12.1.2.1 3.15.10.2 5.18.6.4 5.18.6.5 5.20.4.3 5.20.4.4 5.20.4.5 …inhibition of special brake resume initial state 3.7.3.2 c) Information Location \"min\" location item \"estimated\" \"max\" location item location item area start 3.7.3.1 g) 3.12.1.2.1 3.13.5.1 3.13.6.2.1.5 3.13.6.3.1.4 3.13.6.4.4 3.15.10.2 5.18.7.3 5.18.7.4 5.20.5.3 5.20.5.4 5.20.5.5 area end (*) 3.12.1.2.1 3.15.10.2 5.18.7.5 5.20.5.4 5.20.5.5 5.20.5.6 …tunnel stopping area resume initial state 3.7.3.2 c) area start 3.7.3.1 g) 3.12.1.2.1.4 5.18.8.4 5.18.8.5 area end (*) 3.12.1.2.1.4 5.18.8.3 …sound horn resume initial state 3.7.3.2 c) area start 3.7.3.1 g) 3.12.1.2.1.4 3.15.10.2 5.18.9.2 area end (*) 3.12.1.2.1.4 3.15.10.2 5.18.9.3 …change of traction system change 5.18.10.6 3.12.1.2.1 5.20.6.3 3.15.10.2 5.20.6.4 5.18.10.2 5.18.10.5 5.20.6.2 5.20.6.3 1st bullet …change of allowed current change 5.20.7.4 3.12.1.2.1 consumption 5.20.7.5 5.20.7.2 5.20.7.4 1st bullet …station platform resume initial state 3.7.3.2 e) area start 5.20.8.4 3.7.3.1 o) 5.20.8.5 3.12.1.2.1 5.20.8.2 5.20.8.4 1st bullet Information Location \"min\" location item \"estimated\" \"max\" location item location item area end (*) 3.12.1.2.1.3 5.20.8.4 5.20.8.5 5.20.8.6 …Big Metal Mass area start (***) 3.7.3.1 f) 3.12.1.2.1.2 5.22.3.1 5.22.5.2.1 area end (*) 3.12.1.2.1.2 5.22.3.1 Conditional Emergency Stop stop location 3.10.2.2 a) 3.10.2.2 b) 1st bullet 3.10.2.2 b) 1st bullet 3.10.2.2 b) (comparison (EOA withdrawal or LOA (comparison vs. vs. train front) withdrawal to EOA) EOA/LOA) 4.8.5.7 3.10.2.2 b) 4th bullet 3.10.2.2 b) 2nd bullet 3.10.2.2 b) 1st bullet (LOA withdrawal to EOA) (comparison vs. EOA & (EOA withdrawal or LOA Other clauses in row SvL) withdrawal to EOA) EOA 3.10.2.2 b) 3rd bullet 3.10.2.2 b) 4th bullet (comparison vs. SvL) (LOA withdrawal to EOA) 3.10.2.2 b) 4th bullet Other clauses in row (comparison vs. LOA) EOA 3.10.2.2 b) 1st, 2nd bullets (SvL withdrawal) 3.10.2.2 b) 4th bullet (LOA withdrawal to SvL) Other clauses in row EBD based target 3.10.2.2 b) last sentence (A.3.4.1.3 [1]) Track Ahead Free Request area start 3.15.5.2 a) area end 3.15.5.2 b) Reversing Area Information area start 3.15.4.4 5.13.1.3 area end (*) 3.15.4.4 5.13.1.3 Reference location for 3.15.4.2.1 reversing distance end of RV distance 3.15.4.8 Permitted Braking Distance resume initial state 3.7.3.2 a) Information 1st area start 3.7.3.1.4 together with 3.7.3.1.4 together with 3.7.3.1 d) (replacing 3.7.3.1 d) (replacing profile: end of the profile: start of the overlap distance overlap distance between replaced profile between replaced profile and replacing profile) and replacing profile) Information Location \"min\" location item \"estimated\" \"max\" location item location item area start (***) 3.13.7.2 together with 3.11.2.2 k), 3.13.2.3.2.1 (start of speed element for MRSP) Other clauses in row EBD based target area end (*) 3.13.7.2 together with 3.11.2.2 k), 3.13.2.3.2.1 (end of speed element for MRSP) 3.15.10.2 Level Crossing information stopping area start 5.16.2.1 area start (***) 3.12.5.8 (temporary 3.12.5.8 (temporary 3.12.5.8 (temporary SvL) EOA) EOA) 3.13.7.2 together with Other clauses in row Other clauses in row 3.11.2.2 i), 3.13.2.3.2.1 EOA EOA (start of speed element 5.16.2.1 for MRSP) Other clauses in row EBD based target area end 3.13.7.2 together with 3.11.2.2 i), 3.13.2.3.2.1 (end of speed element for MRSP) 3.15.10.2 5.16.1.5 Confirmed train length min safe rear end at the 3.6.5.2.4 (computed on-board for train time the train was last Table 2c [3] & [9] integrity reporting) known to be integer EOA (corresponds to other 3.13.9.4.8.2 (for d_EOA 3.8.6.1 b) 3.13.10.2.6 b) location items as listed used without 10% 3.13.8.2.1 c) above or, for A.3.4.1.3 coefficient in d_tripEOA 3.13.9.4.8.2 (for d_EOA [11] to the estimated formula) used with 10% train front at the time of 3.13.10.2.6 a) coefficient in d_tripEOA the MA shortening) 3.13.10.2.7 formula) 4.6.3 [12], [16] & [43] 3.15.10.2 4.4.19.1.4 a) 3.15.10.4 5.8.4.1 c) A.3.4.1.3 [11] 5.16.3.2 SUBSET-040 § 4.2.4.5.3 SUBSET-125 §10.2.7.15 SUBSET-040 § 6.2.1.1.2 SUBSET-041 § 5.2.1.9 SUBSET-041 § 5.2.1.13 Information Location \"min\" location item \"estimated\" \"max\" location item location item EBD based target: (corresponds to other 3.8.6.1 b) SvL, LOA, start location of MRSP location items as listed 3.13.8.2.1 a), b), c) & d) element, maximum permitted above or, for A.3.4.1.3 3.13.9.4.8.2(for EBD) distance to run in SR [11] to the max safe 3.13.11.7.1 train front at the time of 3.13.11.7.1.1 the MA shortening) 3.13.11.7.1.2 3.15.10.2 3.15.10.4 A.3.4.1.3 [11] 5.16.3.2 SUBSET-125 §10.2.7.3 a) & b) SUBSET-125 §10.2.7.9 a) & b) SUBSET-125 §10.2.7.15 (*): depending on whether A.3.4.1.3 [1] or [10] is applied, this may no longer be the area/profile end transmitted by the trackside (**): depending on whether A.3.4.1.3 [1], [10] or [14] is applied, this may no longer be the area end transmitted by the trackside (***): depending on whether A.3.6.2.1 is applied, this may no longer be the area/profile start transmitted by the trackside Table 2a: Correspondence between location items and clauses in the ETCS specifications using them",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3110300/TC8",
+    "clauses": [
+     "3.6.4.2.4",
+     "3.6.4.2.5"
+    ],
+    "steps": 14
+   },
+   {
+    "id": "3110400/TC5",
+    "clauses": [
+     "3.6.4.2.4",
+     "3.6.4.2.5"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3060400/TC2",
+    "clauses": [
+     "3.13.7.2",
+     "3.6.4.2.4",
+     "3.6.4.2.5"
+    ],
+    "steps": 13
+   }
+  ]
+ },
+ {
+  "clause": "3.6.4.2.5",
+  "kind": "core",
+  "heading": "3.6.4 Train Position Confidence Interval and Relocation",
+  "text": "When a balise group becomes the SOLR or when evaluating (see section 4.8) location based trackside information, which is referred to a balise group different from the SOLR, every location item shall be relocated to the SOLR by subtracting from the distance to its former reference balise group (FRBG): a) the distance between the FRBG and the SOLR, retrieved from linking information if it is available and known (i.e. no linking distance to a repositioning balise group being encountered between these balise groups) and, if any, the last relocation of this location item has not been performed as per clause 3.6.4.2.5 c), OR b) if the last relocation of this location item has been performed as per clause 3.6.4.2.5 c) towards a BG not received earlier than the reference BG of this location item, the distance between the FRBG and the SOLR retrieved from linking information if it is available and known (i.e. no linking distance to a repositioning balise group being encountered between these balise groups): • as such, for \"estimated\" location items, • diminished by twice the location accuracy of the FRBG, for \"min\" location items, • augmented by twice the location accuracy of the FRBG, for \"max\" location items, OR c) in all other cases, the estimated, min or max travelled distance between the FRBG and the SOLR, computed as per clauses 3.6.1.3 and 3.6.4.1.5 from train front end positions in reference to FRBG and to SOLR, as follows: • (estimated front end position against FRBG – estimated front end position against SOLR) for \"estimated\" location items, • (min safe front end position against FRBG – min safe front end position against SOLR) for \"min\" location items, • (max safe front end position against FRBG – max safe front end position against SOLR) for \"max\" location items.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3110300/TC8",
+    "clauses": [
+     "3.6.4.2.4",
+     "3.6.4.2.5"
+    ],
+    "steps": 14
+   },
+   {
+    "id": "3110400/TC5",
+    "clauses": [
+     "3.6.4.2.4",
+     "3.6.4.2.5"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3060400/TC2",
+    "clauses": [
+     "3.13.7.2",
+     "3.6.4.2.4",
+     "3.6.4.2.5"
+    ],
+    "steps": 13
+   }
+  ]
+ },
+ {
+  "clause": "3.6.5.1.4",
+  "kind": "core",
+  "heading": "3.6.5 Position Reporting to the RBC",
+  "text": "The on-board equipment shall send position reports as requested by the RBC in the position report parameters. In addition, it shall also send a position report if at least one of the events listed hereafter occurs: a) The train reaches standstill. b) The mode changes. c) The driver confirms train integrity. d) A loss of train integrity is detected. e) The train passes an RBC/RBC border with its min safe rear end. f) The train passes with its min safe rear end a level transition border which led to a transition from level 2 to level 0, NTC or 1. g) The level changes. h) A communication session is successfully established. i) The train leaves standstill. j) The train passes an LRBG compliant balise group (see 3.6.2.2.2 a)), if no position report parameters are stored on-board. k) The train passes an RBC/RBC border with its max safe front end. l) An error as defined in 3.16.4 is detected.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060500/TC50",
+    "clauses": [
+     "3.6.5.1.4",
+     "4.5.2.2"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "3060500/TC12",
+    "clauses": [
+     "3.6.2.2.2",
+     "3.6.5.1.4",
+     "4.5.2.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3060500/TC51",
+    "clauses": [
+     "3.6.2.2.2",
+     "3.6.5.1.4",
+     "4.5.2.2"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "5100300/TC19",
+    "clauses": [
+     "3.6.5.1.4",
+     "4.5.2.2",
+     "5.10.3.6.2"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "5100300/TC9",
+    "clauses": [
+     "3.6.5.1.4",
+     "4.5.2.2",
+     "5.10.3.6.2"
+    ],
+    "steps": 4
+   }
+  ]
+ },
+ {
+  "clause": "3.6.5.2.3",
+  "kind": "core",
+  "heading": "3.6.5 Position Reporting to the RBC",
+  "text": "The train integrity information reported to the RBC shall consist of: a) Train integrity status information • No train integrity information • Train integrity confirmed by external source • Train integrity confirmed by driver • Train integrity lost b) Confirmed train length information (only available when train integrity confirmation is reported).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060500/TC43",
+    "clauses": [
+     "3.18.3.10",
+     "3.6.5.2.3",
+     "3.6.5.2.5"
+    ],
+    "steps": 4
+   }
+  ]
+ },
+ {
+  "clause": "3.6.5.2.5",
+  "kind": "core",
+  "heading": "3.6.5 Position Reporting to the RBC",
+  "text": "The transitions between the different values of the train integrity status information to be sent to the relevant RBC shall be executed as described in Table 2b according to the conditions in Table 2c (see section 4.6.1 for details about the symbols). No Integrity <5 < 5,7,8,9,10 < 1,6 information -p1- -p3- -p3 Integrity 2> <2 <2 confirmed by -p1- -p2- -p1- driver Integrity 3> confirmed by <3 -p3- external -p2- source 4> 4> Integrity lost -p2- -p1- Table 2b: Transitions between values of the train integrity status information to be reported to the RBC Condition Content of the conditions Id [1] The Train Data status is changed from valid to invalid [2] (Train is at standstill) AND {[(no Valid Train Data is available but the safe consist length is available) AND (if any, safe consist length information for Supervised Manoeuvre sent to the RBC has been acknowledged by this latter)] OR [(valid Train Data is available and has been acknowledged by the RBC) AND (no new Train Data regarding train length acquired from external source is pending driver’s validation)]} AND (the train integrity is confirmed by the driver) [3] (The information \"Train integrity confirmed\" is received from an external source) AND {[(no Valid Train Data is available but the safe consist length is available and has not changed since the time the train was last known to be integer) AND (if any, safe consist length information for Supervised Manoeuvre sent to the RBC has been acknowledged by this latter)] OR [(valid Train Data is available and has been acknowledged by the RBC) AND (Train Data regarding train length has not changed since the time the train was last known to be integer) AND (no new Train Data regarding train length acquired from external source is pending driver’s validation)]} AND (the train position is valid and is referred to an LRBG) AND (the train position was valid and was referred to an LRBG at the time the train was last known to be integer) AND (no reverse movement is currently performed nor has been performed since the time the train was last known to be integer) AND (no SM authorisation changing the train orientation has been received since the time the train was last known to be integer) AND (the distance between the min safe rear end at the time the train was last known to be integer and the current estimated train position does not exceed the range of the confirmed train length information) [4] (The information \"Train integrity lost\" is received from an external source) AND ((valid Train Data is available since the time the train integrity was last known to be lost) OR (the on-board is configured to capture the safe consist length from the Train Interface)) [5] A position report indicating that the train integrity is confirmed is sent to the RBC [6] The information \"Train integrity status unknown\" is received from an external source [7] (Train Data regarding length is changed) OR (new Train Data regarding train length acquired from external source is pending driver’s validation) OR (if no Valid Train Data is available, the safe consist length is changed or is no longer available) [8] A reverse movement is performed [9] The distance between the min safe rear end at the time the train was last known to be integer and the current estimated train position exceeds the range of the confirmed train length information [10] A Supervised Manoeuvre authorisation changing the train orientation is received Table 2c: Transition conditions for the train integrity status information to be reported to the RBC",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060500/TC43",
+    "clauses": [
+     "3.18.3.10",
+     "3.6.5.2.3",
+     "3.6.5.2.5"
+    ],
+    "steps": 4
+   }
+  ]
+ },
+ {
+  "clause": "3.6.6.1",
+  "kind": "core",
+  "heading": "3.6.6 Geographical position reporting",
+  "text": "The ERTMS/ETCS on-board equipment shall display, only on driver request, the geographical position of the estimated front end of the train in relation to the track kilometre. The display of the geographical position shall also be stopped on driver request.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060600/TC4",
+    "clauses": [
+     "3.6.6.1",
+     "3.6.6.5",
+     "4.7.2.1.4"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.6.6.5",
+  "kind": "core",
+  "heading": "3.6.6 Geographical position reporting",
+  "text": "The distance travelled from the geographical reference location shall be taken into account when calculating the geographical position.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3060600/TC4",
+    "clauses": [
+     "3.6.6.1",
+     "3.6.6.5",
+     "4.7.2.1.4"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.6.7.1",
+  "kind": "core",
+  "heading": "3.6.7 Supervision of distances not referred to balise groups",
+  "text": "Independently from the train position in relation to balise groups (see 3.6.1.3), the ERTMS/ETCS on-board equipment shall calculate the remaining distance to be travelled by the train in relation to the following distances as soon as their supervision is started or re-started: a) the maximum distance the train can move (National/Default Value) in relation to the Roll Away Protection (see section 3.14.2), the Unauthorised Direction Movement Protection (see section 3.14.3) and the Standstill supervision (see section 4.4.7.1); b) the maximum distance for reversing (National/Default Value) in Post Trip mode (see 4.4.14.1.3); c) the distance for train trip suppression (National/Default Value) after the Override function has been triggered (see clause 5.8.4.1 b)); d) the fixed distance over which the on-board balise transmission alarms are ignored, before a safety reaction is triggered (see clauses 3.15.7.2 and 5.22.5.1 a)); e) the fixed distance for small movements in No Power mode (see clause 3.15.8.1.1), in relation to the Cold Movement Detection function; f) a zero distance to the former EOA/LOA for the override de-activation or for the trip condition if the override is no longer active, after the Override function has been triggered in SB or PT mode while there was no valid train position stored on-board (see clauses 5.8.3.1.1 and 5.8.4.1 c)); g) the maximum permitted distance to run in Staff Responsible mode when it is determined by the National/Default Value, when it is transmitted by the RBC, or when it is entered by the driver (see clauses 4.4.11.1.3.1 a) & b)).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3150700/TC1",
+    "clauses": [
+     "3.15.7.2",
+     "3.6.7.1",
+     "3.6.7.2"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "4041100/TC8",
+    "clauses": [
+     "3.6.7.1",
+     "3.6.7.3",
+     "4.4.11.1.6"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.6.7.2",
+  "kind": "core",
+  "heading": "3.6.7 Supervision of distances not referred to balise groups",
+  "text": "For the supervision of the distances referred in 3.6.7.1 a), b), c), d) & e) the ERTMS/ETCS on-board equipment shall take into account, for the concerned direction(s), the estimated distance travelled away from the location when their supervision was started/re-started.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3150700/TC1",
+    "clauses": [
+     "3.15.7.2",
+     "3.6.7.1",
+     "3.6.7.2"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.6.7.3",
+  "kind": "core",
+  "heading": "3.6.7 Supervision of distances not referred to balise groups",
+  "text": "For the supervision of the distances referred in 3.6.7.1 f) & g) the ERTMS/ETCS on- board equipment shall manage a virtual train front position in the following way: a) The supervised distance minus the estimated distance travelled away from the location when the supervision was started determines the remaining distance from the estimated front end position to the end of the supervised distance. b) The supervised distance minus the estimated distance travelled away from the location when the supervision was started and minus the odometer under-reading amount since the function was activated determines the remaining distance from the max(imum) safe front end position to the end of the supervised distance. c) The supervised distance minus the estimated distance travelled away from the location when the supervision was started plus the odometer over-reading amount since the supervision was started determines the remaining distance from the min(imum) safe front end position to the end of the supervised distance.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4041100/TC8",
+    "clauses": [
+     "3.6.7.1",
+     "3.6.7.3",
+     "4.4.11.1.6"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.7.2.3",
+  "kind": "core",
+  "heading": "3.7.2 Responsibility for completeness of information",
+  "text": "The MA and the related mode profile, if any, shall not be accepted by the on-board equipment if the SSP and gradient already available on-board or given together with the MA do not cover the full length of the MA.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3070200/TC1",
+    "clauses": [
+     "3.7.2.3",
+     "4.8.3.1.1"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "3070200/TC2",
+    "clauses": [
+     "3.7.2.3",
+     "4.8.3.1.1"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "3070200/TC3",
+    "clauses": [
+     "3.7.2.3",
+     "4.8.3.1.1"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "3070200/TC4",
+    "clauses": [
+     "3.7.2.3",
+     "4.8.3.1.1"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "4080425/TC1",
+    "clauses": [
+     "3.7.2.3",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "4080425/TC2",
+    "clauses": [
+     "3.7.2.3",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.7.3.1",
+  "kind": "core",
+  "heading": "3.7.3 Extension, replacement and deletion of location based information",
+  "text": "New track description and linking information shall replace (in the ERTMS/ETCS on- board equipment) stored information as detailed below: a) New Static Speed Profile information shall replace all stored Static Speed Profile information from the start location of the new information. b) New Gradient Profile information shall replace all stored Gradient Profile information from the start location of the new information. c) New Axle Load Speed Profile information shall replace all stored Axle Load Speed Profile information from the start location of the first element of the new information. d) New Speed Restriction to ensure Permitted Braking Distance information shall replace all stored Speed Restriction to ensure Permitted Braking Distance information from the start location of the first element of the new information. e) New track condition Change of Traction System information shall replace all stored Change of Traction System information. f) New track condition Big Metal Masses information shall replace all stored Big Metal Masses information from the start location of the first element of the new information. g) New track condition information of at least one of the types listed here, i.e., sound horn, non stopping area, tunnel stopping area, powerless section - lower pantograph, powerless section - switch off the main power switch, radio hole, air tightness, switch off regenerative brake, switch off eddy current brake for service brake, switch off eddy current brake for emergency brake, switch off magnetic shoe brake, shall replace all stored track condition information of the listed types from the start location of the first element of the new information. h) New route suitability loading gauge information shall replace all stored route suitability loading gauge information. i) New route suitability traction system information shall replace all stored route suitability traction system information. j) New route suitability axle load information shall replace all stored route suitability axle load information. k) New reversing area information shall replace all stored reversing area information. l) New adhesion factor information shall replace all stored adhesion factor information from the start location of the new information. m) New linking information received as non-infill information shall replace all stored linking information from the reference balise group of the new linking information. n) New linking information received as infill information shall replace all stored linking information from the reference location of the infill information (i.e. the balise group at next main signal). o) New track condition Station Platform information shall replace all stored Station Platform information from the start location of the first element of the new information. p) New track condition Allowed Current Consumption information shall replace all stored Allowed Current Consumption information.",
+  "has_shall": true,
+  "spike": true,
+  "test_cases": [
+   {
+    "id": "3070300/TC1",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3070300/TC14",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3070300/TC17",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 23
+   },
+   {
+    "id": "3070300/TC18",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 14
+   },
+   {
+    "id": "3070300/TC3",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "3070300/TC5",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "3070300/TC6",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "3070300/TC7",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 19
+   },
+   {
+    "id": "3070300/TC8",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3070300/TC9",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "9990500/TC36",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 9
+   },
+   {
+    "id": "9990500/TC37",
+    "clauses": [
+     "3.7.3.1"
+    ],
+    "steps": 15
+   },
+   {
+    "id": "3060400/TC20",
+    "clauses": [
+     "3.6.4.2.2.2",
+     "3.7.3.1"
+    ],
+    "steps": 9
+   },
+   {
+    "id": "3070300/TC15",
+    "clauses": [
+     "3.6.4.2.2",
+     "3.7.3.1"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "3070300/TC13",
+    "clauses": [
+     "3.11.11.11",
+     "3.7.3.1",
+     "3.7.3.2"
+    ],
+    "steps": 20
+   }
+  ]
+ },
+ {
+  "clause": "3.7.3.2",
+  "kind": "core",
+  "heading": "3.7.3 Extension, replacement and deletion of location based information",
+  "text": "When requested by trackside, the ERTMS/ETCS on-board equipment shall resume initial states beyond a given location individually: a) for stored Speed Restriction to ensure Permitted Braking Distance information (for initial state, refer to 3.11.11.11) b) for stored axle load speed profile information (for initial state, refer to 3.11.4.5) c) through a single request, for all stored track condition information of the following types: sound horn, non stopping area, tunnel stopping area, powerless section – lower pantograph, powerless section – switch off the main power switch, radio hole, air tightness, switch off regenerative brake, switch off eddy current brake for service brake, switch off eddy current brake for emergency brake and switch off magnetic shoe brake (for initial states, refer to 3.12.1.3) d) through a single request, for all stored route suitability information (for initial state, refer to 3.12.2.10). e) through a single request, for all stored track condition information of the type Station Platform (for initial state, refer to 3.12.1.3).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3070300/TC19",
+    "clauses": [
+     "3.7.3.2"
+    ],
+    "steps": 14
+   },
+   {
+    "id": "3070300/TC12",
+    "clauses": [
+     "3.12.2.10",
+     "3.7.3.2"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "3070300/TC13",
+    "clauses": [
+     "3.11.11.11",
+     "3.7.3.1",
+     "3.7.3.2"
+    ],
+    "steps": 20
+   }
+  ]
+ },
+ {
+  "clause": "3.7.3.4",
+  "kind": "core",
+  "heading": "3.7.3 Extension, replacement and deletion of location based information",
+  "text": "Upon reception of a Supervised Manoeuvre authorisation: a) If the validity direction of the new Movement Authority is the same as the current train orientation, the clause 3.7.3.1 shall apply. b) If the validity direction of the new Movement Authority is opposite to the current train orientation, the clause 3.7.3.1 shall not apply and all previously stored location based information shall be deleted.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3070300/TC25",
+    "clauses": [
+     "3.7.3.4",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 14
+   }
+  ]
+ },
+ {
+  "clause": "3.8.2.1.4",
+  "kind": "core",
+  "heading": "3.8.2 MA request to the RBC",
+  "text": "The parameters received from the RBC shall be valid until new MA request parameters are received from the RBC.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080200/TC1",
+    "clauses": [
+     "3.8.2.1.4",
+     "3.8.2.1.7",
+     "3.8.2.2.2"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3080200/TC6",
+    "clauses": [
+     "3.8.2.1.4",
+     "3.8.2.2.2",
+     "4.5.2.2"
+    ],
+    "steps": 13
+   }
+  ]
+ },
+ {
+  "clause": "3.8.2.1.7",
+  "kind": "core",
+  "heading": "3.8.2 MA request to the RBC",
+  "text": "Together with any MA request the on-board shall inform the RBC about the reason(s) that is (are) applicable at the time the MA request is sent.",
+  "has_shall": true,
+  "spike": true,
+  "test_cases": [
+   {
+    "id": "3080200/TC7",
+    "clauses": [
+     "3.8.2.1.7",
+     "3.8.2.2.2"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "3080200/TC1",
+    "clauses": [
+     "3.8.2.1.4",
+     "3.8.2.1.7",
+     "3.8.2.2.2"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3080200/TC10",
+    "clauses": [
+     "3.8.2.1.7",
+     "3.8.2.5.1",
+     "4.5.2.2"
+    ],
+    "steps": 9
+   }
+  ]
+ },
+ {
+  "clause": "3.8.2.2.2",
+  "kind": "core",
+  "heading": "3.8.2 MA request to the RBC",
+  "text": "With regard to the above possibilities, the MA request shall be triggered when the train front has passed the location defined by 3.8.2.2.1 a) / when the moment defined by 3.8.2.2.1 b) is reached.",
+  "has_shall": true,
+  "spike": true,
+  "test_cases": [
+   {
+    "id": "3080200/TC7",
+    "clauses": [
+     "3.8.2.1.7",
+     "3.8.2.2.2"
+    ],
+    "steps": 12
+   },
+   {
+    "id": "3080200/TC1",
+    "clauses": [
+     "3.8.2.1.4",
+     "3.8.2.1.7",
+     "3.8.2.2.2"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3080200/TC6",
+    "clauses": [
+     "3.8.2.1.4",
+     "3.8.2.2.2",
+     "4.5.2.2"
+    ],
+    "steps": 13
+   }
+  ]
+ },
+ {
+  "clause": "3.8.2.5.1",
+  "kind": "core",
+  "heading": "3.8.2 MA request to the RBC",
+  "text": "An MA request shall be sent to the RBC when any part of the track description is deleted according to A.3.4, except for situations a, b, f, k.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080200/TC10",
+    "clauses": [
+     "3.8.2.1.7",
+     "3.8.2.5.1",
+     "4.5.2.2"
+    ],
+    "steps": 9
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.1.1",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "The End Section timer shall be started on-board when the train passes the End Section timer start location given by trackside with its max safe front end.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990500/TC41",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.8.4.1.1"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.1.2",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "When the End Section timer value becomes greater than the time-out value given by trackside, the following shall apply: a) The EOA/LOA shall be withdrawn to the current position of the train. Refer to appendix A.3.4 for the exhaustive list of location based information stored on-board, which shall be deleted accordingly; b) if any, a non zero target speed value at the End of Movement Authority shall be set to zero (i.e. an LOA at the End of Movement Authority becomes an EOA withdrawn to the current position of the train).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080400/TC4",
+    "clauses": [
+     "3.8.4.1.2",
+     "4.5.2.2"
+    ],
+    "steps": 15
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.3.1",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "For the LOA speed, the on-board shall consider a timer that has started: a) For Level 2: at the value of the time stamp of the message including the MA. b) For Level 1: at the time of passage over the first encountered balise of the balise group giving the MA.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080400/TC1",
+    "clauses": [
+     "3.8.4.3.1",
+     "3.8.4.3.2",
+     "4.5.2.2"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.3.2",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "When the LOA speed timer value becomes greater than the time-out value given by trackside, the speed associated with the LOA shall be set to zero (i.e. the Limit of Authority becomes an End of Authority and the SvL is defined on-board according to 3.8.4.5). Refer to appendix A.3.4 for the exhaustive list of location based information stored on-board, which shall be deleted accordingly.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080400/TC1",
+    "clauses": [
+     "3.8.4.3.1",
+     "3.8.4.3.2",
+     "4.5.2.2"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.4.1",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "The Overlap timer shall be started on-board when the train passes the Overlap timer start location given by trackside with its max safe front end. The timer shall be considered as started even if a time-out value “infinite” is given.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990400/TC2",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "9990400/TC3",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "9990500/TC42",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.8.4.4.1"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "9990400/TC1",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2",
+     "3.8.4.4.3"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "9990400/TC26",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2",
+     "3.8.4.4.4"
+    ],
+    "steps": 11
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.4.2",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "When the Overlap timer value becomes greater than the time-out value given by trackside, the following shall apply: a) the overlap information shall be deleted and the Supervised Location shall be determined in accordance with 3.8.4.5. Refer to appendix A.3.4 for the exhaustive list of location based information stored on-board, which shall be deleted accordingly. b) the release speed associated with the Overlap shall be deleted c) if any, a non zero target speed value at the End of Movement Authority shall be set to zero (i.e. an LOA at the End of Movement Authority becomes an EOA).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990400/TC2",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "9990400/TC3",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "9990400/TC1",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2",
+     "3.8.4.4.3"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "9990400/TC26",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2",
+     "3.8.4.4.4"
+    ],
+    "steps": 11
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.4.3",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "If the train comes to a standstill after the Overlap timer has been started, the on-board shall consider that the Overlap timer value became greater than its time-out value and shall apply 3.8.4.4.2.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990400/TC1",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2",
+     "3.8.4.4.3"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.4.4",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "In case no Overlap timer is running when the on-board receives a new MA with an Overlap timer start location in rear of the max safe front end of the train, the on-board shall consider that the Overlap timer value became greater than its time-out value and shall apply 3.8.4.4.2.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990400/TC26",
+    "clauses": [
+     "3.8.4.4.1",
+     "3.8.4.4.2",
+     "3.8.4.4.4"
+    ],
+    "steps": 11
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.5.1",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "Unless stated otherwise, the Supervised Location (SvL) shall be defined on-board as: a) the end of overlap (if any and before time-out). b) if not, the Danger Point (if any). c) if not, the end of the End Section.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080400/TC8",
+    "clauses": [
+     "3.8.4.5.1",
+     "4.5.2.2"
+    ],
+    "steps": 15
+   },
+   {
+    "id": "3080400/TC9",
+    "clauses": [
+     "3.8.4.5.1",
+     "4.5.2.2"
+    ],
+    "steps": 15
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.5.2",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "As long as a Limit of Authority is supervised, no SvL shall be defined on-board.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080400/TC7",
+    "clauses": [
+     "3.8.4.5.2",
+     "4.5.2.2"
+    ],
+    "steps": 2
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.6.2",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "An infill MA shall be evaluated on-board only if the on-board equipment is in FS, AD or LS mode.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4080100/TC5",
+    "clauses": [
+     "3.8.4.6.2",
+     "3.8.4.6.4",
+     "4.8.1.5"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.8.4.6.4",
+  "kind": "core",
+  "heading": "3.8.4 Use of the MA on board the train",
+  "text": "An infill MA shall be evaluated on-board only if the linking information, regarding the main signal balise group to which it refers, is available.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4080100/TC5",
+    "clauses": [
+     "3.8.4.6.2",
+     "3.8.4.6.4",
+     "4.8.1.5"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.8.5.1",
+  "kind": "core",
+  "heading": "3.8.5 MA Update",
+  "text": "A new MA shall replace a previously received MA in the following ways: a) When the new MA is given from a balise group at a main signal (i.e. non-infill information) or from the RBC all data included in the previous MA shall be replaced by the new data. b) When the new MA is given as infill information all data beyond the announced balise group at the next main signal shall be replaced.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080500/TC10",
+    "clauses": [
+     "3.8.5.1"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3080500/TC2",
+    "clauses": [
+     "3.8.5.1"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3080500/TC3",
+    "clauses": [
+     "3.8.5.1"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3080500/TC4",
+    "clauses": [
+     "3.8.5.1"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3080500/TC7",
+    "clauses": [
+     "3.8.5.1"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "3080500/TC8",
+    "clauses": [
+     "3.8.5.1"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3080500/TC9",
+    "clauses": [
+     "3.8.5.1"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "3080500/TC1",
+    "clauses": [
+     "3.11.6.3",
+     "3.8.5.1"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3080500/TC5",
+    "clauses": [
+     "3.8.5.1",
+     "3.8.5.1.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3080500/TC6",
+    "clauses": [
+     "3.8.5.1",
+     "3.8.5.1.2"
+    ],
+    "steps": 16
+   },
+   {
+    "id": "3040500/TC2",
+    "clauses": [
+     "3.4.5.1.6",
+     "3.4.5.2.1",
+     "3.8.5.1"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.8.5.1.2",
+  "kind": "core",
+  "heading": "3.8.5 MA Update",
+  "text": "When an infill MA is received, the on-board shall start a new MA section at the infill location reference, i.e. the balise group at the next main signal (see 3.6.2.3.1).",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080500/TC5",
+    "clauses": [
+     "3.8.5.1",
+     "3.8.5.1.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3080500/TC6",
+    "clauses": [
+     "3.8.5.1",
+     "3.8.5.1.2"
+    ],
+    "steps": 16
+   }
+  ]
+ },
+ {
+  "clause": "3.8.5.1.4",
+  "kind": "core",
+  "heading": "3.8.5 MA Update",
+  "text": "If a new MA defines an SvL while the on-board was supervising an LOA, this shall always be considered by the on-board equipment as an MA shortening regardless of the SvL location. Refer to appendix A.3.4 for the exhaustive list of location based information stored on-board, which shall be deleted accordingly.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080500/TC11",
+    "clauses": [
+     "3.8.5.1.4",
+     "4.5.2.2"
+    ],
+    "steps": 6
+   },
+   {
+    "id": "3080500/TC12",
+    "clauses": [
+     "3.8.5.1.4",
+     "4.5.2.2"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.8.5.2.4",
+  "kind": "core",
+  "heading": "3.8.5 MA Update",
+  "text": "The reception of repositioning information or of a new MA with an LOA shall not be considered as an MA shortening by the on-board equipment.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080500/TC13",
+    "clauses": [
+     "3.8.5.2.4",
+     "4.5.2.2"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.8.6.1",
+  "kind": "core",
+  "heading": "3.8.6 Co-operative shortening of MA (Level 2 only)",
+  "text": "It shall be possible to shorten a given MA using a special procedure between on-board equipment and RBC. The procedure is as follows: a) The RBC sends a request to shorten MA, which includes a proposed shortened MA with an EOA closer to the train than the current EOA/LOA, optionally with a mode profile and in case of SH mode profile optionally with a list of balise groups for SH area. b) The ERTMS/ETCS on-board equipment shall check the train front end position versus the Indication supervision limit of the proposed shortened MA. • If it is in rear, the request shall be accepted and the on-board equipment shall consider the proposed shortened MA as the new MA, together with its accompanying mode profile (if any) and list of balise groups for SH area (if any). • If it is in advance, the request shall be rejected and the previously received MA, mode profile (if any) and list of balise groups for SH area (if any) shall remain valid c) The RBC shall be informed about the decision.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4080407/TC1",
+    "clauses": [
+     "3.8.6.1",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "4080407/TC5",
+    "clauses": [
+     "3.8.6.1",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.9.1.3",
+  "kind": "core",
+  "heading": "3.9.1 General",
+  "text": "If the on-board system is not equipped with the infill transmission media as requested by the announcement balise group, the announcement information shall be ignored by the on-board equipment and the train shall proceed according to the previously received information.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090200/TC5",
+    "clauses": [
+     "3.9.1.3",
+     "4.8.4.1.1"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "3090300/TC6",
+    "clauses": [
+     "3.9.1.3",
+     "3.9.3.3"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.9.2.11",
+  "kind": "core",
+  "heading": "3.9.2 Infill by loop",
+  "text": "When the on-board equipment reads the next main signal balise group or when it detects that the next main signal balise group was missed, new infill information possibly received from the loop shall be ignored.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090200/TC1",
+    "clauses": [
+     "3.9.2.11",
+     "4.8.4.1.1"
+    ],
+    "steps": 5
+   },
+   {
+    "id": "3090200/TC2",
+    "clauses": [
+     "3.9.2.11",
+     "4.8.4.1.1"
+    ],
+    "steps": 5
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.3",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "The order to establish a communication session shall be ignored: a) Intentionally deleted. b) If the GSM-R radio system is not installed on-board.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090300/TC6",
+    "clauses": [
+     "3.9.1.3",
+     "3.9.3.3"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.5",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "If the order to establish a communication session with a radio infill unit sent via balise groups is received, the on-board equipment shall, once the location indicated in the order is reached: a) terminate any existing communication session(s) with RIU(s) not indicated in the order b) as soon as a new communication session can be handled, establish a communication session with the RIU indicated in the order",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990500/TC18",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.9.3.10",
+     "3.9.3.5"
+    ],
+    "steps": 16
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.6.1",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "Exception (degraded situation): if the on-board can handle only one communication session established with the GSM-R radio system, the order shall be ignored.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090300/TC16",
+    "clauses": [
+     "3.9.3.6.1"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.10",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "The on-board equipment shall inform the radio infill unit a) As soon as the location indicated in the order sent via balise groups is passed (i.e. entry of the train in the infill area) b) As soon as the next main signal balise group indicated in the order sent via balise groups is read or the on-board equipment detects that it was missed.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090300/TC14",
+    "clauses": [
+     "3.9.3.10"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "9990500/TC14",
+    "clauses": [
+     "3.9.3.10"
+    ],
+    "steps": 11
+   },
+   {
+    "id": "3090300/TC11",
+    "clauses": [
+     "3.9.3.10",
+     "3.9.3.15"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "9990500/TC35",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.9.3.10"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3090300/TC7",
+    "clauses": [
+     "3.9.3.10",
+     "3.9.3.11",
+     "3.9.3.16"
+    ],
+    "steps": 10
+   },
+   {
+    "id": "9990500/TC18",
+    "clauses": [
+     "3.6.4.1.5",
+     "3.9.3.10",
+     "3.9.3.5"
+    ],
+    "steps": 16
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.11",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "The information sent to the radio infill unit by the on-board equipment shall include a) Train identity (ETCS-ID of the on-board equipment) b) Position report c) Identifier of the next main signal balise group d) Time stamp",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090300/TC7",
+    "clauses": [
+     "3.9.3.10",
+     "3.9.3.11",
+     "3.9.3.16"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.14",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "The radio infill unit shall evaluate the time stamp according to the principles of section 3.16.3.2. The on-board equipment shall check the consistency of radio infill data, according to the",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090300/TC9",
+    "clauses": [
+     "3.16.1.1",
+     "3.9.3.14"
+    ],
+    "steps": 4
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.15",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "When the on-board equipment reads the next main signal balise group or when it detects that the next main signal balise group was missed, new infill information related to this balise group possibly received shall be ignored.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090300/TC10",
+    "clauses": [
+     "3.9.3.15"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "3090300/TC11",
+    "clauses": [
+     "3.9.3.10",
+     "3.9.3.15"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.9.3.16",
+  "kind": "core",
+  "heading": "3.9.3 Infill by radio",
+  "text": "The ERTMS/ETCS on-board equipment shall terminate the communication session according to the orders received from the trackside (balise group or Radio Infill units) or when the level 1 is left.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3090300/TC7",
+    "clauses": [
+     "3.9.3.10",
+     "3.9.3.11",
+     "3.9.3.16"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.10.1.4",
+  "kind": "core",
+  "heading": "3.10.1 General",
+  "text": "Each emergency message to an on-board equipment shall be acknowledged, using the corresponding emergency message identification number.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4080405/TC1",
+    "clauses": [
+     "3.10.1.4",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 9
+   }
+  ]
+ },
+ {
+  "clause": "3.10.2.4",
+  "kind": "core",
+  "heading": "3.10.2 Emergency Stop",
+  "text": "New movement authority received after any accepted emergency stop message and before the emergency message has been revoked, shall be rejected.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3100200/TC1",
+    "clauses": [
+     "3.10.2.4"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "4080425/TC4",
+    "clauses": [
+     "3.10.2.4",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.10.3.2",
+  "kind": "core",
+  "heading": "3.10.3 Revocation of an Emergency Message",
+  "text": "The revocation messages shall be acknowledged by the on-board equipment, according to the general acknowledgement procedure (see section 3.16.3.5)",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3100300/TC1",
+    "clauses": [
+     "3.10.3.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "3100300/TC2",
+    "clauses": [
+     "3.10.3.2",
+     "5.11.2.2"
+    ],
+    "steps": 3
+   },
+   {
+    "id": "4080435/TC1",
+    "clauses": [
+     "3.10.3.2",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 11
+   }
+  ]
+ },
+ {
+  "clause": "3.11.1.1",
+  "kind": "core",
+  "heading": "3.11.1 Introduction",
+  "text": "The permitted speed at which the train is allowed to travel shall be limited to different kinds of Static Speed Restrictions.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3130700/TC5",
+    "clauses": [
+     "3.11.1.1",
+     "3.13.7.2"
+    ],
+    "steps": 14
+   },
+   {
+    "id": "3130700/TC6",
+    "clauses": [
+     "3.11.1.1",
+     "3.13.7.2"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3130700/TC7",
+    "clauses": [
+     "3.11.1.1",
+     "3.13.7.2"
+    ],
+    "steps": 7
+   },
+   {
+    "id": "3130700/TC1",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3130700/TC2",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 23
+   },
+   {
+    "id": "3130700/TC3",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 21
+   },
+   {
+    "id": "3130700/TC4",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 16
+   }
+  ]
+ },
+ {
+  "clause": "3.11.2.4",
+  "kind": "core",
+  "heading": "3.11.2 Definition of Static Speed Restriction",
+  "text": "Depending on the type of Static Speed Restriction train length may have to be used to ensure that the full length of the train has passed a Static Speed Restriction discontinuity before a speed increase shall be taken into account.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3130700/TC1",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3130700/TC2",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 23
+   },
+   {
+    "id": "3130700/TC3",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 21
+   },
+   {
+    "id": "3130700/TC4",
+    "clauses": [
+     "3.11.1.1",
+     "3.11.2.4",
+     "3.13.7.2"
+    ],
+    "steps": 16
+   }
+  ]
+ },
+ {
+  "clause": "3.11.6.3",
+  "kind": "core",
+  "heading": "3.11.6 Signalling related speed restrictions",
+  "text": "The speed restriction shall be valid until a new signalling related speed restriction is received.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3080500/TC1",
+    "clauses": [
+     "3.11.6.3",
+     "3.8.5.1"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.11.7.1.1",
+  "kind": "core",
+  "heading": "3.11.7 Mode related speed restrictions",
+  "text": "Exception 1: For the modes On-sight, Limited Supervision and Shunting the speed limit can also be given from the trackside. The speed limit given from the trackside shall prevail over the National value and the default value.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3110700/TC1",
+    "clauses": [
+     "3.11.7.1.1"
+    ],
+    "steps": 22
+   },
+   {
+    "id": "3110700/TC3",
+    "clauses": [
+     "3.11.7.1.1"
+    ],
+    "steps": 26
+   }
+  ]
+ },
+ {
+  "clause": "3.11.8.1",
+  "kind": "core",
+  "heading": "3.11.8 Train related speed restriction",
+  "text": "It shall be possible to define the maximum train speed related to the actual performance and configuration of the train.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3110800/TC1",
+    "clauses": [
+     "3.11.8.1",
+     "3.13.2.2.13.1",
+     "4.5.2.2"
+    ],
+    "steps": 25
+   }
+  ]
+ },
+ {
+  "clause": "3.11.11.3",
+  "kind": "core",
+  "heading": "3.11.11 Speed restriction to ensure permitted braking distance",
+  "text": "The speed restriction shall be calculated when the ERTMS/ETCS on-board equipment receives the permitted braking distance information from trackside, and shall be re- calculated only if any of the inputs taken into account for the calculation of the speed restriction changes.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3111100/TC3",
+    "clauses": [
+     "3.11.11.3",
+     "3.11.11.4",
+     "3.11.11.6"
+    ],
+    "steps": 19
+   }
+  ]
+ },
+ {
+  "clause": "3.11.11.4",
+  "kind": "core",
+  "heading": "3.11.11 Speed restriction to ensure permitted braking distance",
+  "text": "The calculation of the speed restriction by the ERTMS/ETCS on-board equipment shall take into account that: • The single gradient value received from trackside shall be compensated in value according to the rotating mass as defined in 3.13.4.3. • The safe deceleration shall be computed as in 3.13.6.2.1 but without considering the adhesion profiles, the track conditions related to brake inhibition and the track conditions related to powerless section given by trackside. • The expected deceleration shall be computed as in 3.13.6.3.1 but without considering the track conditions related to brake inhibition and the track conditions related to powerless section given by trackside. • The ERTMS/ETCS on-board equipment shall calculate an Emergency Brake Deceleration (EBD) curve based on the safe deceleration and that reaches zero speed at a distance equal to the permitted braking distance. • If the permitted braking distance is to be achieved with the service brake, the ERTMS/ETCS on-board equipment shall also calculate a Service Brake Deceleration (SBD) curve based on the expected deceleration and that reaches zero speed at a distance equal to the permitted braking distance. • The estimated acceleration shall be set to “zero”. • If not inhibited by National Value, the compensation of the inaccuracy of the speed measurement shall be set to a value calculated from the PBD speed, as defined in SUBSET-041 § 5.3.1.2: V_delta0PBD = f41(V_PBD + dV_EBI(V_PBD)) if the permitted braking distance is to be achieved with the emergency brake; V_delta0PBD = f41(V_PBD + dV_SBI(V_PBD)) if the permitted braking distance is to be achieved with the service brake. • The train will travel a distance from the last encountered balise of a group that provides restrictive information until initiating the brake command. This travelled distance shall be set to a value calculated from the PBD speed considering a processing delay (T41) equal to SUBSET-041 § 5.2.1.1. • Regardless of how the service brake feedback is actually configured (see 3.13.2.2.7.2), T_bs1 and T_bs2 (see 3.13.9.3.3) shall be defined as if the service brake feedback was not implemented. • Regardless of how the traction cut-off interface is actually configured (see 3.13.2.2.8), T_traction (see 3.13.9.3.2) shall be defined as if the traction cut-off was not implemented.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3111100/TC3",
+    "clauses": [
+     "3.11.11.3",
+     "3.11.11.4",
+     "3.11.11.6"
+    ],
+    "steps": 19
+   }
+  ]
+ },
+ {
+  "clause": "3.11.11.6",
+  "kind": "core",
+  "heading": "3.11.11 Speed restriction to ensure permitted braking distance",
+  "text": "If the permitted braking distance is to be achieved with the emergency brake, the ERTMS/ETCS on-board equipment shall seek the PBD speed restriction value (V_PBD) which satisfies the two following inequalities. The resulting value shall then be rounded down to the next lower multiple of 5km/h: 𝐴𝐵𝑆{(𝑉𝑃𝐵𝐷 + 𝑑𝑉𝑒𝑏𝑖 ) − (𝑉𝐸𝐵𝐷 (𝑑𝑜𝑓𝑓𝑠𝑒𝑡 + 𝐷𝑏𝑒𝑐 ) − 𝑉𝑑𝑒𝑙𝑡𝑎0𝑃𝐵𝐷 )} ≤ 1𝑘𝑚/ℎ 𝑑𝑜𝑓𝑓𝑠𝑒𝑡 + 𝐷𝑏𝑒𝑐 ≤ 𝑑𝑃𝐵𝐷 With 𝑑𝑉𝑒𝑏𝑖 as defined in 3.13.9.2.3 by substituting 𝑉𝑀𝑅𝑆𝑃 with 𝑉𝑃𝐵𝐷 With 𝑉𝑑𝑒𝑙𝑡𝑎0𝑃𝐵𝐷 = 𝑓41 (𝑉𝑃𝐵𝐷 + 𝑑𝑉𝑒𝑏𝑖 ) or 𝑉𝑑𝑒𝑙𝑡𝑎0𝑃𝐵𝐷 = 0 (if compensation of speed inaccuracy is inhibited by National Value) With 𝐷𝑏𝑒𝑐 = (𝑉𝑃𝐵𝐷 + 𝑑𝑉𝑒𝑏𝑖 + 𝑉𝑑𝑒𝑙𝑡𝑎0𝑃𝐵𝐷 ) ⋅ (𝑇𝑡𝑟𝑎𝑐𝑡𝑖𝑜𝑛 + 𝑇𝑏𝑒𝑟𝑒𝑚 ) With 𝑇𝑡𝑟𝑎𝑐𝑡𝑖𝑜𝑛 and 𝑇𝑏𝑒𝑟𝑒𝑚 as defined in 3.13.9.3.2 but substituting T_be_reduced with T_be as defined in 3.13.6.2.2.3 With 𝑑𝑃𝐵𝐷 being the permitted braking distance given by trackside With 𝑉𝐸𝐵𝐷 (𝑑) being the EBD curve that reaches zero speed at 𝑑𝑃𝐵𝐷 With 𝑑𝑜𝑓𝑓𝑠𝑒𝑡 = 𝐿𝑎𝑛𝑡𝑒𝑛𝑛𝑎−𝑓𝑟𝑜𝑛𝑡 + 𝑇41 ⋅ (𝑉𝑃𝐵𝐷 + 𝑑𝑉𝑒𝑏𝑖 + 𝑉𝑑𝑒𝑙𝑡𝑎0𝑃𝐵𝐷 ) If no speed value fulfils the above inequalities, then: 𝑉𝑃𝐵𝐷 = 0",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3111100/TC3",
+    "clauses": [
+     "3.11.11.3",
+     "3.11.11.4",
+     "3.11.11.6"
+    ],
+    "steps": 19
+   }
+  ]
+ },
+ {
+  "clause": "3.11.11.11",
+  "kind": "core",
+  "heading": "3.11.11 Speed restriction to ensure permitted braking distance",
+  "text": "The initial state for Speed Restrictions to Ensure Permitted Braking Distance shall be “no speed restriction”.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3070300/TC13",
+    "clauses": [
+     "3.11.11.11",
+     "3.7.3.1",
+     "3.7.3.2"
+    ],
+    "steps": 20
+   }
+  ]
+ },
+ {
+  "clause": "3.12.1.2.1.4",
+  "kind": "core",
+  "heading": "3.12.1 Track Conditions",
+  "text": "Exception 3: The start and end of a tunnel stopping area and of a sound horn track condition shall be evaluated taking into account the estimated front end of the train.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "5180900/TC2",
+    "clauses": [
+     "3.12.1.2.1.4",
+     "4.7.2.1.4",
+     "5.18.9.3"
+    ],
+    "steps": 3
+   }
+  ]
+ },
+ {
+  "clause": "3.12.2.3",
+  "kind": "core",
+  "heading": "3.12.2 Route Suitability",
+  "text": "On reception of route suitability data, the ERTMS/ETCS on-board equipment shall compare it with the corresponding Train Data stored on-board. Unsuitability exists if: a) The loading gauge profile of the train is not included in the list of loading gauges accepted by trackside b) The list of traction systems accepted by the engine does not include the one received from trackside c) The axle load category of the train is not included in the list of permitted ones received from trackside",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120200/TC4",
+    "clauses": [
+     "3.12.2.3",
+     "3.12.2.3.1"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.12.2.3.1",
+  "kind": "core",
+  "heading": "3.12.2 Route Suitability",
+  "text": "Exception to 3.12.2.3 b): If the engine is able to run on a line not fitted with any traction system, unsuitability never exists.",
+  "has_shall": false,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120200/TC4",
+    "clauses": [
+     "3.12.2.3",
+     "3.12.2.3.1"
+    ],
+    "steps": 7
+   }
+  ]
+ },
+ {
+  "clause": "3.12.2.10",
+  "kind": "core",
+  "heading": "3.12.2 Route Suitability",
+  "text": "The train is permitted to run without any route suitability data given from the track. No default values shall be used or supervised by the on-board equipment, i.e. the initial state is that no restrictions related to route suitability exists.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3070300/TC12",
+    "clauses": [
+     "3.12.2.10",
+     "3.7.3.2"
+    ],
+    "steps": 12
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.1.10",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "The appearance of a message shall depend on the class and on whether a driver acknowledgement is requested.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120300/TC20",
+    "clauses": [
+     "3.12.3.1.10"
+    ],
+    "steps": 17
+   },
+   {
+    "id": "3120300/TC18",
+    "clauses": [
+     "3.12.3.1.10",
+     "3.12.3.4.3.1.3",
+     "4.7.2.1.4"
+    ],
+    "steps": 14
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.4.3.1",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "It shall be possible to define whether one or all of the sub-conditions used from the list in 3.12.3.4.2/3.12.3.4.3 have to be fulfilled to define the start/end condition. This definition shall apply to both the start and the end conditions. It shall apply to the start condition checked by the on-board when at least two sub-conditions from the list in 3.12.3.4.2 are used by the trackside and it shall apply to the end condition checked by the on-board when at least two sub-conditions from the list in 3.12.3.4.3 are used by the trackside.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "9990500/TC31",
+    "clauses": [
+     "3.12.3.4.3.1",
+     "3.6.4.1.5"
+    ],
+    "steps": 21
+   },
+   {
+    "id": "3120300/TC7",
+    "clauses": [
+     "3.12.3.4.3.1",
+     "3.12.3.4.6",
+     "4.7.2.1.4"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "9990500/TC32",
+    "clauses": [
+     "3.12.3.4.3.1",
+     "3.12.3.4.6",
+     "3.6.4.1.5"
+    ],
+    "steps": 15
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.4.3.1.3",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "If none of the sub-conditions from the list in 3.12.3.4.2 is used, it shall be considered as a start condition immediately fulfilled.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120300/TC18",
+    "clauses": [
+     "3.12.3.1.10",
+     "3.12.3.4.3.1.3",
+     "4.7.2.1.4"
+    ],
+    "steps": 14
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.4.3.2",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "In case a confirmation of the text message is requested, it shall be possible to define whether the driver acknowledgement is considered: a) As always ending the text display, regardless of the end condition defined in 3.12.3.4.3.1 b) As a necessary condition to end the text display, in addition to the end condition defined in 3.12.3.4.3.1.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120300/TC8",
+    "clauses": [
+     "3.12.3.4.3.2",
+     "3.12.3.4.4",
+     "3.12.3.4.6"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.4.4",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "The end condition shall be evaluated as soon as the start condition is fulfilled. No display shall take place if the end condition is immediately fulfilled, regardless if a confirmation of the text message is requested.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120300/TC22",
+    "clauses": [
+     "3.12.3.4.4"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "3120300/TC10",
+    "clauses": [
+     "3.12.3.4.4",
+     "4.7.2.1.4"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3120300/TC2",
+    "clauses": [
+     "3.12.3.4.4",
+     "4.7.2.1.4"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3120300/TC8",
+    "clauses": [
+     "3.12.3.4.3.2",
+     "3.12.3.4.4",
+     "3.12.3.4.6"
+    ],
+    "steps": 8
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.4.6",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "When the sub-condition \"location\" is used for the end condition, the length on which the text is displayed shall refer to the location used for the start condition, independently from other start sub-conditions.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120300/TC7",
+    "clauses": [
+     "3.12.3.4.3.1",
+     "3.12.3.4.6",
+     "4.7.2.1.4"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "3120300/TC8",
+    "clauses": [
+     "3.12.3.4.3.2",
+     "3.12.3.4.4",
+     "3.12.3.4.6"
+    ],
+    "steps": 8
+   },
+   {
+    "id": "9990500/TC32",
+    "clauses": [
+     "3.12.3.4.3.1",
+     "3.12.3.4.6",
+     "3.6.4.1.5"
+    ],
+    "steps": 15
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.5.2",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "When the driver has acknowledged a text message with a request to report driver acknowledgement, the driver acknowledgement report, including the text message identifier, shall be sent to the RBC referenced in the request.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120300/TC15",
+    "clauses": [
+     "3.12.3.5.2"
+    ],
+    "steps": 10
+   }
+  ]
+ },
+ {
+  "clause": "3.12.3.5.3",
+  "kind": "core",
+  "heading": "3.12.3 Text Transmission",
+  "text": "A new text message with request for report of driver acknowledgement shall be rejected by the ERTMS/ETCS on-board equipment if it has the same text message identifier as a previously received text message, which the driver has not yet acknowledged.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "4080300/TC13",
+    "clauses": [
+     "3.12.3.5.3",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "4080300/TC14",
+    "clauses": [
+     "3.12.3.5.3",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "4080427/TC7",
+    "clauses": [
+     "3.12.3.5.3",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 4
+   },
+   {
+    "id": "4080427/TC8",
+    "clauses": [
+     "3.12.3.5.3",
+     "4.8.3.1.1",
+     "4.8.4.2"
+    ],
+    "steps": 4
+   }
+  ]
+ },
+ {
+  "clause": "3.12.4.3.1",
+  "kind": "core",
+  "heading": "3.12.4 Mode profile",
+  "text": "Exception: When receiving a new MA by infill, a) any currently supervised OS/LS Mode Profile shall be deleted only beyond the reference location of the infill information; b) in case the infill location reference is in rear of or at the start location of a currently supervised SH Mode Profile, this currently supervised SH Mode Profile shall be deleted; c) in case the infill location reference is in advance of the start location of a currently supervised SH Mode Profile, any Mode Profile and, if any, a list of balise groups for SH area included in this infill MA shall be ignored by the on-board equipment. No deletion of this currently supervised SH Mode Profile shall take place in this case.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120400/TC3",
+    "clauses": [
+     "3.12.4.3.1"
+    ],
+    "steps": 13
+   },
+   {
+    "id": "3120400/TC5",
+    "clauses": [
+     "3.12.4.3.1"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.12.4.7",
+  "kind": "core",
+  "heading": "3.12.4 Mode profile",
+  "text": "Until the ERTMS/ETCS on-board equipment has switched to the concerned mode, it shall consider the beginning of the Mode Profile as a temporary EOA. The ERTMS/ETCS on-board equipment shall only for the cases below consider a temporary SvL with no release speed that is at a location: a) At the beginning of the Mode Profile if it is required by the Mode Profile. b) That is determined in accordance with 3.8.4.5 as if no LOA had been given, if it is required that no temporary SvL is to be considered with respect to the Mode Profile and the MA defines an LOA located in advance of or at the start of the Mode Profile. c) At the beginning of the Mode Profile, if it is required that no temporary SvL is to be considered with respect to the Mode Profile and the MA defines an LOA located in rear of the start of the Mode Profile.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120400/TC7",
+    "clauses": [
+     "3.12.4.7"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3120400/TC8",
+    "clauses": [
+     "3.12.4.7",
+     "3.15.10.5"
+    ],
+    "steps": 18
+   },
+   {
+    "id": "3120400/TC9",
+    "clauses": [
+     "3.12.4.7",
+     "3.15.10.5"
+    ],
+    "steps": 17
+   },
+   {
+    "id": "5070300/TC2",
+    "clauses": [
+     "3.12.4.7",
+     "5.7.3.2"
+    ],
+    "steps": 6
+   }
+  ]
+ },
+ {
+  "clause": "3.12.5.3",
+  "kind": "core",
+  "heading": "3.12.5 Level Crossings",
+  "text": "If the ERTMS/ETCS on-board equipment receives a new LX information with the same identity as an already received LX information, the new LX information shall replace the previous one.",
+  "has_shall": true,
+  "spike": false,
+  "test_cases": [
+   {
+    "id": "3120500/TC1",
+    "clauses": [
+     "3.12.5.3"
+    ],
+    "steps": 7
+   }
+  ]
+ }
+]

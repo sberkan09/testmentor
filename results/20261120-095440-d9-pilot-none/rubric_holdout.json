@@ -1,0 +1,14 @@
+{
+  "r1": {
+    "recall": 0.51,
+    "recall_needs_documents": 0.533,
+    "checks": 49,
+    "checks_needs_documents": 15
+  },
+  "r2": {
+    "recall": 0.49,
+    "recall_needs_documents": 0.533,
+    "checks": 49,
+    "checks_needs_documents": 15
+  }
+}

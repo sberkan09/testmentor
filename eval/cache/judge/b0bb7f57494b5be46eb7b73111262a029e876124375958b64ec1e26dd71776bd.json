@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": true, "evidence": "OBU repeats termination message if no acknowledgement is received, steps 1-2: after the fixed waiting time expires without acknowledgement, the OBU repeats the message"}, {"no": 2, "matched": false, "evidence": ""}], "invented": [], "boundary_ok": false, "ambiguity_flagged": true}

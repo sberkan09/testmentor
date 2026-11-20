@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": false, "evidence": "Test 1 only observes 'Connection Up' after set-up succeeded; it has no Start of Mission in SB, no initial 'No Connection' state and no OBU request for the connection, so the transition is not verified."}, {"no": 2, "matched": false, "evidence": ""}], "invented": [], "boundary_ok": false, "ambiguity_flagged": true}
