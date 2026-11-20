@@ -132,7 +132,7 @@ documents:
 - id: NIST-SP-800-53Ar5
   title: 'Assessing Security and Privacy Controls: assessment procedures (XLSX)'
   publisher: NIST
-  version: 5 (XLSX)
+  version: Rev.5 (XLSX, 2022-03)
   kind: test_procedure
   role: reference
   language: en
@@ -142,7 +142,9 @@ documents:
   license: Kamu malı (ABD federal hükümet eseri)
   license_evidence: csrc.nist.gov yayın sayfası; ABD federal hükümet eseri
   repo_text: 'yes'
-  notes: 'KDH-905 referansının kaynağı. PDF yerine XLSX: PDF''te ''ti'' bağları düşüyor (aşama 2a).'
+  notes: 'KDH-905 referansının kaynağı. PDF yerine XLSX: PDF''te ''ti'' bağları düşüyor (aşama 2a). Sürüm farkı:
+    XLSX 2022''de oluşturulmuş (800-53A Rev.5 ilk yayın); OSCAL kataloğu 5.2.0. Aşama 5''te değerlendirme hedefleri
+    farklıysa kataloğun kendi değerlendirme bölümlerinden alınır.'
 - id: OWASP-ASVS-5.0.0
   title: Application Security Verification Standard (CSV)
   publisher: OWASP
@@ -168,8 +170,9 @@ documents:
   download: wcag22
   extract:
     method: html
-  license_evidence: Belge başlığındaki Copyright bölümü (W3C permissive document license)
-  license: W3C Software and Document License
+  license_evidence: 'Belge başlığı: ''Copyright © 2020-2024 World Wide Web Consortium. W3C® liability, trademark
+    and document use rules apply.'''
+  license: W3C Document License
   repo_text: 'yes'
 - id: W3C-ACT-RULES
   title: ACT Rules approved by AG WG (37 rules)
@@ -184,7 +187,7 @@ documents:
   extract:
     method: raw
   license_evidence: 'w3c/wcag-act-rules LICENSE.md: ''licensed by contributors under the W3C Document License'''
-  license: W3C Software and Document License
+  license: W3C Document License
   repo_text: 'yes'
   notes: 'Cevap anahtarı: Applicability ve Expectation bölümleri. Başarısızlık SC ihlalidir; geçme yalnızca ''daha
     fazla test gerekir''.'

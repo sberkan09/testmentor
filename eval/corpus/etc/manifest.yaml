@@ -59,8 +59,9 @@ documents:
     args:
     - -layout
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-026-2
   title: 'System Requirements Specification, Chapter 2: Basic System Description'
@@ -73,8 +74,9 @@ documents:
   member: SUBSET-026-2 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-026-3
   title: 'System Requirements Specification, Chapter 3: Principles'
@@ -87,8 +89,9 @@ documents:
   member: SUBSET-026-3 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: Hareket yetkisi, konum ve hat tanımı (§3.6–3.8) altın setin ana bölümü.
 - id: SUBSET-026-4
@@ -102,8 +105,9 @@ documents:
   member: SUBSET-026-4 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-026-5
   title: 'System Requirements Specification, Chapter 5: Procedures'
@@ -116,8 +120,9 @@ documents:
   member: SUBSET-026-5 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-026-6
   title: 'System Requirements Specification, Chapter 6: Management of Older System Versions'
@@ -130,8 +135,9 @@ documents:
   member: SUBSET-026-6 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-026-7
   title: 'System Requirements Specification, Chapter 7: ERTMS/ETCS language (variables and packets)'
@@ -144,8 +150,9 @@ documents:
   member: SUBSET-026-7 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: Paket listesi §7.4; ETC-905 denetimi Q_MARQSTREASON (§7.5.1.118.3) burada.
 - id: SUBSET-026-8
@@ -159,8 +166,9 @@ documents:
   member: SUBSET-026-8 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: Mesaj listesi; denetim kaybı analizinde eksik parça olarak işaretlendi (destek parçası seçimi).
 - id: SUBSET-026-9
@@ -174,8 +182,9 @@ documents:
   member: SUBSET-026-9 v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-023
   title: Glossary of Terms and Abbreviations
@@ -187,8 +196,9 @@ documents:
   download: s023
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-027
   title: FIS Juridical Recording
@@ -200,8 +210,9 @@ documents:
   download: s027
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: İsteğe bağlı. Resmî beklenen sonuçların JRU kayıtları buna dayanır; denetimler davranış çekirdeğine indirilirse
     gerekmez (audit_ertms.md).
@@ -216,8 +227,9 @@ documents:
   member: ERA_ERTMS_015560_v400.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: İsteğe bağlı; aynı gerekçe (sürücü ekranı gözlem kanalı).
 - id: SUBSET-036
@@ -230,8 +242,9 @@ documents:
   download: s036
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: 'İlgisiz ama gerçekçi içerik: araç üstü birimin balis arayüzü.'
 - id: SUBSET-037-1
@@ -244,8 +257,9 @@ documents:
   download: s037_1
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-041
   title: Performance Requirements for Interoperability
@@ -257,8 +271,9 @@ documents:
   download: s041
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-091
   title: Safety Requirements for the Technical Interoperability of ETCS
@@ -270,8 +285,9 @@ documents:
   download: s091
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
 - id: SUBSET-076-5-2
   title: Test cases related to features (SV30)
@@ -284,8 +300,9 @@ documents:
   member: subset-076-5-2_v400/subset-076-5-2_v400_SV30/*.pdf
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: 'Cevap anahtarı: resmî test vakaları, ''Based on Requirements'' atıfları. Test yazarına verilmez. Zip SV21
     klasörünü de içerir; aşama 1 SV30 ile çalıştı.'
@@ -299,8 +316,9 @@ documents:
   download: s076_7
   extract: *id001
   license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
-  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
-    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  license_evidence: 'Kapak sayfası: ERA/UNISIG şirket onay tablosu ya da ''ERA * UNISIG * EEIG ERTMS USERS GROUP''
+    ibaresi; lisans ya da yeniden kullanım izni yok. Her belgenin ilk sayfası 20 Kasım 2026''da ayrı ayrı kontrol
+    edildi.'
   repo_text: private_only
   notes: 'Tablo 3: test edilemez gereksinimler; doğrulama yöntemi etiketlerinin kaynağı.'
 excluded:

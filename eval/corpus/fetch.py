@@ -5,6 +5,7 @@ Layout under `eval/corpus/cache/<project>/` (not in git):
     text/<doc id>.txt             extracted text of a single-file document
     text/<doc id>/<member>.txt    one file per zip member for member globs
     index.json                    doc id → role, text files, their SHA-256 and length
+    writer_visible.txt            the only text files a test writer may be given (see below)
 """
 
 from __future__ import annotations
@@ -29,7 +30,7 @@ import httpx
 from eval.corpus.manifest import CORPUS_DIR, Document, Download, Manifest
 
 REPO_ROOT = CORPUS_DIR.parent.parent
-USER_AGENT = "testmentor-corpus/1 (+research; golden evaluation set)"
+USER_AGENT = "corpus-fetch/1.0"
 RETRY_WAIT_S = (10.0, 30.0, 90.0, 180.0)
 SLEEP = time.sleep  # replaced in tests
 
@@ -333,7 +334,15 @@ def fetch_manifest(
         index[d.id] = {"role": d.role.value, "language": d.language, "texts": entries}
     base.mkdir(parents=True, exist_ok=True)
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=1, sort_keys=True))
+    (base / "writer_visible.txt").write_text("".join(f + "\n" for f in writer_visible(index)))
     return list(results.values()), index, notes
+
+
+def writer_visible(index: dict[str, dict]) -> list[str]:
+    """Text files the test writer may see: `corpus` documents only. `reference` documents are the
+    answer key and never visible; `mixed` documents are withheld whole until paket 7 strips their
+    reference parts (a marker finds where an answer-key table starts, not where it ends)."""
+    return sorted(e["file"] for v in index.values() if v["role"] == "corpus" for e in v["texts"])
 
 
 def verify_manifest(manifest: Manifest, root: Path = CORPUS_DIR) -> dict[str, str]:

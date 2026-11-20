@@ -21,6 +21,7 @@ from eval.corpus.fetch import (
 )
 from eval.corpus.manifest import Manifest, Role, load_manifest, manifest_paths
 
+ROOT = __import__("pathlib").Path(__file__).resolve().parent.parent
 DOC = {
     "title": "t",
     "publisher": "p",
@@ -56,6 +57,10 @@ def test_repository_manifests_are_valid():
         # every document states a licence source; reference documents exist in each project
         assert all(d.license_evidence for d in m.documents)
         assert any(d.role == Role.reference for d in m.documents)
+        assert all(dl.sha256 for dl in m.downloads.values()), "unpinned download"
+        for d in m.documents:
+            if d.path:
+                assert list(ROOT.glob(d.path)), d.path
 
 
 def test_manifest_rules():
@@ -128,6 +133,9 @@ def test_fetch_extracts_members_and_uses_cache(tmp_path):
     assert verify_manifest(m, tmp_path) == {"s": "ok"}
     stored = json.loads((tmp_path / "cache/xx/index.json").read_text())
     assert set(stored) == {"S-1", "S-ALL"}
+    # the answer key never reaches the writer's file list
+    visible = (tmp_path / "cache/xx/writer_visible.txt").read_text().split()
+    assert visible == ["text/S-1.txt"]
 
 
 def test_hash_mismatch_fails_and_leaves_nothing(tmp_path):
