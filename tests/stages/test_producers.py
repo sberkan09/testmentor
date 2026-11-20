@@ -95,6 +95,23 @@ async def test_decision_missing_twice_fails_only_that_requirement():
     assert out.state.node(ref(NodeKind.METHOD, "R3")).status.value == "fresh"
 
 
+async def test_failed_missing_id_retry_keeps_the_decisions_already_in():
+    def handle(r):
+        rows = [i for i, _ in requirement_rows(r)]
+        if r.schema.__name__ == "MethodBatch" and rows == ["R2"]:
+            return '{"decisions": "x"}'  # the single retry fails the schema twice
+        reply = smart_reply(r)
+        if r.schema.__name__ == "MethodBatch":
+            reply["decisions"] = [d for d in reply["decisions"] if d["requirement_id"] != "R2"]
+        return reply
+
+    complete = ScriptedComplete(handle)
+    out = await drive(project(), complete, real={NodeKind.METHOD})
+    assert out.failed() == {ref(NodeKind.METHOD, "R2")}
+    assert len(complete.of(NodeKind.METHOD)) == 3  # batch, missing id, its schema retry
+    assert out.state.node(ref(NodeKind.METHOD, "R1")).status.value == "fresh"
+
+
 async def test_method_schema_error_retried_once():
     complete = ScriptedComplete(sequence(lambda r: '{"decisions": "x"}'))
     out = await drive(project(), complete, real={NodeKind.METHOD})

@@ -76,16 +76,20 @@ async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
         log = CallLog()
         try:
             found = await ask(batch, f"methods/{i}", log)
-            missing = [r for r in batch if r.key not in found]
-            if missing:
-                found |= await ask(missing, f"methods/{i}/missing", log)
         except CallFailed as exc:
             return [], {r: f"schema: {exc}"[:500] for r in batch}, log
+        missing = [r for r in batch if r.key not in found]
+        retry_error = ""
+        if missing:
+            try:
+                found |= await ask(missing, f"methods/{i}/missing", log)
+            except CallFailed as exc:  # only the missing ids fail; the decisions already in stay
+                retry_error = f"schema: {exc}"[:500]
         results, failed = [], {}
         for r in batch:
             d = found.get(r.key)
             if d is None:
-                failed[r] = "no decision in the reply after the retry"
+                failed[r] = retry_error or "no decision in the reply after the retry"
                 continue
             content = MethodContent(
                 methods=tuple(sorted(set(d["methods"]))), rationale=d["rationale"]
