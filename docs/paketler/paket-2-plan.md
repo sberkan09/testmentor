@@ -129,14 +129,17 @@ Ek testler: yöntem elle değişti (1 çağrı); kart değişti (tüm model çı
 
 ## Uygulama adımı sonuçları (adım 4, 20 Kasım 2026)
 
-- `tests/core`: 60 test geçiyor (bayatlama tablosunun 10 satırı, kurallar, graf, hash, depo sözleşmesi). Tüm takım: 150 test. `make lint` yalnızca main'den gelen `eval/golden/v1/tools/rubric_holdout.py:42` B023 hatasıyla düşüyor; bu dalın dosyalarında hata yok.
-- Ölçek (`uv run python scripts/core_scale.py 2000`; 2.000 gereksinim, 100 öbek, üretimden sonra 10.403 düğüm; sahte üretici, model çağrısı yok):
+- `tests/core`: 67 test geçiyor (bayatlama tablosunun 10 satırı, kurallar, graf, hash, depo sözleşmesi). Tüm takım: 157 test. `make lint` yalnızca main'den gelen `eval/golden/v1/tools/rubric_holdout.py:42` B023 hatasıyla düşüyor; bu dalın dosyalarında hata yok.
+- Ölçek (`uv run python scripts/core_scale.py 2000`; 2.000 gereksinim, 100 öbek, üretimden sonra 10.403 düğüm; sahte üretici, model çağrısı yok). Süreler koşudan koşuya ±%50 oynuyor:
 
 | İş | Süre |
 | --- | --- |
-| Baştan üretim, dalga başına `settle_many` (3 dalga) | 0,7 sn |
-| Baştan üretim, sonuçlar tek tek (6.301 `settle`) | 47,9 sn; `settle` başına 7,6 ms |
-| Olay: taşıma / metin değişikliği / belge ekleme (`apply`) | 232 / 269 / 151 ms |
+| Baştan üretim, dalga başına `settle_many` (3 dalga) | 0,7–1,0 sn |
+| Baştan üretim, sonuçlar tek tek (6.301 `settle`) | ~48 sn; `settle` başına 7,6–7,9 ms |
+| Olay: taşıma / metin değişikliği / belge ekleme (`apply`) | 130–350 ms |
 
 - İlk sürüm her `settle`'da projeyi baştan hesaplıyordu: 200 gereksinimde `settle` başına 33 ms, 2.000'de baştan üretim 10 dakikayı aştı. Planın risk satırındaki geçiş yapıldı: olaylar (`apply`) projeyi baştan hesaplar; `settle` önceki durumun hash ezberini taşır, yalnızca yazılan düğümün aşağı akışını yeniden hesaplar ve analizi o kapsamla günceller. `test_incremental_state_matches_full_recompute` her adımda artımlı sonucu baştan hesapla karşılaştırır. Diğer kazançlar: `NodeRef` için hafif `__hash__`/`__eq__`, iç sonuç modellerinde doğrulamasız kurulum (`model_construct`), toplu sonuçlar için tek geçişli `settle_many`.
 - Orkestratör (paket 5) için: embedding, yöntem ve matris sonuçları toplu geldiğinde `settle_many` kullanılmalı. Olay başına ~250 ms, 1,5 sn bekleme süresinin içinde kalıyor.
+- Gözden geçirmeden sonra (tasarım commit'i `ed5b263`): matris satırı kendi gereksinimine bağlandı (iki satır aynı cache anahtarını paylaşabiliyordu; metin değişikliğinde satır artık doğrudan bayat, model çağrısı eklenmez); silinen ya da elle düzenlenen çalışan düğüm de `cancel` listesine girer; `ClusterCreated` ve `MembershipChanged` testleri eklendi.
+- Paket 5'e devredilen depo sınırı: yer tutucular (sürüm 0, içerik yok) depoya yazılmaz; durum depodan kurulurken `with_declared_nodes` onları yeniden oluşturur. `set_status` yalnızca depolanmış düğümde çalışır. Durumu depoya yazıp geri okuyan gidiş-dönüş testi Postgres bağdaştırıcısıyla birlikte paket 5'te yazılır.
+- Açık: planın 5. adımı (paket 2 kodunun ayrı bir Opus oturumunda incelenmesi) yapılmadı.

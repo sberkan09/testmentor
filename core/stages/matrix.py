@@ -18,9 +18,13 @@ def keys(state: ProjectState) -> Iterable[str]:
 
 
 def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
-    """The requirement's method, then every test case whose `covers` contains the requirement, in
-    case key order."""
-    return (NodeRef(kind=NodeKind.METHOD, key=key), *state.cases_covering(key))
+    """The requirement (so that two rows never share a cache key), its method, then every test
+    case whose `covers` contains the requirement, in case key order."""
+    return (
+        NodeRef(kind=NodeKind.REQUIREMENT, key=key),
+        NodeRef(kind=NodeKind.METHOD, key=key),
+        *state.cases_covering(key),
+    )
 
 
 SPEC = register(

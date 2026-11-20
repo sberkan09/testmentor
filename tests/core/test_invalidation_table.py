@@ -132,9 +132,11 @@ def test_requirement_text_changed(project):
         state, RequirementTextChanged(requirement="R1", text="Sistem, girişi 5 denemede kilitler.")
     )
 
-    assert inv.stale == {EMB("R1"), TREE, METHOD("R1"), LABEL("A"), RET("A"), SET("A")}
+    assert inv.stale == {
+        EMB("R1"), TREE, METHOD("R1"), LABEL("A"), RET("A"), SET("A"), MX("R1"),
+    }  # fmt: skip
     assert inv.llm_calls == 3
-    assert inv.to_verify == {TC("A", "R1"), TC("A", "R2"), MX("R1"), MX("R2")}
+    assert inv.to_verify == {TC("A", "R1"), TC("A", "R2"), MX("R2")}
     assert {k: state.members(k) for k in CLUSTERS} == CLUSTERS
     # The set waits for its method and retrieval to be produced first.
     assert SET("A") not in analyze(state).ready

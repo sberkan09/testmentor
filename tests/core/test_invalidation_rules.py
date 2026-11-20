@@ -2,9 +2,11 @@
 cache, cancelling running work, empty clusters, context vs dependency."""
 
 from core.events import (
+    ClusterCreated,
     ClusterDeleted,
     ClusterRenamed,
     ClustersMerged,
+    MembershipChanged,
     MethodEdited,
     NodeKept,
     NodePinned,
@@ -356,3 +358,84 @@ def test_settle_many_matches_one_by_one(project):
     stale_result = fake_result(project[0], SET("A"))  # made before the move
     again = settle_many(out.state, [(SET("A"), stale_result)])
     assert again.rejected == {SET("A")} and again.state is out.state
+
+
+def test_matrix_rows_never_share_a_cache_key(project):
+    """Rows with the same method and no covering case differ by their requirement."""
+    from core.graph import cache_key
+
+    state, _ = project
+    state, _ = apply(state, ClusterDeleted(cluster="A", destinations={"R1": "B", "R2": "C"}))
+    assert cache_key(state, MX("R1")) != cache_key(state, MX("R2"))
+
+
+def test_running_node_cancelled_when_removed(project):
+    state, _ = project
+    state, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    state = produce_all_but(state, SET("A"))
+    state = mark_running(state, SET("A"))
+    state, inv = apply(state, ClustersMerged(sources=("A", "B"), new_cluster="D"))
+
+    assert SET("A") in inv.removed
+    assert SET("A") in inv.cancel
+
+
+def test_running_node_cancelled_when_edited(project):
+    state, _ = project
+    state, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    state = mark_running(state, LABEL("A"))
+    state, inv = apply(state, ClusterRenamed(cluster="A", name="Oturum güvenliği"))
+
+    assert inv.cancel == {LABEL("A")}
+    assert state.node(LABEL("A")).status == Status.FRESH
+    result = fake_result(state, LABEL("A"))
+    assert not settle(state, LABEL("A"), result).accepted  # pinned by the edit
+
+
+def test_cluster_created(project):
+    state, _ = project
+    state, inv = apply(state, ClusterCreated(cluster="E", members=("R2", "R3")))
+
+    assert state.members("A") == ("R1",) and state.members("B") == ("R4",)
+    assert state.members("E") == ("R2", "R3")
+    assert state.node(CL("E")).content.pinned_members == ("R2", "R3")
+    assert inv.stale == {
+        LABEL("A"), LABEL("B"), LABEL("E"), RET("A"), RET("B"), RET("E"),
+        SET("A"), SET("B"), SET("E"),
+    }  # fmt: skip
+    assert inv.llm_calls == 6
+
+
+def test_cluster_created_empties_source(project):
+    state, _ = project
+    state, inv = apply(state, ClusterCreated(cluster="E", members=("R5", "R6")))
+
+    assert CL("C") in inv.removed and SET("C") in inv.removed
+    assert inv.llm_calls == 2  # E: set and label
+
+
+def test_membership_change_keeps_pins_and_untouched_clusters(project):
+    """A re-cut (paket 3) that changes only C leaves A and B fresh; pinned placements stay."""
+    state, cache = project
+    state, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    state = produce_all(state, cache)
+    state, inv = apply(
+        state,
+        MembershipChanged(
+            clusters={"A": ("R1",), "B": ("R2", "R3", "R4"), "C1": ("R5",), "C2": ("R6",)}
+        ),
+    )
+
+    assert not any(r.key in ("A", "B") for r in inv.stale)
+    assert CL("C") in inv.removed
+    assert state.node(CL("B")).content.pinned_members == ("R2",)
+    assert {LABEL("C1"), LABEL("C2"), SET("C1"), SET("C2")} <= inv.stale
+    assert inv.llm_calls == 4
+
+
+def test_membership_change_must_place_every_requirement(project):
+    import pytest
+
+    state, _ = project
+    with pytest.raises(ValueError):
+        apply(state, MembershipChanged(clusters={"A": ("R1", "R2"), "B": ("R3",)}))

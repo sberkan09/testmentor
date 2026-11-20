@@ -98,7 +98,7 @@ def test_declared_dependencies(project):
     assert upstream(state, METHOD("R1")) == (REQ("R1"), CARD)
     assert upstream(state, EMB("R1")) == (REQ("R1"),)
     assert upstream(state, TREE) == tuple(EMB(f"R{i}") for i in range(1, 7))
-    assert upstream(state, MX("R1")) == (METHOD("R1"), TC("A", "R1"))
+    assert upstream(state, MX("R1")) == (REQ("R1"), METHOD("R1"), TC("A", "R1"))
     assert upstream(state, TC("A", "R1")) == (SET("A"),)
     assert upstream(state, REQ("R1")) == ()
 
@@ -106,7 +106,9 @@ def test_declared_dependencies(project):
 def test_dependents_reverse_upstream(project):
     state, _ = project
     assert dependents(state, SET("A")) == {TC("A", "R1"), TC("A", "R2")}
-    assert dependents(state, REQ("R1")) == {EMB("R1"), METHOD("R1"), LABEL("A"), RET("A"), SET("A")}
+    assert dependents(state, REQ("R1")) == {
+        EMB("R1"), METHOD("R1"), LABEL("A"), RET("A"), SET("A"), MX("R1"),
+    }  # fmt: skip
     assert dependents(state, LABEL("A")) == frozenset()  # the name feeds nothing
 
 

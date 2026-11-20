@@ -3,14 +3,17 @@ bayatlatır).
 
 Rules (docs/tasarim.md, Veri modeli kuralları):
 - A derived node is stale iff its recorded `input_hash` differs from `expected_hash`, or it was
-  never produced. Expected hashes are recomputed for the whole project after every change.
+  never produced. After an event, expected hashes are recomputed for the whole project; after a
+  produced result, only for the result's downstream (the memo of the previous state is carried
+  over; tests compare the outcome with a full recompute).
 - A node that is not stale but has a non-fresh node upstream (stale, running, failed, or itself
   waiting) is in `to_verify`: its status stays fresh and it is not queued until its upstream
   settles. If the upstream result is unchanged it stays fresh (early cutoff).
 - A pinned stale node is never regenerated: it is reported in `pinned_warnings`, not counted in
   `llm_calls`, and does not block its dependents (the user's pinned value is authoritative).
-- A running node whose expected hash changes becomes stale and is listed in `cancel`; a result
-  produced for an old hash is not written to the node (`settle` rejects it).
+- A running node whose expected hash changes becomes stale and is listed in `cancel`, as is a
+  running node that an event removes or edits; a result produced for an old hash is not written
+  to the node (`settle` rejects it).
 - Status changes are not versions; only content changes are (production, edit, carrying a
   pinned case, keep). An edit stamps the node with its current expected hash, so editing a
   stale node makes it fresh; `NodeKept` does the same without changing content.
@@ -326,9 +329,17 @@ def apply(
     new, carried = _carry_cases(new)
     new = _refresh(state, new)
     new, hits = _resolve_cache(new, cache)
+    running = _analysis_sets(state)["blocking"] - _analysis_sets(state)["stale"]
+    cancel = frozenset(
+        r
+        for r in running
+        if state.nodes[r].status == Status.RUNNING
+        and (r not in new.nodes or new.nodes[r].status != Status.RUNNING)
+    )
     return new, _diff(
         state,
         new,
+        cancel=cancel,
         carried=carried,
         cache_hits=hits,
         requires_approval=event.type in APPROVAL_EVENTS,
@@ -529,6 +540,7 @@ def _diff(
     requires_approval: bool = False,
     merges: dict[NodeRef, tuple[NodeRef, ...]] | None = None,
     removed: frozenset[NodeRef] | None = None,
+    cancel: frozenset[NodeRef] | None = None,
 ) -> Invalidation:
     """Set operations here use the analysis sets (stored hashes): no pass over every node."""
     sets0, sets1 = _analysis_sets(before), _analysis_sets(after)
@@ -543,20 +555,21 @@ def _diff(
             hints[r] = Hint(mode="incremental")
         else:
             hints[r] = Hint(mode="full")
-    running = sets0["blocking"] - sets0["stale"] - sets0["failed"]
-    cancel = {
-        r
-        for r in running
-        if before.nodes[r].status == Status.RUNNING
-        and r in after.nodes
-        and after.nodes[r].status == Status.STALE
-    }
+    if cancel is None:
+        running = sets0["blocking"] - sets0["stale"] - sets0["failed"]
+        cancel = frozenset(
+            r
+            for r in running
+            if before.nodes[r].status == Status.RUNNING
+            and r in after.nodes
+            and after.nodes[r].status == Status.STALE
+        )
     if removed is None:
         removed = frozenset(r for r in before.nodes if r not in after.nodes)
     return Invalidation.model_construct(
         stale=stale,
         to_verify=frozenset(sets1["waiting"] - sets0["waiting"]),
-        cancel=frozenset(cancel),
+        cancel=cancel,
         removed=removed,
         carried=carried or {},
         pinned_warnings=frozenset(sets1["pinned"] - sets0["pinned"]),
