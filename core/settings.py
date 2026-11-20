@@ -16,13 +16,13 @@ _FROZEN = ConfigDict(frozen=True, extra="forbid")
 
 
 class ClusteringSettings(BaseModel):
-    """D6 result (paket 3): BGE-M3, agglomerative, average linkage, cosine distance 0.30."""
+    """D6 result (paket 3): BGE-M3, agglomerative, average linkage, cosine distance 0.35."""
 
     model_config = _FROZEN
 
     method: Literal["agglomerative", "hdbscan"] = "agglomerative"
     linkage: str = "average"
-    distance_threshold: float = 0.30
+    distance_threshold: float = 0.35
     max_cluster_size: int = Field(default=25, ge=1)
     """Cut-time limit: clusters shown in the UI are chunked to this size."""
     min_cluster_size: int = Field(default=2, ge=2)

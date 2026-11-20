@@ -175,9 +175,52 @@ def pick(rows, setting, project):
     )
 
 
+def bootstrap(
+    projects: Sequence[GoldenProject],
+    vectors: dict[str, list[float]],
+    a: float = 0.35,
+    b: float = 0.30,
+    samples: int = 300,
+    seed: int = 0,
+) -> dict[str, dict[str, float]]:
+    """Move-rate difference (threshold `a` minus `b`, BGE-M3 average) with a 95% interval over
+    requirements resampled with replacement. A requirement drawn twice keeps its vector, so the
+    copies always cluster together: the interval is optimistic."""
+    rng = np.random.default_rng(seed)
+    out = {}
+    for p in projects:
+        ids = [r.id for r in p.requirements]
+        text = {r.id: r.text for r in p.requirements}
+        ref = {r["id"]: r["reference_cluster"] for r in p.raw["requirements"]}
+
+        def rate(sample: Sequence[str], t: float, text=text, ref=ref) -> float:
+            sids = [f"{rid}#{k}" for k, rid in enumerate(sample)]
+            vecs = [vectors[_key("bge-m3", text[r])] for r in sample]
+            pred = cut(sids, vecs, ClusteringSettings(distance_threshold=t))
+            groups: dict[str, list[str]] = {}
+            for sid, rid in zip(sids, sample, strict=True):
+                groups.setdefault(ref[rid], []).append(sid)
+            return moves(pred, list(groups.values())) / len(sample)
+
+        diffs = []
+        for _ in range(samples):
+            sample = list(rng.choice(ids, size=len(ids), replace=True))
+            diffs.append(rate(sample, a) - rate(sample, b))
+        lo, hi = np.percentile(diffs, [2.5, 97.5])
+        out[p.key] = {
+            "difference": round(rate(ids, a) - rate(ids, b), 4),
+            "low": round(float(lo), 4),
+            "high": round(float(hi), 4),
+        }
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--embed", action="store_true", help="compute missing CPU vectors")
+    ap.add_argument(
+        "--bootstrap", action="store_true", help="interval of the 0.35 − 0.30 move-rate difference"
+    )
     args = ap.parse_args()
 
     v0, v1 = load_golden(), load_golden_v1()
@@ -242,6 +285,7 @@ def main() -> int:
                 "best_possible_move_rate": pick(rows, best(rows, [held]), held)["move_rate"],
             }
         )
+    boot = bootstrap(projects, vectors["bge-m3"]) if args.bootstrap else None
     best_per_model = {m: best([r for r in rows if r["model"] == m], v1_keys) for m in vectors}
     metrics = {
         "working_assumption": WORKING,
@@ -250,6 +294,7 @@ def main() -> int:
         "best_per_model": best_per_model,
         "leave_one_out": loo,
         "gpu_cpu_check": gpu_check,
+        "bootstrap_035_minus_030": boot,
         "rows": rows,
     }
     OUT.mkdir(parents=True, exist_ok=True)
@@ -283,14 +328,18 @@ DECISION = """## Karar (20 Kasım 2026)
 - **Yöntem: agglomerative kalır.** HDBSCAN (min 2) v1'de en düşük taşımayı veriyor (%45), ama
   tasarımın öbek ağacını (kesim seviyesi yeniden hesaplanmadan değişir, kullanıcı kaydırıcısı)
   sağlamıyor ve v0'da öbeklerin çoğunu tek üyeli bırakıyor (5 projeden 4'ünde 8 öbek).
-- **Eşik: 0,35 → 0,30** (`config/pipeline.yaml` `clustering.distance_threshold`, tek satır). v1'in
-  iki projesinde hem taşıma (ETC 54 → 45, KDH 70 → 66) hem ARI (0,321 → 0,375; 0,336 → 0,457)
-  iyileşiyor. İki eşik eşit derecede basit; ana ölçüt gerçekçi boyuttaki v1'dir.
+- **Eşik: 0,35 kalır; 0,30 aday.** 0,30 v1'in iki projesinde taşımayı (ETC 54 → 45, KDH 70 → 66)
+  ve ARI'yi (0,321 → 0,375; 0,336 → 0,457) iyileştiriyor, ama gereksinim bootstrap'ında (300
+  örnek) taşıma payı farkının %95 aralığı sıfırı geçmiyor (ETC +0,083 [0,000, +0,170]; KDH +0,033
+  [0,000, +0,133]) ve v0'da 0,30 daha kötü (KK, KMU −0,125). Ölçülebilir fark yok: planın kuralıyla
+  çalışma varsayımı kalır. (Bootstrap'ta tekrar çekilen gereksinimler aynı vektörü taşır ve hep
+  birlikte öbeklenir; aralık bu yüzden iyimserdir.)
 - Sınırlar: (1) referans uzman öbeklemesi değil belge bölümleri; (2) yalnızca iki v1 projesi:
   birini dışarıda bırakmada ETC'de seçilen eşik KDH'ye taşınıyor (%55, varsayım %58), KDH'de
   seçilen ise 0,05 (KDH referansı 120 gereksinimde 66 öbek, çok parçalı) ve ETC'de kötü (%71);
   (3) v0'da (8'er gereksinim) 0,30 biraz kötü (toplam taşıma 22 → 24). Eşik kullanıcı kaydırıcısıyla
   zaten değişir; bu yalnızca başlangıç kesimidir. Uzman öbeklemesi gelince yeniden ölçülmeli.
+  Bootstrap betiği: `eval/d6.py --bootstrap`.
 """
 
 

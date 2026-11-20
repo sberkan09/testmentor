@@ -76,7 +76,7 @@ def test_stage_configs_carry_prompt_versions_and_params():
     assert t.prompt_version == prompt_version(NodeKind.TEST_SET, SETTINGS)
     assert t.model == "qwen3.8-27b" and t.params["max_tokens"] == 8192
     assert cfgs[NodeKind.EMBEDDING].prompt_version == "BAAI/bge-m3"
-    assert cfgs[NodeKind.CLUSTERING].params["distance_threshold"] == 0.30
+    assert cfgs[NodeKind.CLUSTERING].params["distance_threshold"] == 0.35
     ex = dict(SETTINGS.examples, output={"test_cases": []})
     other = stage_configs(
         SETTINGS.model_copy(update={"examples": ex}),

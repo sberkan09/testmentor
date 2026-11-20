@@ -84,6 +84,43 @@
   "settings_x_projects": 135,
   "identical": 135
  },
+ "bootstrap_035_minus_030": {
+  "ETC": {
+   "difference": 0.0826,
+   "low": 0.0,
+   "high": 0.17
+  },
+  "KDH": {
+   "difference": 0.0333,
+   "low": 0.0,
+   "high": 0.1333
+  },
+  "AI": {
+   "difference": 0.0,
+   "low": -0.25,
+   "high": 0.125
+  },
+  "KK": {
+   "difference": -0.125,
+   "low": -0.25,
+   "high": 0.125
+  },
+  "KMU": {
+   "difference": -0.125,
+   "low": -0.25,
+   "high": 0.0
+  },
+  "MED": {
+   "difference": 0.0,
+   "low": 0.0,
+   "high": 0.0
+  },
+  "SW": {
+   "difference": 0.0,
+   "low": -0.25,
+   "high": 0.125
+  }
+ },
  "rows": [
   {
    "method": "agglomerative",
