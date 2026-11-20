@@ -14,8 +14,8 @@ system (VBP, a citizen application portal; see corpus/text/VBP-*.txt).
     assessment methods (TEST / EXAMINE / INTERVIEW prose).
   - W3C ACT rules (doc `W3C-ACT-RULES`): Applicability, Expectation, assumptions, test cases.
   - Rehber audit table window (doc `SGB-REHBER-1.1`): measure numbers, names, audit method
-    suggestions and audit questions between the previous and the next measure. In this text the
-    first question of a row can appear BEFORE its measure number; decide by content which
+    suggestions and audit questions between the previous and the next measure. In this text one
+    or more questions of a row can appear BEFORE its measure number; decide by content which
     questions belong to the requirement's measure.
   - NIST 800-53 Rev.5.2.0 (doc `NIST-SP-800-53r5`): statement items, assessment objectives and
     methods; organisation-defined parameters appear as [label].
@@ -33,11 +33,16 @@ system (VBP, a citizen application portal; see corpus/text/VBP-*.txt).
    requirement → Turkish checks).
 2. **Only what can be tested by running VBP.** Turn TEST procedures, ACT expectations, Rehber
    questions answerable by Sızma Testi / Güvenlik Denetimi, and 800-53 objectives that a TEST can
-   show into checks. Policy, documentation and interview items (EXAMINE / INTERVIEW / Mülakat /
-   Gözden Geçirme / "tanımlanmış mıdır") are not checks; count them in `reference_note`.
+   show into checks. Decide by whether the behaviour can be observed by running VBP, not by the
+   wording: "CORS güvenlik önlemleri tanımlanmış mıdır?" or "oturum sonlandığında ... test edilmiş
+   midir?" become checks of the behaviour itself. Items that can only be answered from policies,
+   documents or interviews (EXAMINE / INTERVIEW, "politika/prosedür var mıdır", "kim sorumludur")
+   are not checks; count them in `reference_note`.
 3. **Scope.** Keep a check only if the requirement text states that behaviour (the requirement
    may cover only part of a measure or criterion). Count dropped items in `reference_note`. If no
    check survives, output empty `reference_checks` and explain; do not substitute your own.
+   Parts of the requirement that no official procedure item covers get no check either; list
+   them in `reference_note` as "uncovered: ..." so they can be reported separately.
 4. **Generality.** `action` states the distinguishing condition at the requirement's level of
    generality. Concrete values belong in a check when the requirement or a VBP document fixes
    them (e.g. the lockout threshold from VBP-YTB-001 §14) — such a check needs documents.
@@ -49,7 +54,9 @@ system (VBP, a citizen application portal; see corpus/text/VBP-*.txt).
    `basis = {doc, ref, text}`: doc as listed above, ref = criterion id / ACT rule id / measure
    number / control id, and `text` copied verbatim from the block (whitespace may differ; join
    non-contiguous pieces with " … "; for 800-53 do not quote across a [parameter] placeholder —
-   split around it with " … "). Do not paraphrase inside `basis.text`. For "claude" requirements
+   split around it with " … "). Do not paraphrase inside `basis.text`. When you merge items from
+   several rules/criteria into one check, quote the primary one in `basis` and name the merged
+   ids in `channel_note` ("merged: ACT 6cfa84"). For "claude" requirements
    `basis` is null and you write at most 4 checks from the standard text and the VBP documents.
 7. **Preconditions.** `reference_preconditions`: the starting state needed (account types, AAL,
    test data), one short paragraph, in the requirement's language.
