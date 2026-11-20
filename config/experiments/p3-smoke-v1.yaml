@@ -1,0 +1,9 @@
+name: p3-smoke-v1
+question: "Paket 3 duman testi (pod 1): altın set v1 ETC uçtan uca (gerçek öbekleme ve yöntem aşaması)."
+variable: generation_inputs=predicted (duman)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+projects: [ETC]
+pipeline:
+  generation_inputs: predicted
+quality: true

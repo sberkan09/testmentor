@@ -176,6 +176,8 @@ def stage_settings_from(cfg: dict[str, Any], examples: dict[str, Any]) -> StageS
         method_batch_size=(cfg.get("classification") or {}).get("batch_size", 25),
         max_unit_size=generation.get("max_unit_size", 25),
         repair=generation.get("repair", True),
+        regeneration=generation.get("regeneration", "incremental"),
+        prune_removals=generation.get("prune_removals", False),
         clustering=ClusteringSettings(**(cfg.get("clustering") or {})),
     )
 
@@ -193,9 +195,11 @@ def stage_configs(
     `model`, params = `settings.llm[stage]` as plain JSON, plus the settings that change the
     stage's output without changing its prompt: `batch_size` for the method stage,
     `max_unit_size` (D7) and `repair` for the test set (core/settings.py: everything that changes
-    an output reaches `input_hash`). Embedding: version = the embedding model version.
-    Clustering: version `c1`, params = `settings.clustering` as plain JSON. Retrieval and matrix:
-    fixed versions `r1` and `x1` (paket 7 and 4 change them)."""
+    an output reaches `input_hash`). `regeneration` and `prune_removals` (D8) choose the
+    production mode and stay out, like the mode itself (core/stages/base.py).
+    Embedding: version = the embedding model version. Clustering: version `c1`, params =
+    `settings.clustering` as plain JSON. Retrieval and matrix: fixed versions `r1` and `x1`
+    (paket 7 and 4 change them)."""
     from core import stages
     from core.prompts import prompt_version
 
@@ -215,7 +219,9 @@ def stage_configs(
         NodeKind.CLUSTER_LABEL: llm_stage(NodeKind.CLUSTER_LABEL),
         NodeKind.RETRIEVAL: StageConfig(prompt_version=RETRIEVAL_VERSION),
         NodeKind.TEST_SET: llm_stage(
-            NodeKind.TEST_SET, max_unit_size=settings.max_unit_size, repair=settings.repair
+            NodeKind.TEST_SET,
+            max_unit_size=settings.max_unit_size,
+            repair=settings.repair,
         ),
         NodeKind.MATRIX_ROW: StageConfig(prompt_version=MATRIX_VERSION),
     }

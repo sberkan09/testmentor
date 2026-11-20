@@ -53,7 +53,8 @@ async def call(
     params: LLMParams,
 ) -> Any:
     """One call; on a schema error one retry with `schema_retry_section` appended. Returns the
-    parsed output as plain JSON; raises `CallFailed` after a second schema error."""
+    parsed output as plain JSON; raises `CallFailed` after a second schema error, or at once when
+    the output was truncated (`finish_reason == "length"`: a retry would be cut again)."""
     msgs = list(messages)
     error = ""
     for attempt in range(2):
@@ -72,6 +73,9 @@ async def call(
         if reply.parsed is not None:
             return plain(reply.parsed)
         error = reply.schema_error or "output does not match the schema"
+        if reply.finish_reason == "length":
+            # Cut at max_tokens: the same prompt would be cut again; no retry.
+            raise CallFailed(f"output truncated at max_tokens ({params.max_tokens}): {error}")
         msgs = append_tail(messages, schema_retry_section(error))
     raise CallFailed(error)
 

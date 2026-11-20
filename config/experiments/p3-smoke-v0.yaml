@@ -1,0 +1,5 @@
+name: p3-smoke-v0
+question: "Paket 3 duman testi (pod 1): yeni aşamalarla altın set v0 referans, tek koşu."
+variable: aşama kodu (duman)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+quality: true

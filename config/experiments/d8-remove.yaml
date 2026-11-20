@@ -1,0 +1,12 @@
+name: d8-remove
+question: "D8 Yeniden üretim, çıkarma: her öbekten bir Test üyesi çıkar; artımlı çağrı (tasarımın çağrı sayısı) ile modelsiz budama aynı taban üzerinde karşılaştırılır. Fark ölçülemezse daha basit olan budama seçilir."
+variable: generation.prune_removals (false | true)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+scenario:
+  kind: remove
+  min_test_members: 3
+  arms:
+    call: {prune_removals: false}
+    prune: {prune_removals: true}
+quality: true

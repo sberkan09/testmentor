@@ -1,0 +1,9 @@
+name: d7-cluster
+question: "D7 Üretim birimi, çalışma varsayımı: referans öbek başına tek çağrı (birleştirme yok, sınır 25); D7 kollarının karşılaştırma tabanı."
+variable: unit_packing=false (öbek başına çağrı)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  generation:
+    max_tokens: 16384     # kollarla aynı; yalnızca kesilmede çıktıyı etkiler
+quality: true

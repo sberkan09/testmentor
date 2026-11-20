@@ -1,0 +1,12 @@
+name: d8-add
+question: "D8 Yeniden üretim, ekleme: her öbekten ayrılan Test üyesi geri eklenir; artımlı çağrı (çalışma varsayımı) ile baştan üretim aynı taban üzerinde karşılaştırılır. Korunma oranı, sabit testlerin korunması ve tekrarı, yeni gereksinimin kapsaması ve recall'ı, süre ve çıktı token'ı."
+variable: generation.regeneration (incremental | full)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+scenario:
+  kind: add
+  min_test_members: 3
+  arms:
+    incremental: {regeneration: incremental}
+    full: {regeneration: full}
+quality: true

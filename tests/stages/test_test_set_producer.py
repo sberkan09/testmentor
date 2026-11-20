@@ -36,6 +36,7 @@ from tests.stages.helpers import (
     project,
     requirement_rows,
     smart_reply,
+    tail,
 )
 
 SCHEMA = case_set_model(SETTINGS.test_types, SETTINGS.priorities)
@@ -348,3 +349,58 @@ async def test_pinning_a_case_does_not_call_the_model():
     complete = ScriptedComplete()
     await drive(state, complete, hints=inv.hints)
     assert complete.requests == []
+
+
+# D8 switches and truncation (paket 3 step 5) ----------------------------------------------------
+
+
+async def test_regeneration_full_never_chooses_incremental():
+    full = SETTINGS.model_copy(update={"regeneration": "full"})
+    complete = ScriptedComplete()
+    state = (await drive(project(), complete, settings=full)).state
+    state, inv = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    complete = ScriptedComplete()
+    out = await drive(state, complete, settings=full, hints=inv.hints)
+    assert {r.schema.__name__ for r in complete.of(NodeKind.TEST_SET)} == {"TestCaseSet"}
+    assert out.state.node(SET("B")).produced_by.mode == "full"
+    assert covered(out.state, "B") == {"R2", "R3", "R4"}
+
+
+async def test_prune_removals_needs_no_call():
+    prune = SETTINGS.model_copy(update={"prune_removals": True})
+    state = (await drive(project(), ScriptedComplete(), settings=prune)).state
+    before_b = cases_of(state, "B")
+    state, inv = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    complete = ScriptedComplete()
+    out = await drive(state, complete, settings=prune, hints=inv.hints)
+    assert not [r for r in complete.of(NodeKind.TEST_SET) if "Removed: R2" in tail(r)]
+    assert [c.covers for c in cases_of(out.state, "A")] == [("R1",)]
+    assert out.stats(SET("A"))["pruned"] is True and out.stats(SET("A"))["calls"] == 0
+    assert cases_of(out.state, "B")[: len(before_b)] == before_b  # B still incremental (added)
+
+
+async def test_truncated_output_is_not_retried():
+    from core.llm import LLMReply
+
+    class Truncating(ScriptedComplete):
+        async def __call__(self, request):
+            if request.stage == NodeKind.TEST_SET and {i for i, _ in requirement_rows(request)} == {
+                "R1",
+                "R2",
+            }:
+                self.requests.append(request)
+                return LLMReply(
+                    content='{"test_cases": [{"id": "T',
+                    parsed=None,
+                    schema_error="EOF while parsing",
+                    finish_reason="length",
+                )
+            return await super().__call__(request)
+
+    complete = Truncating()
+    out = await drive(project(), complete)
+    assert out.failed() == {SET("A")}
+    assert (
+        len([r for r in complete.of(NodeKind.TEST_SET) if "R1 (tr)" in r.messages[1]["content"]])
+        == 1
+    )

@@ -46,4 +46,10 @@ class StageSettings(BaseModel):
     balanced parts. Independent of `clustering.max_cluster_size`."""
     repair: bool = True
     """One coverage repair call for Test requirements left uncovered."""
+    regeneration: Literal["incremental", "full"] = "incremental"
+    """D8: how a stale set with a valid basis is produced again. `full` always regenerates.
+    A production mode: not part of `input_hash` (core/stages/base.py)."""
+    prune_removals: bool = False
+    """D8: when members only left, drop and trim their cases without a model call (`False`: the
+    incremental call, as in the design's call count)."""
     clustering: ClusteringSettings = ClusteringSettings()

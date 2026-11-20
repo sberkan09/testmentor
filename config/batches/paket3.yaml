@@ -1,0 +1,15 @@
+# Paket 3 pod 2: bitti koşuları, D7, D8. Pod sonunda her durumda silinir (eval/batch.py).
+# Süre yetmezse önce d8-merge çıkarılır; bekçi kapatılmaz (make extend HOURS=1).
+max_hours: 2
+steps:
+  - {experiment: p3-v0-reference}
+  - {experiment: p3-v0-predicted}
+  - {experiment: p3-v1-reference}
+  - {experiment: p3-v1-predicted}
+  - {experiment: d7-cluster}
+  - {experiment: d7-unit1}
+  - {experiment: d7-unit10}
+  - {experiment: d7-unit25}
+  - {experiment: d8-add}
+  - {experiment: d8-remove}
+  - {experiment: d8-merge}

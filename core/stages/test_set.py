@@ -101,7 +101,8 @@ async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
        Layer 4: `ctx.passages(retrieval passage ids)`; passage ids without `ctx.passages`
        fail the node (no silent "(none)").
        Incremental: `prune_removed` first; when the delta is only removals the call still
-       happens (design call count; D8 measures pruning without a call).
+       happens (design call count) unless `settings.prune_removals` (D8 arm: no call).
+       `settings.regeneration == "full"` (D8 arm) never chooses incremental.
     3. `filter_covers` against `need`; one repair call when `settings.repair` and something is
        uncovered (pinned and generated cases together). The repair prompt is the same in every
        mode: layers 1–5, `pinned_section`, `repair_section(uncovered)`; schema case set (no
@@ -148,6 +149,7 @@ class _SetJob:
         self.uncovered: list[str] = []
         self.covered_before_repair: list[str] = []
         self.pinned_update_attempts = 0
+        self.pruned = False
 
         state, cluster = self.state, self.cluster
         self.members = state.members(cluster)
@@ -182,6 +184,7 @@ class _SetJob:
             "uncovered": self.uncovered,
             "covered_before_repair": self.covered_before_repair,
             "pinned_update_attempts": self.pinned_update_attempts,
+            "pruned": self.pruned,
         }
 
     # Prompt ---------------------------------------------------------------------------------
@@ -254,6 +257,7 @@ class _SetJob:
             self.ctx.hint,
             self.ctx.sources,
             max_unit_size=self.settings.max_unit_size,
+            allow_incremental=self.settings.regeneration == "incremental",
         )
         if not self.need:
             cases: list[TestCaseContent] = []  # nothing may be covered
@@ -302,6 +306,9 @@ class _SetJob:
         # A member that left, or stayed but lost the test method, takes its covers along.
         lost = set(d.removed) | {m for m in self.members if m not in set(self.need)}
         kept, trimmed = prune_removed(self.existing, lost)
+        if d.only_removed and self.settings.prune_removals:
+            self.pruned = True  # D8: no call; kept cases are the set
+            return kept
         touched = set(d.changed) | set(d.removed)
         full = [c for c in kept if c.id in trimmed or touched.intersection(c.covers)]
         summary = [c for c in kept if c not in full]

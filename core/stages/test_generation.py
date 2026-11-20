@@ -134,6 +134,7 @@ def choose_mode(
     sources: Mapping[NodeRef, Sequence[TestCaseContent]],
     *,
     max_unit_size: int | None = None,
+    allow_incremental: bool = True,
 ) -> Mode:
     """- `merge` when the hint is merge and every hint source is in `sources`;
     - otherwise `incremental` when the set has content, a readable basis, the basis' config,
@@ -142,7 +143,8 @@ def choose_mode(
     - `full` in every other case (no content, no basis, card / config / passages changed, a
       cluster larger than one unit). A merge hint without its sources falls through to these
       rules. The hint's `incremental` alone never decides: paket 2 gives it to every stale set
-      with content, whatever the cause."""
+      with content, whatever the cause. `allow_incremental=False` (D8, `regeneration: full`)
+      turns every incremental case into `full`."""
     if (
         hint is not None
         and hint.mode == "merge"
@@ -151,7 +153,7 @@ def choose_mode(
     ):
         return "merge"
     node = state.node(NodeRef(kind=NodeKind.TEST_SET, key=cluster))
-    if not isinstance(node.content, TestSetContent):
+    if not allow_incremental or not isinstance(node.content, TestSetContent):
         return "full"
     old = read_basis(node)
     if old is None:

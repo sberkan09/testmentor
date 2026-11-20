@@ -1,0 +1,8 @@
+name: p3-v1-predicted
+question: "Paket 3 bitti ölçütü: altın set v1 uçtan uca; şema, adım yapısı ve tahmin edilen yöntemlere göre kapsama."
+variable: generation_inputs=predicted
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  generation_inputs: predicted
+quality: true

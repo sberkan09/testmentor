@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from statistics import mean
@@ -125,6 +126,37 @@ def raw_violations(
     return count
 
 
+_WORD = re.compile(r"\w+")
+
+
+def _step_words(tc: Mapping[str, Any]) -> set[str]:
+    text = " ".join(f"{s.get('action', '')} {s.get('expected', '')}" for s in tc.get("steps") or [])
+    return set(_WORD.findall(text.lower()))
+
+
+def duplicate_tests(outcomes: Sequence[ProjectOutcome], threshold: float = 0.8) -> dict[str, Any]:
+    """D7: pairs of test cases in the same project with the same `covers` set whose normalised
+    step words have Jaccard >= `threshold`. `duplicate_test_rate`: share of test cases that are
+    in at least one such pair."""
+    pairs = 0
+    involved = 0
+    total = 0
+    for o in outcomes:
+        groups: dict[frozenset[str], list[set[str]]] = {}
+        for tc in o.test_cases:
+            groups.setdefault(frozenset(tc.get("covers", [])), []).append(_step_words(tc))
+            total += 1
+        for words in groups.values():
+            dup = [False] * len(words)
+            for i in range(len(words)):
+                for j in range(i + 1, len(words)):
+                    if _jaccard(words[i], words[j]) >= threshold:
+                        pairs += 1
+                        dup[i] = dup[j] = True
+            involved += sum(dup)
+    return {"duplicate_pairs": pairs, "duplicate_test_rate": _rate(involved, total)}
+
+
 def cluster_ari(outcome: ProjectOutcome, refs: Mapping[str, RefRequirement]) -> float | None:
     ids = sorted(rid for rid, r in refs.items() if r.project == outcome.project)
     predicted = {rid: i for i, c in enumerate(outcome.clusters) for rid in c}
@@ -169,6 +201,7 @@ def layer1(
     langs = sorted({r.language for r in refs.values()})
     aris = [a for o in outcomes if (a := cluster_ari(o, refs)) is not None]
     overall = requirement_metrics(outcomes, refs, test_method)
+    overall |= duplicate_tests(outcomes)
     if raw_outputs is not None:
         overall["no_test_violations_raw"] = raw_violations(raw_outputs, refs, test_method)
     return {

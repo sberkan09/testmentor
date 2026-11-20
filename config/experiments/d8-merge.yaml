@@ -1,0 +1,11 @@
+name: d8-merge
+question: "D8 Yeniden üretim, birleştirme: komşu öbek çiftleri birleşir; birleştirme prompt'u (tekrar ayıklama, çalışma varsayımı) ile baştan üretim aynı taban üzerinde karşılaştırılır. Tekrar oranı, kapsama, recall, süre."
+variable: merge_sources (true | false)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+scenario:
+  kind: merge
+  arms:
+    prompt: {merge_sources: true}
+    full: {merge_sources: false}
+quality: true

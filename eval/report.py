@@ -33,6 +33,7 @@ def _req_table(m: dict[str, Any]) -> list[str]:
         "test_cases",
         "method_exact_match",
         "method_jaccard",
+        "duplicate_test_rate",
     ]
     rows = (
         [("tümü", m["all"])]
@@ -94,6 +95,28 @@ def render(metrics: dict[str, Any]) -> str:
             + ", ".join(f"{k} {'✓' if v else '✗'}" for k, v in m["thresholds"].items()),
             "",
         ]
+        if m.get("scenario"):
+            sc = m["scenario"]
+            arms = sc.get("arms") or {}
+            keys = [
+                k
+                for k in dict.fromkeys(k for a in arms.values() for k in a)
+                if k not in ("rows", "changed_requirements", "errors")
+            ]
+            lines += [
+                f"### Senaryo ({sc['kind']}, D8; taban çağrısı {sc.get('baseline_calls')})",
+                "",
+                "| kol | " + " | ".join(keys) + " |",
+                "|" + " --- |" * (len(keys) + 1),
+            ]
+            lines += [
+                f"| {name} | " + " | ".join(_fmt(a.get(k)) for k in keys) + " |"
+                for name, a in arms.items()
+            ]
+            for name, a in arms.items():
+                if a.get("errors"):
+                    lines.append(f"- {name} hataları: {a['errors']}")
+            lines.append("")
     if "repeat_differences" in metrics:
         diffs = metrics["repeat_differences"]
         lines += ["## Tekrar karşılaştırması (katman 1)", ""]

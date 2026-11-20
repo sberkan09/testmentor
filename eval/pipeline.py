@@ -95,6 +95,8 @@ class PipelineResult:
     raw_outputs: list[str] = field(default_factory=list)
     """Schema-valid test set outputs as the model wrote them (before covers filtering): the
     no-test violations are counted on these (paket 3)."""
+    extra: dict[str, Any] = field(default_factory=dict)
+    """Scenario metrics (D8, `eval.scenarios`)."""
 
 
 def call_kind(request: LLMRequest) -> str:
@@ -123,13 +125,13 @@ class Recorder:
         self.calls: list[CallStat] = []
         self.raw_outputs: list[str] = []
 
-    def for_project(self, project: str) -> Complete:
+    def for_project(self, project: str, phase: str = "") -> Complete:
         async def complete(request: LLMRequest) -> LLMReply:
-            return await self._call(project, request)
+            return await self._call(project, request, phase)
 
         return complete
 
-    async def _call(self, project: str, request: LLMRequest) -> LLMReply:
+    async def _call(self, project: str, request: LLMRequest, phase: str = "") -> LLMReply:
         kind = call_kind(request)
         params = request.params.model_dump(mode="json")
         h = input_hash(
@@ -167,6 +169,7 @@ class Recorder:
                 "kind": kind,
                 "stage": request.stage.value,
                 "project": project,
+                "phase": phase,
                 "unit": request.unit,
                 "input_hash": h,
                 "params": params,
@@ -261,7 +264,10 @@ class Pipeline:
         predicted_cut = cut(ids, vectors, self.settings.clustering)
         complete = self.recorder.for_project(p.key)
         if self.generation_inputs == "reference":
-            clusters = {f"c{i:03d}": tuple(c) for i, c in enumerate(p.reference_clusters())}
+            units = p.reference_clusters()
+            if self.cfg.get("unit_packing"):
+                units = pack_units(units, self.settings.max_unit_size)
+            clusters = {f"c{i:03d}": tuple(c) for i, c in enumerate(units)}
         else:
             counter = itertools.count()
             clusters = initial_membership(
@@ -322,12 +328,21 @@ class Pipeline:
         return ProjectOutcome(p.key, [list(c) for c in predicted_cut], predicted, tests, covered)
 
     async def _reference_methods(
-        self, p: GoldenProject, state: ProjectState, complete: Complete
+        self,
+        p: GoldenProject,
+        state: ProjectState,
+        complete: Complete,
+        *,
+        predict: bool = True,
     ) -> tuple[ProjectState, dict[str, list[str]], dict[str, str]]:
-        """Run the method stage once for its accuracy, then pin the reference methods."""
+        """Run the method stage once for its accuracy (`predict`), then pin the reference
+        methods."""
         refs = tuple(ref(NodeKind.METHOD, r.id) for r in p.requirements)
         errors: dict[str, str] = {}
+        predicted: dict[str, list[str]] = {}
         try:
+            if not predict:
+                raise _NoPrediction
             out = await method_stage.produce(
                 ProduceContext(state=state, refs=refs, settings=self.settings), complete
             )
@@ -336,6 +351,8 @@ class Pipeline:
                 for r, res in out.results
             }
             errors = {str(r): why for r, why in out.failed.items()}
+        except _NoPrediction:
+            pass
         except Exception as exc:  # noqa: BLE001 - measured as missing predictions
             predicted, errors = {}, {str(r): f"{type(exc).__name__}: {exc}" for r in refs}
         for r in p.raw["requirements"]:
@@ -375,6 +392,32 @@ def gold_passages(p: GoldenProject, cluster: Sequence[str]) -> list[tuple[str, s
         (f"{d}§{sec}#{hashlib.sha256(t.encode('utf-8')).hexdigest()[:12]}", f"[{d} §{sec}] {t}")
         for d, sec, t in sorted(seen.values())
     ]
+
+
+class _NoPrediction(Exception):
+    pass
+
+
+def pack_units(clusters: Sequence[Sequence[str]], limit: int) -> list[list[str]]:
+    """D7: reference clusters in reference order (neighbouring document sections) packed greedily
+    into units of at most `limit` requirements; a cluster larger than `limit` stays alone (the
+    producer splits it into balanced parts)."""
+    out: list[list[str]] = []
+    current: list[str] = []
+    for c in clusters:
+        if len(c) > limit:
+            if current:
+                out.append(current)
+                current = []
+            out.append(sorted(c))
+        elif len(current) + len(c) > limit:
+            out.append(current)
+            current = sorted(c)
+        else:
+            current = sorted([*current, *c])
+    if current:
+        out.append(current)
+    return out
 
 
 def case_dicts(state: ProjectState, cluster: str) -> list[dict[str, Any]]:

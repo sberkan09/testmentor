@@ -1,0 +1,7 @@
+# Paket 3 pod 1: duman testi (yeni aşama kodu gerçek modelle). Pod sonunda her durumda silinir.
+max_hours: 0.5
+steps:
+  - {experiment: p3-smoke-v0}
+  - {experiment: p3-smoke-v1}
+  - {experiment: p3-smoke-unit25}
+  - {experiment: p3-smoke-d8}

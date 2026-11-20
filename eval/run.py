@@ -7,6 +7,8 @@ Experiment file keys:
     name, question, variable           report metadata
     server: {engine, model}            what the running pod must serve (checked)
     pipeline: {...}                    deep-merged over config/pipeline.yaml
+    golden: v0|v1, projects: [...]     golden set and project subset
+    scenario: {kind: add|remove|merge} D8 scenario run (eval/scenarios.py) instead of the pipeline
     quality: true|false                run the golden-set pipeline
     repeat: N                          quality runs; layer 1 differences are reported
     throughput: {concurrency: [1, 8, 16, 32], requests_per_level: 32}
@@ -38,6 +40,7 @@ from eval.golden import load_golden  # noqa: E402
 from eval.golden_v1 import load_golden_v1  # noqa: E402
 from eval.pipeline import EmbeddingCache, Pipeline  # noqa: E402
 from eval.report import write_report  # noqa: E402
+from eval.scenarios import ScenarioPipeline  # noqa: E402
 from scripts.runpod_state import base_urls_from_state, read_state  # noqa: E402
 from services.embedder import Embedder  # noqa: E402
 from services.llm_client import LLMClient, LLMError  # noqa: E402
@@ -279,7 +282,12 @@ async def main() -> int:
             if exp.get("quality", True):
                 repeats = args.repeat or int(exp.get("repeat", 1))
                 for rep in range(repeats):
-                    pipe = Pipeline(client, cache, cfg, examples)
+                    if exp.get("scenario"):  # D8 (eval/scenarios.py)
+                        pipe = ScenarioPipeline(
+                            client, cache, cfg, examples, scenario=exp["scenario"]
+                        )
+                    else:
+                        pipe = Pipeline(client, cache, cfg, examples)
                     meta["prompt_versions"] = pipe.prompt_versions()
                     res = await pipe.run(golden)
                     m = layer1(
@@ -291,6 +299,8 @@ async def main() -> int:
                         raw_outputs=res.raw_outputs,
                     )
                     m["thresholds"] = passes_thresholds(m, cfg["thresholds"])
+                    if res.extra:
+                        m["scenario"] = res.extra
                     runs.append(m)
                     for rec in res.records:
                         fh.write(json.dumps({"repeat": rep} | rec, ensure_ascii=False) + "\n")

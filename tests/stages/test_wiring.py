@@ -118,3 +118,19 @@ async def test_client_complete_returns_parsed_reply():
         server.reply = FakeReply(content='{"name": ""}')
         bad = await complete(req)
         assert bad.parsed is None and bad.schema_error
+
+
+def test_production_mode_settings_stay_out_of_the_hash():
+    """D8 arms run on one baseline: regeneration and prune_removals choose the mode, which never
+    enters `input_hash` (core/stages/base.py); max_unit_size and repair change outputs and do."""
+    from services.settings import stage_configs
+
+    def cfgs(**update):
+        return stage_configs(
+            SETTINGS.model_copy(update=update), model="m", embedding_model_version="e"
+        )
+
+    base = cfgs()
+    assert cfgs(regeneration="full", prune_removals=True) == base
+    assert cfgs(max_unit_size=10)[NodeKind.TEST_SET] != base[NodeKind.TEST_SET]
+    assert cfgs(repair=False)[NodeKind.TEST_SET] != base[NodeKind.TEST_SET]
