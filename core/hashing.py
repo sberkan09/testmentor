@@ -20,7 +20,8 @@ def plain_hash(obj: Any) -> str:
     For plain data the digest equals `sha256(canonical(obj))`. Pydantic models are hashed via
     `model_dump(mode="json")` by the caller.
     """
-    raise NotImplementedError
+    text = json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 # `canonical` and `input_hash` must keep their exact output: the judge cache

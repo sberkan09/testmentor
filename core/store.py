@@ -74,34 +74,52 @@ class InMemoryStore:
     """Reference implementation for tests and the eval runner."""
 
     def __init__(self) -> None:
-        raise NotImplementedError
+        self._current: dict[tuple[str, NodeRef], Node] = {}
+        self._history: dict[tuple[str, NodeRef], list[Node]] = {}
+        self._cache: dict[tuple[str, str], Result] = {}
+        self._events: dict[str, list[EventRecord]] = {}
 
     def get(self, project_id: str, cache_key: str) -> Result | None:
-        raise NotImplementedError
+        return self._cache.get((project_id, cache_key))
 
     def put(self, project_id: str, cache_key: str, result: Result) -> None:
-        raise NotImplementedError
+        self._cache[(project_id, cache_key)] = result
 
     def get_node(self, project_id: str, ref: NodeRef) -> Node | None:
-        raise NotImplementedError
+        return self._current.get((project_id, ref))
+
+    def _check(self, project_id: str, ref: NodeRef, expected_version: int) -> Node | None:
+        current = self._current.get((project_id, ref))
+        if (current.version if current else 0) != expected_version:
+            raise VersionConflict(ref, expected_version, current)
+        return current
 
     def put_node(self, project_id: str, node: Node, *, expected_version: int) -> None:
-        raise NotImplementedError
+        current = self._check(project_id, node.ref, expected_version)
+        if node.version != expected_version + 1:
+            raise VersionConflict(node.ref, expected_version, current)
+        self._current[(project_id, node.ref)] = node
+        self._history.setdefault((project_id, node.ref), []).append(node)
 
     def remove_node(self, project_id: str, ref: NodeRef, *, expected_version: int) -> None:
-        raise NotImplementedError
+        if self._check(project_id, ref, expected_version) is None:
+            raise VersionConflict(ref, expected_version, None)
+        del self._current[(project_id, ref)]
 
     def set_status(self, project_id: str, ref: NodeRef, status: Status) -> None:
-        raise NotImplementedError
+        key = (project_id, ref)
+        self._current[key] = self._current[key].model_copy(update={"status": status})
 
     def history(self, project_id: str, ref: NodeRef) -> list[Node]:
-        raise NotImplementedError
+        return list(self._history.get((project_id, ref), ()))
 
     def load(self, project_id: str) -> dict[NodeRef, Node]:
-        raise NotImplementedError
+        return {r: n for (p, r), n in self._current.items() if p == project_id}
 
     def append_event(self, project_id: str, event: Event, *, actor: str) -> int:
-        raise NotImplementedError
+        log = self._events.setdefault(project_id, [])
+        log.append(EventRecord(seq=len(log) + 1, actor=actor, event=event))
+        return len(log)
 
     def events(self, project_id: str, *, after: int = 0) -> list[EventRecord]:
-        raise NotImplementedError
+        return [r for r in self._events.get(project_id, ()) if r.seq > after]

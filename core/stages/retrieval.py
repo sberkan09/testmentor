@@ -6,21 +6,23 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING
 
-from core.nodes import NodeKind, NodeRef
+from core.nodes import KB_INDEX_KEY, NodeKind, NodeRef
 from core.stages.base import StageSpec, register
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
 
+INDEX = NodeRef(kind=NodeKind.KB_INDEX, key=KB_INDEX_KEY)
+
 
 def keys(state: ProjectState) -> Iterable[str]:
     """One per cluster, keyed by cluster id."""
-    raise NotImplementedError
+    return state.keys_of(NodeKind.CLUSTER)
 
 
 def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
     """Member requirements in id order, then the knowledge base index node."""
-    raise NotImplementedError
+    return (*(NodeRef(kind=NodeKind.REQUIREMENT, key=m) for m in state.members(key)), INDEX)
 
 
 SPEC = register(

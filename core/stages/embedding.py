@@ -14,12 +14,12 @@ if TYPE_CHECKING:
 
 def keys(state: ProjectState) -> Iterable[str]:
     """One per requirement, keyed by requirement id."""
-    raise NotImplementedError
+    return state.keys_of(NodeKind.REQUIREMENT)
 
 
 def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
     """The requirement. The model version is in the stage config."""
-    raise NotImplementedError
+    return (NodeRef(kind=NodeKind.REQUIREMENT, key=key),)
 
 
 SPEC = register(

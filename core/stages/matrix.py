@@ -14,13 +14,13 @@ if TYPE_CHECKING:
 
 def keys(state: ProjectState) -> Iterable[str]:
     """One per requirement, keyed by requirement id."""
-    raise NotImplementedError
+    return state.keys_of(NodeKind.REQUIREMENT)
 
 
 def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
     """The requirement's method, then every test case whose `covers` contains the requirement, in
     case key order."""
-    raise NotImplementedError
+    return (NodeRef(kind=NodeKind.METHOD, key=key), *state.cases_covering(key))
 
 
 SPEC = register(
