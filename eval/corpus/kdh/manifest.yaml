@@ -4,14 +4,20 @@ project: KDH
 downloads:
   sp800_63_4:
     url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63-4.pdf
+    sha256: 2f5b107de218a0fc3fe7f7e91b2ece5babb001eda5745b7c568a3cc876002f2d
+    bytes: 858054
   sp800_63a_4:
     url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63A-4.pdf
+    sha256: f83654182f0b012f17f6901e6d03e12ef2ba422b341aee875e837094f23e9ad3
+    bytes: 1071442
   sp800_63b_4:
     url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63B-4.pdf
     sha256: d9ab89576b5ae2cfb3ba37781110788dea27a85a5079496dbfc1a79834670afd
     bytes: 993734
   sp800_63c_4:
     url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63C-4.pdf
+    sha256: dce901711d044dcdd672fe28c2b012558786db0532e634bd65fa9506f88b3cdb
+    bytes: 1542269
   cc63:
     url: https://pages.nist.gov/800-63-4-Implementation-Resources/_static/downloads/sp800-63-4-conformance-criteria-v0.1-oscal.json
     sha256: 6f72311030d25653ec91c362516f00276654c8a28204a87c13deb3337e434e50
@@ -30,6 +36,8 @@ downloads:
     bytes: 105100
   wcag22:
     url: https://www.w3.org/TR/2024/REC-WCAG22-20241212/
+    sha256: 6e3c5fe397257cae509a2fb4752b73062cf8cbeb92c2cec618989b17e4cf7057
+    bytes: 512457
   sgb_rehber:
     url: https://cdn.siberguvenlik.gov.tr/public/docs/bg_rehber.pdf
     sha256: ba63da98a45daae2f2b40295e4faa351bdb6ee10591409d336142371aa51bf0c

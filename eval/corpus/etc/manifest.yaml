@@ -8,20 +8,34 @@ downloads:
     bytes: 10455876
   s023:
     url: https://www.era.europa.eu/system/files/2023-09/index003_-_SUBSET-023_v400.pdf
+    sha256: aae63875c84be784aa63686fe2c378fce6025007ca62d100b94d0d43374bf097
+    bytes: 373174
   s027:
     url: https://www.era.europa.eu/system/files/2023-09/index005_-_SUBSET-027_v400.pdf
+    sha256: 3af1470c9217fcea04674fc5f58c6e2b26912a180b0da193c3c98526c13afe71
+    bytes: 460567
     optional: true
   dmi:
     url: https://www.era.europa.eu/system/files/2023-12/index006_-_ERA_ERTMS_015560_v400.zip
+    sha256: c190262c4bbab5f7444a743ced0ef4aa82ebde0942c9e2f0f58fbfc64df6f6db
+    bytes: 3014597
     optional: true
   s036:
     url: https://www.era.europa.eu/system/files/2023-09/index009_-_SUBSET-036_v400.pdf
+    sha256: 8711fc5bc06b2afb6580dbdba2487952e17166245ed4cee4611c26c0575be393
+    bytes: 1816520
   s037_1:
     url: https://www.era.europa.eu/system/files/2023-09/index010a_-_SUBSET-037-1_v400.pdf
+    sha256: 33bac8649402a6e7164ac29916d56e4239988035a4bc64365efbe3c36467ee3a
+    bytes: 980529
   s041:
     url: https://www.era.europa.eu/system/files/2023-09/index014_-_SUBSET-041_v400.pdf
+    sha256: 711dd09a00336655a57fee81665a7c9bb817733acc83b8484aa06cbca39b24aa
+    bytes: 173269
   s091:
     url: https://www.era.europa.eu/system/files/2023-09/index027_-_SUBSET-091_v400.pdf
+    sha256: 786b25870803faec7a21badcd30aeecf921fd1142cbc1df75076327394311e0c
+    bytes: 478402
   s076_5_2:
     url: https://www.era.europa.eu/sites/default/files/2026-04/index037b_subset-076-5-2%20v4.0.0.zip
     sha256: 67902d538172e73bc2be625c961a53ba01a84da3d8d6c0ec50eff968a5993047
