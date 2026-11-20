@@ -49,7 +49,7 @@
    "reference_candidates": [
     "3050300/TC18"
    ],
-   "reference_cluster": "3.5.3 Establishing a communication session",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],
@@ -75,7 +75,7 @@
    "reference_candidates": [
     "3050300/TC2"
    ],
-   "reference_cluster": "3.5.3 Establishing a communication session",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],
@@ -121,7 +121,7 @@
     ]
    },
    "stratum": "non_testable",
-   "split": "holdout",
+   "split": "dev",
    "reference_origin": "claude",
    "reference_candidates": [
     "SUBSET-076-7 Table 3 3.5.3.7.1"
@@ -751,7 +751,7 @@
     "3060300/TC11",
     "3060300/TC9"
    ],
-   "reference_cluster": "3.6.3 Validity direction of transmitted information",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],
@@ -1400,7 +1400,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3070300/TC19",
@@ -1459,7 +1459,7 @@
     "3080200/TC1",
     "3080200/TC6"
    ],
-   "reference_cluster": "3.8.2 MA request to the RBC",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],
@@ -1796,7 +1796,7 @@
    "reference_candidates": [
     "3080400/TC7"
    ],
-   "reference_cluster": "3.8.4 Use of the MA on board the train",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],
@@ -2346,7 +2346,7 @@
    "reference_candidates": [
     "3080500/TC1"
    ],
-   "reference_cluster": "3.11.6 Signalling related speed restrictions",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],
@@ -2397,7 +2397,7 @@
    "reference_candidates": [
     "3110800/TC1"
    ],
-   "reference_cluster": "3.11.8 Train related speed restriction",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],
@@ -2497,7 +2497,7 @@
    "reference_candidates": [
     "3070300/TC13"
    ],
-   "reference_cluster": "3.11.11 Speed restriction to ensure permitted braking distance",
+   "reference_cluster": "Kontrol katmanı",
    "verification_methods": [
     "Test"
    ],

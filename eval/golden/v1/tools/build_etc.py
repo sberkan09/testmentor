@@ -69,7 +69,9 @@ def main(worded_path: str) -> None:
                 "split": "dev",
                 "reference_origin": "official_tagged" if tcs else "claude",
                 "reference_candidates": tcs or [f"SUBSET-076-7 Table 3 {w['clause']}"],
-                "reference_cluster": c["heading"],
+                "reference_cluster": "Kontrol katmanı"
+                if w["stratum"] == "control"
+                else c["heading"],
                 "verification_methods": methods,
                 "method_rationale": rationale,
                 "difficulty": w["difficulty"],

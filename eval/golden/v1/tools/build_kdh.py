@@ -124,7 +124,7 @@ def main(worded_path: str) -> None:
                 "split": "dev",
                 "reference_origin": origin,
                 "reference_candidates": cands,
-                "reference_cluster": cluster,
+                "reference_cluster": "Kontrol katmanı" if w["stratum"] == "control" else cluster,
                 "verification_methods": methods,
                 "method_rationale": rationale,
                 "difficulty": w["difficulty"],
