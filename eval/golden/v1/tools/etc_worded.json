@@ -1,0 +1,1095 @@
+[
+ {
+  "clause": "3.5.3.4",
+  "stratum": "core",
+  "text": "The OBU shall establish a communication session in each of the trigger situations defined in SUBSET-026 §3.5.3.4, among them Start of Mission, an order from trackside, a mode change to be reported to the RBC, a manual level change to Level 2, the engine rear end leaving an announced radio hole and loss of the safe radio connection, observing the Level 2 restrictions stated there for individual triggers.",
+  "clauses": [
+   "3.5.3.4"
+  ],
+  "difficulty": "Zor",
+  "note": "h) maddesindeki seviye koşulu kaynak metnin kendisinde eksik (\"only if level\"); cümle bu koşulu ayrıca belirtmiyor, sekiz tetikleyici standartta kalıyor."
+ },
+ {
+  "clause": "3.6.4.1.5",
+  "stratum": "core",
+  "text": "The OBU shall delimit the confidence interval of the train front end position by a min safe front end in rear of, and a max safe front end in advance of, the estimated front end, at distances made up of the location accuracy of the reference balise group, the over-/under-reading amount and, only in the consist-length-related situations defined in SUBSET-026 §3.6.4.1.5, the consist length uncertainty.",
+  "clauses": [
+   "3.6.4.1.5"
+  ],
+  "difficulty": "Zor",
+  "note": "Formüller ve γ=1 koşulları standartta bırakıldı; srs_text Şekil 13a artıkları içeriyor."
+ },
+ {
+  "clause": "3.6.5.2.5",
+  "stratum": "core",
+  "text": "The OBU shall determine the train integrity status reported to the RBC (no integrity information, confirmed by driver, confirmed by external source, integrity lost) and change between these values only through the transitions described in SUBSET-026 Table 2b (symbols as per §4.6.1), under the transition conditions of Table 2c.",
+  "clauses": [
+   "3.6.5.2.5"
+  ],
+  "difficulty": "Zor",
+  "note": "Davranışın tamamı Tablo 2b/2c'de; Tablo 2b matrisi metin çıkarımında okunamaz durumda, test yazımı tablonun özgün haline bağlı."
+ },
+ {
+  "clause": "3.7.3.1",
+  "stratum": "core",
+  "text": "On receipt of new track description or linking information, the OBU shall replace the stored information of the same type (for the track condition types grouped in item g), of all types in that group), either completely or from the start location of the new information (for linking: from its reference balise group, or the infill reference location), following the per-type rules of SUBSET-026 §3.7.3.1.",
+  "clauses": [
+   "3.7.3.1"
+  ],
+  "difficulty": "Zor",
+  "note": "16 bilgi türü için ayrı değiştirme kuralı var; g) maddesinde listelenen iz koşulu türleri grup olarak birbirinin yerine geçer; 3.7.3.1.1–3.7.3.1.4 yer değiştirme istisnaları bu maddeye dahil edilmedi."
+ },
+ {
+  "clause": "3.8.4.4.1",
+  "stratum": "core",
+  "text": "The OBU shall start the Overlap timer when its max safe front end passes the Overlap timer start location received from trackside, and shall regard the timer as started also when the received time-out value is \"infinite\".",
+  "clauses": [
+   "3.8.4.4.1"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.9.3.5",
+  "stratum": "core",
+  "text": "When the OBU receives via a balise group an order to establish a communication session with a Radio Infill Unit, it shall, once the location given in the order is reached, terminate any session with an RIU other than the ordered one and establish a session with the ordered RIU as soon as it is able to handle a new session.",
+  "clauses": [
+   "3.9.3.5"
+  ],
+  "difficulty": "Orta",
+  "note": "Radyo üzerinden gelen emir ayrı maddede (3.9.3.6)."
+ },
+ {
+  "clause": "3.11.11.3",
+  "stratum": "core",
+  "text": "The OBU shall compute the speed restriction to ensure permitted braking distance on receipt of the permitted braking distance data sent by trackside, and shall recompute it only when one of the inputs used for that computation (SUBSET-026 §3.11.11) changes.",
+  "clauses": [
+   "3.11.11.3"
+  ],
+  "difficulty": "Orta",
+  "note": "Hesap girdileri 3.11.11.4 ve sonrasında; \"yalnızca\" koşulu olumsuz test gerektirir."
+ },
+ {
+  "clause": "3.12.3.4.3.1.3",
+  "stratum": "core",
+  "text": "When a trackside text message defines none of the start sub-conditions listed in SUBSET-026 §3.12.3.4.2, the OBU shall treat the start condition of that message as fulfilled immediately.",
+  "clauses": [
+   "3.12.3.4.3.1.3"
+  ],
+  "difficulty": "Kolay",
+  "note": "Maddenin öznesi (metin mesajının başlama koşulu) üst maddelerden çıkarıldı."
+ },
+ {
+  "clause": "3.8.2.1.7",
+  "stratum": "core",
+  "text": "The OBU shall include in every MA request sent to the RBC all the MA request reasons (see SUBSET-026 §3.8.2.1.1) that apply at the moment the request is sent.",
+  "clauses": [
+   "3.8.2.1.7"
+  ],
+  "difficulty": "Orta",
+  "note": "Gerekçe listesi 3.8.2.1.1'de; birden çok gerekçenin aynı anda geçerli olduğu durumlar test edilmeli."
+ },
+ {
+  "clause": "3.5.3.7.1",
+  "stratum": "non_testable",
+  "text": "When both radio systems are fitted, the OBU shall select the radio system for requesting the safe radio connection set-up according to the priority order of SUBSET-026 §3.5.3.7.1: first a trackside order (depending on whether the target RBC is FRMCS-only), then the driver's single-radio choice at Start of Mission, then the stored Radio Network information and preferred radio system.",
+  "clauses": [
+   "3.5.3.7.1"
+  ],
+  "difficulty": "Zor",
+  "note": "Kaynak metnin 1) maddesi seçilecek radyo sistemini açıkça söylemiyor; tercih edilen sistem ayrıntısı SUBSET-037-1'de."
+ },
+ {
+  "clause": "3.5.3.7.2",
+  "stratum": "non_testable",
+  "text": "When both radio systems are fitted, the OBU shall memorise which radio system it used to successfully set up the safe radio connection when establishing a communication session.",
+  "clauses": [
+   "3.5.3.7.2"
+  ],
+  "difficulty": "Zor",
+  "note": "Saklanan bilgi doğrudan gözlenemez; etkisi ancak sonraki oturum kurulumunda (3.5.3.7.1 3)) dolaylı görülür."
+ },
+ {
+  "clause": "3.5.3.4.1",
+  "stratum": "control",
+  "text": "The OBU shall not open a further communication session with an RBC/RIU while a session with that same RBC/RIU is still being established, or is established and no Termination of Communication Session message has been sent to it. This applies to sessions triggered by: Start of Mission in Level 2; an order from trackside; a Level 2 mode change to be reported to the RBC (except End of Mission, and except completion in Level 2 of a Start of Mission during which no session could be established); a manual level change to Level 2 by the driver; the engine rear end reaching the end of an announced radio hole; or manual selection of RBC contact information by the driver outside Start of Mission (SUBSET-026 §3.5.3.4.1).",
+  "clauses": [
+   "3.5.3.4.1"
+  ],
+  "difficulty": "Zor",
+  "note": "Tetikleyici adları 3.5.3.4'ten açık yazıldı; h) için seviye koşulu kaynakta eksik olduğundan yazılmadı."
+ },
+ {
+  "clause": "3.5.3.5.2",
+  "stratum": "control",
+  "text": "When the OBU has to establish a communication session with an RBC while in session with one or more other RBCs, it shall terminate the existing session(s) (as per SUBSET-026 §3.5.5.2) and establish the new one. Exception: an order to establish a session with an Accepting RBC that is embedded in an RBC transition order shall not cause the session with the currently supervising RBC to be terminated, unless the OBU can handle only one communication session through GSM-R and a session must be established with another RBC, in which case the existing session is terminated (SUBSET-026 §3.5.3.5.2, §3.5.3.5.2.1).",
+  "clauses": [
+   "3.5.3.5.2",
+   "3.5.3.5.2.1"
+  ],
+  "difficulty": "Zor",
+  "note": "srs_text'te olmayan 3.5.3.5.2.1 istisnası metne eklendi; tek GSM-R oturumu durumunun ayrıntısı 3.15.1.3.2.4'te."
+ },
+ {
+  "clause": "3.5.3.7",
+  "stratum": "core",
+  "text": "The OBU shall establish a communication session as sequenced in SUBSET-026 §3.5.3.7: request safe radio connection set-up, repeating it immediately on each failure (bounded per Appendix A.3.1 only during Start of Mission or for a mode-change report), send Initiation of communication session and, on receipt of the system version, consider the session established and send a session established report or, if no version is compatible, send \"No compatible version supported\", inform the driver and terminate the session.",
+  "clauses": [
+   "3.5.3.7"
+  ],
+  "difficulty": "Zor",
+  "note": "c) ve e) adımları yerden tarafın davranışı, cümleye alınmadı; srs_text Şekil 3 artıkları içeriyor; 3.5.3.7.1–3.5.3.7.5 istisnaları ayrı maddelerde."
+ },
+ {
+  "clause": "3.5.3.13.1",
+  "stratum": "core",
+  "text": "The OBU shall ignore a trackside order to establish a communication session with the last known RBC (special RBC identity value) when no RBC contact information is stored on board.",
+  "clauses": [
+   "3.5.3.13.1"
+  ],
+  "difficulty": "Kolay",
+  "note": "\"Son bilinen RBC\" özel değerinin bağlamı üst madde 3.5.3.13'ten alındı."
+ },
+ {
+  "clause": "3.5.5.1",
+  "stratum": "core",
+  "text": "The OBU shall initiate the termination of a communication session only when ordered by trackside (RBC, RIU or balise group) or when one of the termination conditions defined elsewhere in SUBSET-026 is fulfilled without an explicit trackside order.",
+  "clauses": [
+   "3.5.5.1"
+  ],
+  "difficulty": "Orta",
+  "note": "b) maddesi koşulları başka bölümlere bırakıyor; c)–f) silinmiş; \"yalnızca\" olumsuz test gerektirir."
+ },
+ {
+  "clause": "3.5.6.1",
+  "stratum": "core",
+  "text": "The OBU shall order the registration of its connected GSM-R Mobile Terminal(s) to a GSM-R Radio Network at power-up, after the driver enters a new GSM-R Radio Network identity, and when ordered by trackside.",
+  "clauses": [
+   "3.5.6.1"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.5.6.8",
+  "stratum": "core",
+  "text": "The OBU shall not request the set-up of a safe radio connection in response to a trackside order to establish a communication session with an RIU while no GSM-R Mobile Terminal is duly registered to a GSM-R Radio Network.",
+  "clauses": [
+   "3.5.6.8"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.5.7.5",
+  "stratum": "core",
+  "text": "The OBU shall change the indication status of the safe radio connection with the relevant RBC/RIU between No Connection, Connection Lost/Set-Up failed and Connection Up only through the transitions of SUBSET-026 Table 1, under the transition conditions of Table 2.",
+  "clauses": [
+   "3.5.7.5"
+  ],
+  "difficulty": "Zor",
+  "note": "Davranışın tamamı Tablo 1/2'de; Tablo 1 matrisi metin çıkarımında okunamaz durumda, test yazımı tablonun özgün haline bağlı."
+ },
+ {
+  "clause": "3.6.1.5",
+  "stratum": "core",
+  "text": "The OBU shall take the side of the active cab as the front of the train when defining train orientation and, when no cab is active, shall define the orientation by the last active cab.",
+  "clauses": [
+   "3.6.1.5"
+  ],
+  "difficulty": "Kolay",
+  "note": "Supervised Manoeuvre istisnası (3.6.1.5.1) bu maddeye dahil edilmedi."
+ },
+ {
+  "clause": "3.6.3.1.3",
+  "stratum": "core",
+  "text": "The OBU shall take into account only the information, received from any transmission medium, that is valid for the train orientation, and shall ignore all other information.",
+  "clauses": [
+   "3.6.3.1.3"
+  ],
+  "difficulty": "Kolay",
+  "note": "SL/PS/SH ve Supervised Manoeuvre istisnaları (3.6.3.1.3.1–3.6.3.1.3.2) dahil edilmedi."
+ },
+ {
+  "clause": "3.6.3.1.4.1",
+  "stratum": "non_testable",
+  "text": "When the train orientation cannot be referred to the direction of the transmitting trackside device, the OBU shall nevertheless accept one-direction data to be forwarded to a National System, unless that data has been rejected by the balise group message consistency check (SUBSET-026 §3.16.2.4.4.1, §3.16.2.5.1.1).",
+  "clauses": [
+   "3.6.3.1.4.1"
+  ],
+  "difficulty": "Zor",
+  "note": "3.6.3.1.4 reddetme kuralının istisnası; gerekçe cümlesi bilgilendirici; Ulusal Sisteme iletim ancak STM/ulusal arayüz üzerinden gözlenebilir."
+ },
+ {
+  "clause": "3.6.3.2.4",
+  "stratum": "core",
+  "text": "The OBU shall interpret non-continuous profile data as a set of elements (value(n) for length(n)), each value being a single value or a set of data, whose starts are given by unsigned incremental distances from the start of the previous element, the first distance using the previously received data (or initial data/default values), and shall accept that elements overlap (SUBSET-026 §3.6.3.2.4, Figure 12).",
+  "clauses": [
+   "3.6.3.2.4"
+  ],
+  "difficulty": "Orta",
+  "note": "Madde esasen bir veri yapısı tanımı (Şekil 12); OBU davranışı yorum yoluyla türetildi, d) bir not."
+ },
+ {
+  "clause": "3.6.4.1.4",
+  "stratum": "core",
+  "text": "Once the OBU has determined the location accuracy of a balise group as per SUBSET-026 §3.6.4.1.3, it shall not update it any more, e.g. neither on receipt of further linking information, nor when linking is no longer checked, nor when new National Values become applicable.",
+  "clauses": [
+   "3.6.4.1.4"
+  ],
+  "difficulty": "Orta",
+  "note": "Değişmezlik ancak dolaylı (güven aralığı üzerinden) gözlenebilir; olumsuz testler gerekir."
+ },
+ {
+  "clause": "3.6.4.2.4",
+  "stratum": "core",
+  "text": "The OBU shall process each location based information into up to three location items (\"min\", \"estimated\", \"max\") and, wherever SUBSET-026 Table 2a associates a clause with a type of location item for that information, shall apply that clause using the corresponding location item.",
+  "clauses": [
+   "3.6.4.2.4"
+  ],
+  "difficulty": "Zor",
+  "note": "Davranışın tamamı çok sayfalı Tablo 2a'da; srs_text tablo artıklarıyla dolu ve kesik; madde tek başına değil tablodaki maddeler üzerinden test edilir."
+ },
+ {
+  "clause": "3.6.5.2.3",
+  "stratum": "core",
+  "text": "The OBU shall report to the RBC train integrity information consisting of the train integrity status (no train integrity information, confirmed by external source, confirmed by driver, or lost) and, only when an integrity confirmation is reported, the confirmed train length.",
+  "clauses": [
+   "3.6.5.2.3"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.6.7.1",
+  "stratum": "core",
+  "text": "Independently of the train position in relation to balise groups, the OBU shall calculate the remaining distance to be travelled with respect to each distance listed in SUBSET-026 §3.6.7.1 (among them the roll-away, reverse movement and standstill distance, Post Trip reversing distance, trip suppression distance after Override and Staff Responsible maximum distance) as soon as its supervision is started or re-started.",
+  "clauses": [
+   "3.6.7.1"
+  ],
+  "difficulty": "Zor",
+  "note": "Yedi mesafe türü farklı işlevlere bağlı (RAP, PT, override, balis alarmı, NP, SR); testler ilgili bölümlere dayanır."
+ },
+ {
+  "clause": "3.7.2.3",
+  "stratum": "core",
+  "text": "The OBU shall not accept an MA, nor its related mode profile if any, when the SSP and gradient already on board or received together with the MA do not cover the full length of the MA (full length as defined in SUBSET-026 §3.7.2.3.1–3.7.2.3.2).",
+  "clauses": [
+   "3.7.2.3"
+  ],
+  "difficulty": "Orta",
+  "note": "\"Tam uzunluk\" tanımı alt maddelerde (3.7.2.3.1–3.7.2.3.2), srs_text'te yok."
+ },
+ {
+  "clause": "3.8.2.1.4",
+  "stratum": "control",
+  "text": "The OBU shall keep applying the MA request parameters last received from the RBC (whether MA requests are to be repeated and, if so, the time between repetitions, and the triggering time criteria for MA requests related to the perturbation location and to MA timer elapsing) until new MA request parameters are received from the RBC, which then replace them at once. Consequently, if at the moment new parameters are received the time since the last MA request is equal to or higher than the newly received repetition period, the OBU shall send an MA request immediately (SUBSET-026 §3.8.2.1.4).",
+  "clauses": [
+   "3.8.2.1.4",
+   "3.8.2.1.4.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Parametre içeriği 3.8.2.1.2'den alındı; 3.8.2.1.4.1 notundaki anında istek sonucu eklendi."
+ },
+ {
+  "clause": "3.8.4.1.1",
+  "stratum": "core",
+  "text": "The OBU shall start the End Section timer when its max safe front end passes the End Section timer start location received from trackside.",
+  "clauses": [
+   "3.8.4.1.1"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.8.4.3.2",
+  "stratum": "core",
+  "text": "When the LOA speed timer exceeds the time-out value received from trackside, the OBU shall set the speed associated with the LOA to zero, so that the LOA becomes an EOA with the SvL defined as per SUBSET-026 §3.8.4.5, and shall delete accordingly the location based information listed in SUBSET-026 Appendix A.3.4.",
+  "clauses": [
+   "3.8.4.3.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Silinecek bilgi listesi Ek A.3.4'te."
+ },
+ {
+  "clause": "3.8.4.4.4",
+  "stratum": "core",
+  "text": "When the OBU receives a new MA with an Overlap timer start location in rear of its max safe front end while no Overlap timer is running, it shall consider that the Overlap timer has exceeded its time-out value and apply SUBSET-026 §3.8.4.4.2.",
+  "clauses": [
+   "3.8.4.4.4"
+  ],
+  "difficulty": "Orta",
+  "note": "Zaman aşımının sonucu 3.8.4.4.2'de bırakıldı."
+ },
+ {
+  "clause": "3.8.4.6.2",
+  "stratum": "core",
+  "text": "The OBU shall evaluate an infill MA only when it is in Full Supervision, Automatic Driving or Limited Supervision mode.",
+  "clauses": [
+   "3.8.4.6.2"
+  ],
+  "difficulty": "Kolay",
+  "note": "Diğer kiplerde yok sayma olumsuz testler gerektirir."
+ },
+ {
+  "clause": "3.8.5.1.2",
+  "stratum": "core",
+  "text": "On receipt of an infill MA, the OBU shall start a new MA section at the infill location reference, i.e. at the balise group at the next main signal.",
+  "clauses": [
+   "3.8.5.1.2"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.8.6.1",
+  "stratum": "core",
+  "text": "On an RBC request to shorten the MA, the OBU shall adopt the proposed shortened MA, with its mode profile and SH-area balise group list if any, if the train front end is in rear of the proposed MA's Indication supervision limit, and otherwise reject it and keep the previous MA, mode profile and list; in both cases it shall inform the RBC of its decision.",
+  "clauses": [
+   "3.8.6.1"
+  ],
+  "difficulty": "Orta",
+  "note": "a) adımı RBC davranışı; karşılaştırmada hangi ön uç konumunun kullanılacağı kaynakta açık değil."
+ },
+ {
+  "clause": "3.9.3.3",
+  "stratum": "core",
+  "text": "The OBU shall ignore an order to establish a communication session with a Radio Infill Unit when the GSM-R radio system is not installed on board.",
+  "clauses": [
+   "3.9.3.3"
+  ],
+  "difficulty": "Kolay",
+  "note": "RIU bağlamı 3.9.3.1'den; a) silinmiş."
+ },
+ {
+  "clause": "3.9.3.11",
+  "stratum": "core",
+  "text": "The OBU shall include in the information it sends to a Radio Infill Unit its train identity (ETCS-ID), a position report, the identifier of the next main signal balise group and a time stamp.",
+  "clauses": [
+   "3.9.3.11"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.9.3.16",
+  "stratum": "core",
+  "text": "The OBU shall terminate the communication session with a Radio Infill Unit according to orders received from trackside (balise group or Radio Infill Unit) or when Level 1 is left.",
+  "clauses": [
+   "3.9.3.16"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.10.3.2",
+  "stratum": "core",
+  "text": "The OBU shall acknowledge each received revocation of an emergency message according to the general acknowledgement procedure of SUBSET-026 §3.16.3.5.",
+  "clauses": [
+   "3.10.3.2"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.11.6.3",
+  "stratum": "control",
+  "text": "The OBU shall keep a received Level 1 signalling related speed restriction valid until a new signalling related speed restriction is received, the new one then replacing it (on receipt or, if received via infill, from the location reference of the balise group at the next main signal). If the OBU switches from Level 1 to Level 2, the signalling related speed restriction shall remain valid until a Level 2 MA is accepted (SUBSET-026 §3.11.6.3, §3.11.6.3.1).",
+  "clauses": [
+   "3.11.6.3",
+   "3.11.6.3.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Yeni kısıtlamanın yürürlüğe giriş anı kardeş madde 3.11.6.2'den alındı; 3.11.6.3.1 seviye geçişi istisnası eklendi."
+ },
+ {
+  "clause": "3.11.11.4",
+  "stratum": "core",
+  "text": "When computing the speed restriction to ensure permitted braking distance, the OBU shall apply the calculation assumptions of SUBSET-026 §3.11.11.4: rotating-mass-compensated gradient, decelerations ignoring trackside adhesion profiles (safe only) and brake-inhibition/powerless-section track conditions, an EBD curve (plus an SBD curve for a service-brake PBD) reaching zero speed at the permitted braking distance, zero estimated acceleration, and fixed speed-inaccuracy, processing-delay, brake-feedback and traction cut-off assumptions.",
+  "clauses": [
+   "3.11.11.4"
+  ],
+  "difficulty": "Zor",
+  "note": "SUBSET-041 formülleri ve ayrıntılı varsayımlar standartta bırakıldı; srs_text formülleri düz metin olarak içeriyor."
+ },
+ {
+  "clause": "3.12.1.2.1.4",
+  "stratum": "core",
+  "text": "The OBU shall evaluate the start and the end of a tunnel stopping area and of a sound horn track condition using the estimated front end of the train.",
+  "clauses": [
+   "3.12.1.2.1.4"
+  ],
+  "difficulty": "Kolay",
+  "note": "Genel kuralın (3.12.1.2.1) istisnası."
+ },
+ {
+  "clause": "3.12.2.10",
+  "stratum": "core",
+  "text": "When no route suitability data is given by trackside, the OBU shall allow the train to run and shall neither use nor supervise any default route suitability values, its initial state being that no route suitability restriction exists.",
+  "clauses": [
+   "3.12.2.10"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.12.3.4.3.2",
+  "stratum": "core",
+  "text": "For a text message requesting driver confirmation, the OBU shall treat the driver acknowledgement as defined in the message: either as always ending the text display regardless of the end condition of SUBSET-026 §3.12.3.4.3.1, or as a necessary condition for ending the display in addition to that end condition.",
+  "clauses": [
+   "3.12.3.4.3.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Madde \"tanımlanabilmeli\" biçiminde; OBU davranışı iki seçeneğin uygulanması olarak türetildi."
+ },
+ {
+  "clause": "3.12.3.5.2",
+  "stratum": "core",
+  "text": "When the driver acknowledges a text message that requests a report of driver acknowledgement, the OBU shall send to the RBC referenced in the request a driver acknowledgement report including the text message identifier.",
+  "clauses": [
+   "3.12.3.5.2"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.12.4.7",
+  "stratum": "core",
+  "text": "Until it has switched to the Mode Profile's mode, the OBU shall treat the Mode Profile start as a temporary EOA and consider a temporary SvL without release speed only: at the Mode Profile start when the profile requires one; and, when it requires none and the MA has an LOA, as per SUBSET-026 §3.8.4.5 as if no LOA were given (LOA at or beyond the profile start) or at the profile start (LOA in rear of it).",
+  "clauses": [
+   "3.12.4.7"
+  ],
+  "difficulty": "Zor",
+  "note": "\"Yalnızca\" koşulu EOA durumunda geçici SvL olmamasını da kapsar (not 3.12.4.7.1); üç durum ayrı testler ister."
+ },
+ {
+  "clause": "3.5.3.8",
+  "stratum": "core",
+  "text": "While a communication session is being established (from the first request to set up the safe radio connection until the system version is received), the OBU shall abort it and release any safe radio connection when any condition of SUBSET-026 §3.5.3.8 occurs, e.g. desk closure during Start of Mission, End of Mission, a trackside termination order, or the min safe rear end passing a Level 2 exit or RBC/RBC border.",
+  "clauses": [
+   "3.5.3.8"
+  ],
+  "difficulty": "Zor",
+  "note": "Dokuz koşul (a–i) standartta bırakıldı; her koşul ve oturum kurulumunun farklı adımları için ayrı test gerekir."
+ },
+ {
+  "clause": "3.5.4.2",
+  "stratum": "non_testable",
+  "text": "When EURORADIO reports that the safe radio connection is lost, the OBU shall immediately attempt to set up a new safe radio connection through the radio system with which the connection had previously been set up successfully (details in SUBSET-037-1).",
+  "clauses": [
+   "3.5.4.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Radyo sistemi ayrıntısı SUBSET-037-1'de; yeniden kurulamazsa oturumun sonlandırılması 3.5.4.2.1'de, dahil edilmedi."
+ },
+ {
+  "clause": "3.5.5.3.1",
+  "stratum": "core",
+  "text": "As an exception to sending nothing after Termination of Communication Session, when a session is established and no acknowledgement is received within the fixed waiting time of SUBSET-026 Appendix A.3.1 after sending that message, the OBU shall repeat the Termination of Communication Session message, again waiting the fixed time after each repetition.",
+  "clauses": [
+   "3.5.5.3.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Tekrar sayısı sınırı ve oturumun sonlandırılmış sayılması 3.5.5.3.2'de; ana kural 3.5.5.3."
+ },
+ {
+  "clause": "3.5.6.4",
+  "stratum": "core",
+  "text": "When the OBU has no memorised Radio Network type, neither received from trackside nor entered by the driver (e.g. after a System Failure or at the very first power-up), it shall use the default Radio Network type configured on-board.",
+  "clauses": [
+   "3.5.6.4"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.5.7.1",
+  "stratum": "core",
+  "text": "The OBU shall indicate to the driver the status of the safe radio connection, using the indication statuses \"No Connection\", \"Connection Lost/Set-Up failed\" and \"Connection Up\".",
+  "clauses": [
+   "3.5.7.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Madde yalnızca durum kümesini tanımlıyor; durumlar arası geçişler Tablo 1/2'de (3.5.7.5)."
+ },
+ {
+  "clause": "3.5.7.7",
+  "stratum": "core",
+  "text": "When the OBU has safe radio connections with Radio Infill Units, it shall indicate to the driver the safe radio connection status relating to the RIU of the current infill area.",
+  "clauses": [
+   "3.5.7.7"
+  ],
+  "difficulty": "Orta",
+  "note": "Anlamlı test iki RIU bağlantısı aynı anda varken (3.9.3.6 b) yapılır."
+ },
+ {
+  "clause": "3.6.1.6",
+  "stratum": "core",
+  "text": "The OBU shall use the estimated front end position of the train as the train position reference whenever it supervises location based information. This applies to every function handling location based information, except where SUBSET-026 explicitly specifies another reference for that function, for example the max safe front end for passing the End Section timer and Overlap timer start locations, or the min safe rear end for passing a level transition border or an RBC/RBC border; in those cases the specified reference is used instead (SUBSET-026 §3.6.1.6).",
+  "clauses": [
+   "3.6.1.6"
+  ],
+  "difficulty": "Zor",
+  "note": "\"Aksi belirtilmedikçe\" istisnaları SRS geneline dağılmış, kapalı liste yok; örnekler yalnızca gösterge. Kontrol katmanından ana katmana alındı: \"unless stated otherwise\" istisnaları kapalı bir liste değil."
+ },
+ {
+  "clause": "3.6.3.1.3.1",
+  "stratum": "control",
+  "text": "Normally the OBU takes into account only information valid for the train orientation. As an exception, when the engine is in Sleeping (SL), Passive Shunting (PS) or Shunting (SH) mode, the OBU shall evaluate the validity direction of information received from any transmission medium against the direction in which the referenced balise group is crossed instead of the train orientation: it shall take into account information identified as valid for both directions or for the crossing direction (nominal or reverse), and shall ignore information valid only for the opposite direction (SUBSET-026 §3.6.3.1.3.1).",
+  "clauses": [
+   "3.6.3.1.3.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Dikkate alma/yok sayma sonucu üst madde 3.6.3.1.3'ten türetildi (madde yalnızca geçiş yönünün dikkate alınacağını söylüyor); geçiş yönü bilinmediğinde ret 3.6.3.1.4'te."
+ },
+ {
+  "clause": "3.6.3.2.2",
+  "stratum": "core",
+  "text": "The OBU shall interpret continuous profile data as defined in SUBSET-026 §3.6.3.2.2 and Figure 12: each value n applies over the following incremental distance n+1, previously received data applies over the first distance, the last value applies without limit unless it is the end-of-profile value, and a value followed by a zero distance is still taken into account.",
+  "clauses": [
+   "3.6.3.2.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Şekil 12'ye bağlı; c) maddesi trackside veri biçimini tanımlıyor, SSP tren boyu gecikmesi standartta bırakıldı."
+ },
+ {
+  "clause": "3.6.3.2.6",
+  "stratum": "core",
+  "text": "The OBU shall interpret linking information as defined in SUBSET-026 §3.6.3.2.6 and Figure 12, taking the first distance as the distance to the first announced balise group, each further distance as the distance between consecutive announced balise groups, and each value as the linking data of the corresponding balise group.",
+  "clauses": [
+   "3.6.3.2.6"
+  ],
+  "difficulty": "Orta",
+  "note": "Madde esasen trackside veri biçimini tanımlıyor; OBU tarafında yorumlama gereksinimi olarak yazıldı, Şekil 12'ye bağlı."
+ },
+ {
+  "clause": "3.6.4.2.2",
+  "stratum": "core",
+  "text": "The OBU shall take as Single On-board Location Reference (SOLR), while linking consistency is checked, the most recently received balise group which either is the reference of, or is announced in, linking information (including one announced with ID \"unknown\" carrying repositioning information), and, while linking consistency is not checked, the last received balise group.",
+  "clauses": [
+   "3.6.4.2.2"
+  ],
+  "difficulty": "Zor",
+  "note": "No Power çıkışı istisnası (3.6.4.2.2.1) ve uygulama sırası (3.6.4.2.2.2) dahil edilmedi; SOLR doğrudan gözlenemez."
+ },
+ {
+  "clause": "3.6.4.2.5",
+  "stratum": "core",
+  "text": "Whenever a balise group becomes the SOLR, or location based information referred to a balise group other than the SOLR is evaluated, the OBU shall relocate every location item to the SOLR by subtracting from its distance the distance between its former reference balise group and the SOLR, taken from linking information or from the travelled distance, per the cases and min/max adjustments of SUBSET-026 §3.6.4.2.5.",
+  "clauses": [
+   "3.6.4.2.5"
+  ],
+  "difficulty": "Zor",
+  "note": "Üç durum (a–c) ve tahmini/min/maks ayrımı standartta bırakıldı; etkisi yalnızca dolaylı gözlenir."
+ },
+ {
+  "clause": "3.6.6.1",
+  "stratum": "core",
+  "text": "The OBU shall display the geographical position, in relation to the track kilometre, of the train's estimated front end only when the driver requests it, and shall stop that display upon driver request.",
+  "clauses": [
+   "3.6.6.1"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.6.7.2",
+  "stratum": "core",
+  "text": "For the distances of SUBSET-026 §3.6.7.1 a) to e) (e.g. roll-away and standstill protection, reversing in Post Trip, trip suppression after Override), the OBU shall supervise them using, for the direction(s) concerned, the estimated distance travelled away from the location where their supervision was started or re-started.",
+  "clauses": [
+   "3.6.7.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Mesafe listesi 3.6.7.1'de; f) ve g) bu maddenin kapsamı dışında."
+ },
+ {
+  "clause": "3.7.3.2",
+  "stratum": "core",
+  "text": "On trackside request, the OBU shall resume initial states beyond a given location for the stored information categories of SUBSET-026 §3.7.3.2: separately for PBD speed restrictions and for axle load speed profiles, and by one single request each for the listed track condition types, for route suitability data, and for Station Platform track conditions.",
+  "clauses": [
+   "3.7.3.2"
+  ],
+  "difficulty": "Zor",
+  "note": "Track condition türleri ve başlangıç durumları atıf yapılan maddelerde (3.11.11.11, 3.11.4.5, 3.12.1.3, 3.12.2.10)."
+ },
+ {
+  "clause": "3.8.2.2.2",
+  "stratum": "core",
+  "text": "The OBU shall trigger an MA request to the RBC when the train front passes the location resulting from the perturbation-location criterion, or when the moment resulting from the Section timer/LOA speed timer criterion is reached, as these criteria are defined in SUBSET-026 §3.8.2.2.1.",
+  "clauses": [
+   "3.8.2.2.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Kriter tanımları 3.8.2.2.1'de; yalnızca Seviye 2."
+ },
+ {
+  "clause": "3.8.4.1.2",
+  "stratum": "core",
+  "text": "When the End Section timer exceeds the time-out value given by trackside, the OBU shall withdraw the EOA/LOA to the train's current position, deleting the location based information listed in SUBSET-026 Appendix A.3.4 accordingly, and shall set any non-zero target speed at the End of Movement Authority to zero.",
+  "clauses": [
+   "3.8.4.1.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Silinecek bilgi listesi Ek A.3.4'te."
+ },
+ {
+  "clause": "3.8.4.4.2",
+  "stratum": "core",
+  "text": "When the Overlap timer exceeds the time-out value given by trackside, the OBU shall delete the overlap and its associated release speed, redetermine the Supervised Location per SUBSET-026 §3.8.4.5 (deleting information per Appendix A.3.4), and set any non-zero target speed at the End of Movement Authority to zero.",
+  "clauses": [
+   "3.8.4.4.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Silinecek bilgi listesi Ek A.3.4'te."
+ },
+ {
+  "clause": "3.8.4.5.1",
+  "stratum": "core",
+  "text": "Unless otherwise specified, the OBU shall take as Supervised Location the end of the overlap if one exists and has not timed out, otherwise the Danger Point if one exists, otherwise the end of the End Section.",
+  "clauses": [
+   "3.8.4.5.1"
+  ],
+  "difficulty": "Orta",
+  "note": "LOA denetlenirken SvL tanımlanmaz (3.8.4.5.2)."
+ },
+ {
+  "clause": "3.8.4.6.4",
+  "stratum": "core",
+  "text": "The OBU shall evaluate an infill MA only if linking information is available for the main signal balise group to which that infill MA refers.",
+  "clauses": [
+   "3.8.4.6.4"
+  ],
+  "difficulty": "Kolay",
+  "note": "Yalnızca Seviye 1; bağlantı bilgisi yokken olumsuz test gerekir."
+ },
+ {
+  "clause": "3.8.5.1.4",
+  "stratum": "core",
+  "text": "When a new MA defining an SvL is received while the OBU is supervising an LOA, the OBU shall always treat it as an MA shortening, wherever the SvL lies, and delete accordingly the stored location based information listed in SUBSET-026 Appendix A.3.4.",
+  "clauses": [
+   "3.8.5.1.4"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.9.1.3",
+  "stratum": "core",
+  "text": "When an announcement balise group requests an infill transmission medium with which the OBU is not equipped, the OBU shall ignore the announcement and keep running according to the information received before.",
+  "clauses": [
+   "3.9.1.3"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.9.3.6.1",
+  "stratum": "core",
+  "text": "When the OBU can handle only one communication session established through GSM-R (degraded situation), it shall ignore an order received via a Radio Infill Unit to establish a communication session with a radio infill unit.",
+  "clauses": [
+   "3.9.3.6.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Ana kural (bir/iki RIU oturumu durumları) 3.9.3.6'da."
+ },
+ {
+  "clause": "3.9.3.14",
+  "stratum": "core",
+  "text": "The OBU shall check the consistency of the radio infill data it receives according to the principles of SUBSET-026 §3.16.3.1 and §3.16.3.3.",
+  "clauses": [
+   "3.9.3.14"
+  ],
+  "difficulty": "Orta",
+  "note": "srs_text kesik (son cümle yarım); ilk cümle RIU'yu bağlıyor, OBU gereksinimi değil."
+ },
+ {
+  "clause": "3.10.1.4",
+  "stratum": "core",
+  "text": "The OBU shall acknowledge each emergency message it receives, quoting the identification number of that emergency message.",
+  "clauses": [
+   "3.10.1.4"
+  ],
+  "difficulty": "Kolay",
+  "note": "Edilgen madde OBU özneli yazıldı; genel onaydan bağımsızlık 3.10.1.4.1'de."
+ },
+ {
+  "clause": "3.11.7.1.1",
+  "stratum": "core",
+  "text": "In On-Sight, Limited Supervision and Shunting modes, when a mode related speed limit is given by trackside, the OBU shall apply it in preference to the National value and the default value.",
+  "clauses": [
+   "3.11.7.1.1"
+  ],
+  "difficulty": "Kolay",
+  "note": "Ana kural 3.11.7.1'de."
+ },
+ {
+  "clause": "3.11.11.6",
+  "stratum": "core",
+  "text": "Where trackside requires the permitted braking distance to be respected using the emergency brake, the OBU shall compute the PBD speed restriction as the speed satisfying the EBD-based inequalities of SUBSET-026 §3.11.11.6, rounded down as specified there, or zero if no speed satisfies them.",
+  "clauses": [
+   "3.11.11.6"
+  ],
+  "difficulty": "Zor",
+  "note": "Formüller ve yuvarlama adımı standartta bırakıldı; test, hesaplanan değerin bağımsız bir hesapla karşılaştırılmasını gerektirir."
+ },
+ {
+  "clause": "3.12.2.3",
+  "stratum": "core",
+  "text": "On receiving route suitability data, the OBU shall compare it with the stored Train Data and consider an unsuitability to exist when the train's loading gauge or axle load category is not among those permitted by trackside, or the traction system received from trackside is not among those accepted by the engine.",
+  "clauses": [
+   "3.12.2.3"
+  ],
+  "difficulty": "Orta",
+  "note": "3.12.2.3.1 istisnası (çekiş sistemi olmayan hatta çalışabilen araç) dahil edilmedi; tepki 3.12.2.4'te."
+ },
+ {
+  "clause": "3.12.3.1.10",
+  "stratum": "core",
+  "text": "The OBU shall determine the appearance with which it displays each text message received from trackside from two attributes contained in the message: its class (auxiliary information or important information) and whether driver acknowledgement is requested. (SUBSET-026 §3.12.3.1.10).",
+  "clauses": [
+   "3.12.3.1.10"
+  ],
+  "difficulty": "Zor",
+  "note": "Somut görünüm SUBSET-026 Bölüm 3'te tanımlı değil (DMI spesifikasyonunda); test kahini eksik. Kontrol katmanından ana katmana alındı: görünümler bölüm 3'te tanımlı değil, metin kendine yetemez."
+ },
+ {
+  "clause": "3.12.3.4.4",
+  "stratum": "core",
+  "text": "Once the start condition of a text message is fulfilled, the OBU shall start evaluating its end condition, and shall not display the message at all if the end condition is already fulfilled at that moment, even when driver confirmation is requested.",
+  "clauses": [
+   "3.12.3.4.4"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.12.3.5.3",
+  "stratum": "core",
+  "text": "The OBU shall reject a newly received text message requesting a report of driver acknowledgement when its text message identifier equals that of an earlier received text message not yet acknowledged by the driver.",
+  "clauses": [
+   "3.12.3.5.3"
+  ],
+  "difficulty": "Orta",
+  "note": "Önceki mesajın da onay raporu isteyip istemediği maddede belirtilmemiş."
+ },
+ {
+  "clause": "3.12.5.3",
+  "stratum": "core",
+  "text": "When the OBU receives LX information with the same identity as LX information already received, it shall replace the stored LX information with the new one.",
+  "clauses": [
+   "3.12.5.3"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.5.3.13",
+  "stratum": "core",
+  "text": "When an order from trackside to establish a communication session with the RBC carries the special RBC identity value meaning \"last known RBC\", the OBU shall disregard the telephone number given in the order and contact the RBC using its stored RBC contact information, if any.",
+  "clauses": [
+   "3.5.3.13"
+  ],
+  "difficulty": "Orta",
+  "note": "Kayıtlı iletişim bilgisi yoksa emrin yok sayılması ayrı maddede (3.5.3.13.1); bu cümleye alınmadı."
+ },
+ {
+  "clause": "3.5.4.3",
+  "stratum": "core",
+  "text": "After the loss of the safe radio connection during an established communication session, the OBU shall keep repeating its attempts to set up a new safe radio connection until a safe radio connection is obtained, the session is regarded as terminated, or the train passes the location given in an RIU order to terminate the communication session.",
+  "clauses": [
+   "3.5.4.3"
+  ],
+  "difficulty": "Orta",
+  "note": "Öznesi (yeniden bağlantı denemeleri) 3.5.4.2'den alındı; radyo boşluğu istisnası 3.5.4.4'te ayrı."
+ },
+ {
+  "clause": "3.5.5.3.2",
+  "stratum": "core",
+  "text": "When the OBU has repeated the Termination of Communication Session message the defined number of times (SUBSET-026 Appendix A.3.1) and no acknowledgement arrives within the fixed waiting time after the last sending, it shall consider the communication session terminated.",
+  "clauses": [
+   "3.5.5.3.2"
+  ],
+  "difficulty": "Orta",
+  "note": "Tekrar sayısı ve bekleme süresi A.3.1'de; tekrar mekanizması 3.5.5.3.1'de."
+ },
+ {
+  "clause": "3.5.6.7",
+  "stratum": "non_testable",
+  "text": "The OBU shall not request the set-up of a safe radio connection in response to a trackside order to establish a session with an RBC when, given the stored Radio Network type, the radio systems fitted and any single-radio choice of the driver, the required radio system is not registered to its Radio Network, as detailed in the cases of SUBSET-026 §3.5.6.7.",
+  "clauses": [
+   "3.5.6.7"
+  ],
+  "difficulty": "Zor",
+  "note": "Dört durumlu (a–d) kombinasyon standartta bırakıldı; FRMCS kayıt durumu test ortamında zor kurulur."
+ },
+ {
+  "clause": "3.5.7.3",
+  "stratum": "core",
+  "text": "The OBU shall start the connection status timer when it sends its first request to set up a safe radio connection with the relevant RBC/RIU, whether this request is made to establish a session (triggers b) to e) of SUBSET-026 §3.5.3.4) or to maintain one (§3.5.4.2, §3.5.4.4).",
+  "clauses": [
+   "3.5.7.3"
+  ],
+  "difficulty": "Orta",
+  "note": "Zamanlayıcı doğrudan gözlenemez; etkisi gösterge geçişlerinde (Tablo 1/2) dolaylı görülür."
+ },
+ {
+  "clause": "3.6.1.4",
+  "stratum": "core",
+  "text": "While its train position is unknown or invalid, the OBU shall regard a valid train position as stored on board as soon as the train passes an LRBG or an ORBG, and shall then delete any invalid train position stored before.",
+  "clauses": [
+   "3.6.1.4"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.6.2.2.2",
+  "stratum": "core",
+  "text": "The OBU shall report the train position to the RBC referred to the last passed LRBG compliant balise group meeting the conditions of SUBSET-026 §3.6.5.1.8, where compliance depends on whether linking consistency is checked (linked and announced in linking) or not (not marked as unlinked), and shall accept trackside information referring to any of the recently reported LRBGs within the minimum number set in SUBSET-026 §3.6.2.2.2 c).",
+  "clauses": [
+   "3.6.2.2.2"
+  ],
+  "difficulty": "Zor",
+  "note": "b) maddesi RBC gereksinimi olduğundan alınmadı; \"bilinmeyen LRBG\" istisnası 3.6.2.2.2.1'de ayrı."
+ },
+ {
+  "clause": "3.6.3.1.4",
+  "stratum": "core",
+  "text": "When the train orientation cannot be related to the direction of the trackside device the information refers to (or, for SL, PS and SH engines, when the balise group crossing direction is unknown), the OBU shall reject data valid in one direction only, from any transmission medium, and shall evaluate data valid in both directions.",
+  "clauses": [
+   "3.6.3.1.4"
+  ],
+  "difficulty": "Orta",
+  "note": "Ulusal sisteme iletilecek veriye ilişkin istisna 3.6.3.1.4.1'de; bu cümleye alınmadı."
+ },
+ {
+  "clause": "3.6.3.2.3",
+  "stratum": "core",
+  "text": "The OBU shall interpret received location data according to the general structure of SUBSET-026 Figure 12: each distance is an unsigned increment from the preceding value, the first distance takes over previously received data, and each value may stand for a single value or a data set.",
+  "clauses": [
+   "3.6.3.2.3"
+  ],
+  "difficulty": "Orta",
+  "note": "Madde esasen veri biçimi tanımı (Şekil 12); OBU davranışı yalnızca yorumlama olarak test edilebilir."
+ },
+ {
+  "clause": "3.6.4.1.3",
+  "stratum": "core",
+  "text": "The OBU shall take the location accuracy of a balise group from linking information when available; if linking has not already determined it by the time the balise group becomes LRBG or ORBG, it shall use the applicable National Value, or the Default Value when no National Value applies.",
+  "clauses": [
+   "3.6.4.1.3"
+  ],
+  "difficulty": "Orta",
+  "note": "Belirlenen değerin sonradan güncellenmemesi 3.6.4.1.4'te ayrı."
+ },
+ {
+  "clause": "3.6.4.2.2.2",
+  "stratum": "core",
+  "text": "On receiving linking information, the OBU shall apply the linking replacement rule (SUBSET-026 §3.7.3.1 m)) before updating the SOLR; for all other information, it shall relocate the information to the SOLR before applying the corresponding replacement rule of §3.7.3.1.",
+  "clauses": [
+   "3.6.4.2.2.2"
+  ],
+  "difficulty": "Zor",
+  "note": "Sıralama gereksinimi; iç işlem sırası ancak sonuç konumlarından dolaylı gözlenir."
+ },
+ {
+  "clause": "3.6.5.1.4",
+  "stratum": "core",
+  "text": "The OBU shall send position reports to the RBC as requested in the position report parameters and, in addition, whenever any of the events of SUBSET-026 §3.6.5.1.4 occurs, among them reaching or leaving standstill, a mode or level change, train integrity confirmation or loss, crossing an RBC/RBC border, session establishment, and passing an LRBG compliant balise group when no parameters are stored.",
+  "clauses": [
+   "3.6.5.1.4"
+  ],
+  "difficulty": "Zor",
+  "note": "On iki olay standartta listeleniyor; rapor içeriği 3.6.5.1.4.1'de ayrı."
+ },
+ {
+  "clause": "3.6.6.5",
+  "stratum": "core",
+  "text": "When calculating the geographical position, the OBU shall add the distance travelled since the geographical reference location.",
+  "clauses": [
+   "3.6.6.5"
+  ],
+  "difficulty": "Kolay",
+  "note": ""
+ },
+ {
+  "clause": "3.6.7.3",
+  "stratum": "core",
+  "text": "For the zero distance to the former EOA/LOA after Override without valid position and for the Staff Responsible distance (SUBSET-026 §3.6.7.1 f), g)), the OBU shall supervise a virtual train front position, deriving the remaining distance from the estimated, max safe and min safe front ends as the supervised distance minus the distance travelled, corrected by odometer under-/over-reading as defined in §3.6.7.3.",
+  "clauses": [
+   "3.6.7.3"
+  ],
+  "difficulty": "Zor",
+  "note": "Formüller standartta bırakıldı; b) maddesindeki eksi işaretli düzeltme kaynaktaki haliyle izlenmeli."
+ },
+ {
+  "clause": "3.7.3.4",
+  "stratum": "core",
+  "text": "On receiving a Supervised Manoeuvre authorisation, the OBU shall apply the normal replacement rules of SUBSET-026 §3.7.3.1 if its validity direction matches the current train orientation; if it is opposite, it shall not apply those rules and shall instead delete all location based information stored before.",
+  "clauses": [
+   "3.7.3.4"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.8.2.5.1",
+  "stratum": "core",
+  "text": "In Level 2, the OBU shall send an MA request to the RBC whenever any part of the track description is deleted under one of the situations of SUBSET-026 Appendix A.3.4, except situations a, b, f and k.",
+  "clauses": [
+   "3.8.2.5.1"
+  ],
+  "difficulty": "Zor",
+  "note": "Seviye 2 koşulu başlık 3.8.2.5'ten alındı; durum listesi A.3.4'te ve bu dosyada yok."
+ },
+ {
+  "clause": "3.8.4.3.1",
+  "stratum": "core",
+  "text": "The OBU shall start the LOA speed timer, in Level 2, at the time stamp of the message containing the MA and, in Level 1, at the moment it passes the first encountered balise of the balise group giving the MA.",
+  "clauses": [
+   "3.8.4.3.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.8.4.4.3",
+  "stratum": "core",
+  "text": "If the train comes to standstill once the Overlap timer has been started, the OBU shall treat the Overlap timer as expired and apply the consequences defined for Overlap time-out in SUBSET-026 §3.8.4.4.2.",
+  "clauses": [
+   "3.8.4.4.3"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.8.4.5.2",
+  "stratum": "control",
+  "text": "While the OBU is supervising a Limit of Authority (an end of the Movement Authority to which the train is authorised to run with a target speed above zero), it shall not define any Supervised Location (SvL) on board, i.e. none of the SvL candidates listed in SUBSET-026 §3.8.4.5.1 (end of overlap, Danger Point, end of the End Section) shall be used as SvL for as long as the Limit of Authority is supervised (SUBSET-026 §3.8.4.5.2).",
+  "clauses": [
+   "3.8.4.5.2"
+  ],
+  "difficulty": "Orta",
+  "note": "LOA tanımı SUBSET-023'ten eklendi; LOA'nın EOA'ya dönüşmesi (3.8.4.3.2) bu cümleye alınmadı."
+ },
+ {
+  "clause": "3.8.5.1",
+  "stratum": "core",
+  "text": "When a new MA is received, the OBU shall replace all data of the previous MA if the new MA comes from the RBC or from a main-signal balise group (non-infill information), and only the data beyond the announced balise group at the next main signal if the new MA is infill information.",
+  "clauses": [
+   "3.8.5.1"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.8.5.2.4",
+  "stratum": "core",
+  "text": "The OBU shall not regard receiving repositioning information, or a new MA ending with an LOA, as an MA shortening.",
+  "clauses": [
+   "3.8.5.2.4"
+  ],
+  "difficulty": "Zor",
+  "note": "Olumsuz gereksinim; MA kısaltmasının sonuçları (A.3.4) ortaya çıkmamalı diye dolaylı test edilir."
+ },
+ {
+  "clause": "3.9.2.11",
+  "stratum": "core",
+  "text": "Once the OBU has read the next main signal balise group, or has detected that it was missed, it shall ignore any further infill information received from the loop.",
+  "clauses": [
+   "3.9.2.11"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.9.3.10",
+  "stratum": "core",
+  "text": "The OBU shall send information to the radio infill unit as soon as it passes the location given in the balise group order (entry into the infill area), and as soon as it reads the next main signal balise group indicated in that order or detects that this balise group was missed.",
+  "clauses": [
+   "3.9.3.10"
+  ],
+  "difficulty": "Orta",
+  "note": "Gönderilecek içerik 3.9.3.11'de."
+ },
+ {
+  "clause": "3.9.3.15",
+  "stratum": "core",
+  "text": "Once the OBU has read the next main signal balise group, or has detected that it was missed, it shall ignore any further radio infill information related to that balise group.",
+  "clauses": [
+   "3.9.3.15"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.10.2.4",
+  "stratum": "core",
+  "text": "After accepting an emergency stop message and until that emergency stop is revoked, the OBU shall reject any new movement authority it receives.",
+  "clauses": [
+   "3.10.2.4"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.11.8.1",
+  "stratum": "control",
+  "text": "The OBU shall allow the maximum train speed to be defined so as to reflect the train's actual performance and configuration, and shall handle this value as the Maximum Train Speed category of Static Speed Restriction (SUBSET-026 §3.11.2.2 d), §3.11.8.1).",
+  "clauses": [
+   "3.11.8.1"
+  ],
+  "difficulty": "Kolay",
+  "note": "Madde yetenek tanımı, kendi başına gözlenebilir bir çıktı tanımlamıyor; kategori bilgisi 3.11.2.2'den eklendi."
+ },
+ {
+  "clause": "3.11.11.11",
+  "stratum": "control",
+  "text": "In its initial state, before any speed restriction to ensure permitted braking distance has been computed from permitted braking distance data received from trackside, the OBU shall consider that no such speed restriction applies, so that no permitted-braking-distance limit constrains the train speed (SUBSET-026 §3.11.11.11).",
+  "clauses": [
+   "3.11.11.11"
+  ],
+  "difficulty": "Kolay",
+  "note": "\"Başlangıç durumu\" kaynakta tanımlı değil; PBD verisi alınmadan önceki durum olarak yorumlandı."
+ },
+ {
+  "clause": "3.12.2.3.1",
+  "stratum": "core",
+  "text": "When comparing route suitability data with its train data, the OBU shall never find a traction system unsuitability if the engine can run on a line without any traction system.",
+  "clauses": [
+   "3.12.2.3.1"
+  ],
+  "difficulty": "Kolay",
+  "note": "Öznesi ve karşılaştırma 3.12.2.3 b)'den alındı."
+ },
+ {
+  "clause": "3.12.3.4.3.1",
+  "stratum": "core",
+  "text": "When a trackside text message uses at least two of the start sub-conditions (or of the end sub-conditions) listed in SUBSET-026 §3.12.3.4.2/§3.12.3.4.3, the OBU shall consider the start (or end) condition fulfilled when either one or all of them are fulfilled, as defined by trackside for that message, with the same definition applying to both conditions.",
+  "clauses": [
+   "3.12.3.4.3.1"
+  ],
+  "difficulty": "Orta",
+  "note": "Alt maddeler 3.12.3.4.3.1.1–.4 ayrı; tek/tümü seçimini yapan trackside."
+ },
+ {
+  "clause": "3.12.3.4.6",
+  "stratum": "core",
+  "text": "When the end condition of a text message uses the location sub-condition, the OBU shall measure the length over which the text is displayed from the location used in the start condition, regardless of any other start sub-conditions.",
+  "clauses": [
+   "3.12.3.4.6"
+  ],
+  "difficulty": "Orta",
+  "note": ""
+ },
+ {
+  "clause": "3.12.4.3.1",
+  "stratum": "core",
+  "text": "On receiving a new MA by infill, instead of deleting the supervised Mode Profile, the OBU shall delete an OS/LS Mode Profile only beyond the infill reference location, and shall delete a supervised SH Mode Profile if the infill reference is at or in rear of its start, or otherwise keep it and ignore any Mode Profile and SH balise group list in the infill MA.",
+  "clauses": [
+   "3.12.4.3.1"
+  ],
+  "difficulty": "Zor",
+  "note": "Genel kural (3.12.4.3) bağlam olarak anıldı; üç durum açık yazıldı."
+ }
+]
