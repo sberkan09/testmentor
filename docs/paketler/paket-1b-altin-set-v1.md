@@ -16,7 +16,7 @@ Stüdyoda projelere tasarım dokümanları, standartlar ve proje yönetim planı
 - Kurum verisi girmez. Kamuya açık belgeler ve onlardan türetilen gereksinimler kullanılır (CLAUDE.md "Veri ve Runpod" bu paketle güncellendi).
 - Ücretli standartlar (ISO, IEC, EN, DO-178C) kullanılmaz.
 - Belgeler depoya konmaz. `eval/corpus/<proje>/manifest.yaml` her belgenin adresini, SHA-256'sını, lisansını, türünü ve dilini tutar; `python -m eval.corpus fetch` indirir ve metni çıkarır (`eval/corpus/cache/`, depoya girmez). Lisansı açık belgelerin çıkarılmış metni depoya alınabilir.
-- ERTMS metinlerinin yeniden kullanım koşulu belirsiz (UNISIG telif ibaresi, izin yok). Depo özel olsa da ERTMS'ten türetilen metin, kullanıcının açık onayı olmadan git'e girmez.
+- ERTMS metinlerinin yeniden kullanım koşulu belirsiz (UNISIG telif ibaresi, izin yok). Kullanıcı 20 Kasım 2026'da onayladı: depo özel olduğu sürece ERTMS'ten türetilen metin (gereksinimler, referans testler, çıkarılmış belge metni, deney çıktıları) git'e girebilir. Depo herkese açılırsa bu karar yeniden ele alınır.
 - Gereksinimler gerçek bir gereksinim belgesi gibi standarda atıf yapar; eşik ve prosedür belgede kalır. Cümle zaten "15 karakter" diyorsa bilgi havuzu bir şey eklemez.
 - Sentetik sistem belgelerini bir alt ajan, standartlardan ve sistem özetinden, referans testleri görmeden yazar; ilgisiz içerik de içerir. Aksi hâlde belgeler cevap anahtarına dönüşür.
 - v0 dosyaları değişmez; v1 yeni dosyalardır. Gereksinim kimlikleri `<ANAHTAR>-NNN` biçimindedir; ERTMS madde numarası ayrı alanda durur.
@@ -39,7 +39,7 @@ Her aşama ayrı commit. Oturum yeniden başlarsa durum buradan okunur.
 
 | No | Aşama | Durum |
 | --- | --- | --- |
-| 0 | Dal, paket tanımı, tasarım notu, CLAUDE.md güncellemesi | sürüyor |
+| 0 | Dal, paket tanımı, tasarım notu, CLAUDE.md güncellemesi | bitti (CLAUDE.md değişikliği ve ERTMS metninin depoya girmesi kullanıcı onaylı) |
 | 1 | Deneme 1: ERTMS izlenebilirliği. SUBSET-076-5-2 ve 076-7 test vakaları SUBSET-026 maddelerine hangi ayrıntıda atıf yapıyor; bir maddenin adımları `steps[{action, expected}]` biçimine içerik eklemeden aktarılabiliyor mu | bekliyor |
 | 2 | Deneme 2: 10 gereksinim (5 ERTMS, 5 kamu: ACT, 800-53A, Denetim Rehberi ve Claude referanslı) hakemden geçer; rubrik r1 bu referanslarla çalışıyor mu | bekliyor |
 | 3 | Derlem listesi ve indirme/çıkarma betiği; araştırmada yalnızca arama özetinden doğrulanan iddialar birincil belgeden yeniden kontrol edilir | bekliyor |
