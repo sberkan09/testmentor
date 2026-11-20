@@ -59,14 +59,14 @@ def test_pod_body_shape(tmp_path, monkeypatch):
     import scripts.runpod_state as st
 
     monkeypatch.setattr(st, "ENV_PATH", tmp_path / ".env")
-    body = pod_body("vllm", "qwen3.8-27b", "vol123", download=True)
+    body = pod_body("vllm", "qwen3.8-27b", "vol123", download=True, deadline=2000000000)
     assert body["gpu"]["id"] == "NVIDIA RTX PRO 6000 Blackwell Server Edition"
     assert body["cloud"] == "SECURE" and body["dataCenterIds"] == ["EU-RO-1"]
     assert body["mounts"]["network"] == [{"volumeId": "vol123", "path": "/models"}]
     assert body["env"]["HF_TOKEN"] == "{{ RUNPOD_SECRET_HF_TOKEN }}"
     assert "8000/http" in body["ports"] and "8001/http" in body["ports"]
     assert body["entrypoint"][:2] == ["bash", "-c"]
-    no_dl = pod_body("sglang", "qwen3.8-27b", "vol123", download=False)
+    no_dl = pod_body("sglang", "qwen3.8-27b", "vol123", download=False, deadline=2000000000)
     assert "HF_TOKEN" not in no_dl["env"]
     assert no_dl["image"].startswith("lmsysorg/sglang:")
 

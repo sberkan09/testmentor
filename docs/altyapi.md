@@ -49,6 +49,21 @@ Paket 0 çıktısı. Sunum motorları, embedding servisi ve Postgres; Runpod'da 
 
 Runpod kimlik doğrulaması `RUNPOD_API_KEY` ortam değişkeniyle yapılır (`.env`). Betikler yalnızca `infra/.runpod-state.json` içine kendi yazdıkları kaynakları siler.
 
+## Kredi koruması
+
+Her pod içinde bir bekçi çalışır ve pod'u kendisi siler; bunun için onu açan oturumun ayakta olması gerekmez.
+
+| Tetik | Ayar (`config/infra.yaml` `watchdog`) | Not |
+| --- | --- | --- |
+| GPU boşta | `idle_minutes: 20`, `gpu_util_idle_below: 5` | İlk `grace_minutes: 30` dakika sayılmaz (yükleme). Yeniden yapılandırmada sayaç sıfırlanır. |
+| En uzun ömür | `max_hours: 4`; `make up MAX_HOURS=6` | Son tarih pod ortamına `WATCHDOG_DEADLINE` olarak yazılır. `make extend HOURS=1` pod'u yeniden başlatmadan uzatır. |
+| İndirme bitti | `download_max_hours: 2` | İndirme pod'u `[download] DONE` sonrasında kendini siler. |
+
+- Silme: `DELETE https://api.runpod.io/v2/pods/$RUNPOD_POD_ID`, anahtar Runpod'un her pod'a verdiği `RUNPOD_API_KEY`. 20 Kasım 2026'da gerçek bir CPU pod'unda doğrulandı: pod açıldıktan ~55 sn sonra kendini sildi. Başarısız olursa 30 sn'de bir yeniden dener.
+- Bekçi günlüğü: GPU pod'unda `/models/logs/<zaman>-…/watchdog.log`.
+- `make up` bekçi kapalıysa ya da son tarih yoksa pod açmaz (`tests/test_watchdog.py`).
+- `make batch BATCH=paket1`: deney grubunu tek pod'da koşar, sonunda hata ya da sinyal olsa bile `make down` çalıştırır.
+
 ## Sürümler ve kaynaklar (19 Kasım 2026)
 
 | Bileşen | Sürüm | Kaynak |
@@ -117,6 +132,7 @@ Her Runpod koşusundan sonra doldurulur.
 | 19.11 16:55 | vLLM + Gemma 4 31B BF16 (`w9jt6oa6wmju8u`) | aynı | `vllm/vllm-openai:v0.34.0` | 17 dk | 86,5 GB | yaklaşık 0,75 USD | İlk açılış döngüye girdi: %80 bellekle KV'ye 15,1 GB kaldı, 32k'lık tek dizi 15,8 GB istiyor ("Engine core initialization failed"; Runpod konteyneri yeniden başlatıyor, pod "RUNNING" görünüyor). Model başına `gpu_memory_utilization: 0.88` eklendi; pod silinmeden başlatma komutu `PATCH /v2/pods/{id}` ile güncellendi, 2 dk'da hazır. KV cache 44.755 token: 32k bağlamda en fazla 1,37 eşzamanlı dizi. Yükleme 6,4 sn, motor başlatma 54 sn. Smoke geçti (291 token/sn). |
 | 19.11 17:12 | vLLM + gpt-oss-120b MXFP4 (`b8szi31b3t3gj8`) | aynı | `vllm/vllm-openai:v0.34.0` | 9 dk | 79,9 GB (ağırlık 66,1 GiB, KV 8,35 GiB = 254.323 token) | yaklaşık 0,42 USD | 194 sn'de hazır (imaj host'ta vardı). sm_120'de MARLIN MXFP4 MoE arka ucu ve FlashInfer attention seçildi; ağırlık yükleme 100,6 sn. Smoke geçti (925 token/sn); farklı kuyrukla 3.136 token cache'ten geldi. |
 | 19.11 17:35–18:08 | Paket 1 indirme denemeleri (`3e5f4155egp2s9`, `ux3lby36ew72le`) | CPU cpu3c × 4, sonra cpu3g × 4 | `python:3.12-slim` | 33 dk + 13 dk | | yaklaşık 0,06 USD | İki CPU pod'u da konteyneri başlatamadı ya da yeniden başlama döngüsüne girdi ("Pod container is starting"); günlük API'si yanıt vermedi. Silindi; BF16 ağırlıkları GPU pod'u `--download` ile indirdi. Volume 200'den 260 GB'a büyütüldü (yaklaşık +4,2 USD/ay). |
-| 19.11 18:05 – 20.11 02:58 | Paket 1 deneyleri (`v71zvphir46gad`) | RTX PRO 6000 Blackwell SE, EU-RO-1 | `vllm/vllm-openai:v0.34.0`, sonra `lmsysorg/sglang:v0.5.23` | 8,88 saat (iş yaklaşık 1,9 saat) | Qwen FP8 80,9 GB (model 27,55 GiB, KV 46,79 GiB = 605.873 token) | **yaklaşık 23,9 USD** | Tüm deneyler 19:58'e kadar bitti; **pod 7 saat boşta kaldı** (yaklaşık 19 USD): oturumun çalışan süreci yeniden başladı, izleme işi öldü, sıralı iş sonunda pod'u silmiyordu. Ders: uzun işin son adımı her zaman `make down` olmalı ve ayrı bir zamanlanmış yedek denetim kurulmalı. Pod silinmeden `PATCH` ile 8 kez yeniden yapılandırıldı (her biri yaklaşık 3 dk). `--language-model-only` model belleğini 0,9 GiB azalttı. MXFP4 (4 bit) yüklenemedi, döngüye girdi. `wait` yeniden yapılandırmadan sonra eski sunucunun yanıt vermesini "hazır" sanabiliyordu; önce kapanmayı bekleyecek şekilde düzeltildi. |
+| 19.11 18:05 – 20.11 02:58 | Paket 1 deneyleri (`v71zvphir46gad`) | RTX PRO 6000 Blackwell SE, EU-RO-1 | `vllm/vllm-openai:v0.34.0`, sonra `lmsysorg/sglang:v0.5.23` | 8,88 saat (iş yaklaşık 1,9 saat) | Qwen FP8 80,9 GB (model 27,55 GiB, KV 46,79 GiB = 605.873 token) | **yaklaşık 23,9 USD** | Tüm deneyler 19:58'e kadar bitti; **pod 7 saat boşta kaldı** (yaklaşık 19 USD): oturumun çalışan süreci yeniden başladı, izleme işi öldü, sıralı iş sonunda pod'u silmiyordu. Ders ve önlem: pod içi bekçi (kendini siler), `make batch` (her durumda `make down`), CLAUDE.md "Kredi koruması" ve `runpod-kredi-korumasi` skill'i. Pod silinmeden `PATCH` ile 8 kez yeniden yapılandırıldı (her biri yaklaşık 3 dk). `--language-model-only` model belleğini 0,9 GiB azalttı. MXFP4 (4 bit) yüklenemedi, döngüye girdi. `wait` yeniden yapılandırmadan sonra eski sunucunun yanıt vermesini "hazır" sanabiliyordu; önce kapanmayı bekleyecek şekilde düzeltildi. |
 | **Toplam paket 0** | | | | GPU yaklaşık 0,95 saat | | **2,34 USD** (bakiye 43,04 → 40,70; volume dahil) | Pod kalmadı (`list-pods` boş, son pod `get-pod` 404). Geriye yalnızca `testmentor-models` volume'u kaldı (günde yaklaşık 0,47 USD). |
+| 20.11 03:40 | Bekçi doğrulaması (`ymdynycvkx70da`) | CPU cpu3c × 2 | `python:3.12-slim` | 1 dk | | < 0,01 USD | Pod, Runpod'un verdiği `RUNPOD_API_KEY` ile `DELETE /v2/pods/$RUNPOD_POD_ID` çağırıp ~55 sn'de kendini sildi; yedek silme gerekmedi. |
 | **Toplam paket 1** | | | | GPU 8,88 saat (iş yaklaşık 1,9) | | **24,17 USD** (bakiye 40,58 → 16,41; volume dahil). Hakem (Anthropic API) ayrı faturalanır. | Pod kalmadı (`list-pods` boş, `get-pod` 404); saatlik harcama 0,027 USD (yalnızca volume). |

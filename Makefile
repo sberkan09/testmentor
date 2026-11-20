@@ -4,11 +4,12 @@ SHELL := /bin/bash
 ENV := set -a; [ -f .env ] && . ./.env; set +a;
 PY := uv run python
 UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o))
+MAX_ARGS := $(if $(MAX_HOURS),--max-hours $(MAX_HOURS))
 
-.PHONY: up down smoke test lint compose volume download download-down reconfigure eval judge status balance local-up local-down
+.PHONY: up down smoke test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
-	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) && $(PY) scripts/runpod.py wait
+	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) $(MAX_ARGS) && $(PY) scripts/runpod.py wait
 
 down:          ## Pod'u sil, 404 ile doğrula, süre x fiyatı yaz (volume kalır)
 	$(ENV) $(PY) scripts/runpod.py down
@@ -36,6 +37,12 @@ download-down: ## İndirme pod'unu sil (404 ile doğrulanır)
 
 reconfigure:   ## Açık pod'da model/motor/sunucu ayarını değiştir (imaj yeniden çekilmez)
 	$(ENV) $(PY) scripts/runpod.py reconfigure $(UP_ARGS) && $(PY) scripts/runpod.py wait
+
+extend:        ## Pod'un kendini silme süresini uzat: make extend HOURS=1
+	$(ENV) $(PY) scripts/runpod.py extend --hours $(HOURS)
+
+batch:         ## Deney grubunu tek pod'da koş, sonunda pod her durumda silinir: make batch BATCH=paket1
+	$(ENV) $(PY) -m eval.batch config/batches/$(BATCH).yaml
 
 eval:          ## Deney koş: make eval EXP=d1-vllm
 	$(ENV) $(PY) -m eval.run --config config/experiments/$(EXP).yaml

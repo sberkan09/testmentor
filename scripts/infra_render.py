@@ -229,6 +229,7 @@ def render_download_script(
         "set -euo pipefail",
         f"export HF_HOME={hf_home}",
         f"mkdir -p {hf_home}",
+        *watchdog_lines(config_dir, log="/proc/1/fd/1"),
         "pip install -q --root-user-action=ignore 'huggingface_hub[hf_xet]'",
         'echo "[download] start $(date -u +%FT%TZ)"',
         # A failure must not end the container: Runpod would restart it and loop the download.
@@ -236,9 +237,71 @@ def render_download_script(
         *download_lines(config_dir, clean),
         "df -h $HF_HOME || true",
         'echo "[download] DONE $(date -u +%FT%TZ)"',
+        'self_delete "indirme bitti"',
         "sleep infinity",
     ]
     return "\n".join(lines) + "\n"
+
+
+# Credit protection ------------------------------------------------------------------------
+
+SELF_DELETE_PY = """import os, sys, urllib.request
+pid, key = os.environ.get("RUNPOD_POD_ID", ""), os.environ.get("RUNPOD_API_KEY", "")
+for url in (f"https://api.runpod.io/v2/pods/{pid}", f"https://rest.runpod.io/v1/pods/{pid}"):
+    try:
+        req = urllib.request.Request(url, method="DELETE", headers={"Authorization": f"Bearer {key}"})
+        print("[watchdog] DELETE", url, urllib.request.urlopen(req, timeout=30).status, flush=True)
+        sys.exit(0)
+    except Exception as exc:
+        print("[watchdog] DELETE", url, "failed:", getattr(exc, "code", ""), str(exc)[:200], flush=True)
+sys.exit(1)
+"""
+
+
+def watchdog_lines(
+    config_dir: Path = ROOT / "config",
+    log: str = "/tmp/watchdog.log",
+    interval_s: int = 60,
+    settings: dict[str, Any] | None = None,
+) -> list[str]:
+    """Background loop that deletes the pod itself (Runpod injects RUNPOD_POD_ID and a
+    pod-scoped RUNPOD_API_KEY into every pod; verified 20 Nov 2026). Triggers:
+    - the absolute deadline (WATCHDOG_DEADLINE epoch, or /tmp/watchdog_deadline if extended);
+    - the GPU idle for idle_minutes after a grace period (pods without GPU: deadline only).
+    It does not depend on the controlling session being alive."""
+    wd = settings or load_infra(config_dir)["watchdog"]
+    idle, grace, below = (
+        int(wd["idle_minutes"]),
+        int(wd["grace_minutes"]),
+        int(wd["gpu_util_idle_below"]),
+    )
+    return [
+        "self_delete() {",
+        '  echo "[watchdog] $1; pod siliniyor $(date -u +%FT%TZ)"',
+        "  until python3 - <<'PYDEL'",
+        SELF_DELETE_PY.rstrip("\n"),
+        "PYDEL",
+        "  do sleep 30; done",
+        "}",
+        "(",
+        "  set +e",
+        "  start=$(date +%s); idle=0",
+        '  echo "[watchdog] başladı; son tarih ${WATCHDOG_DEADLINE:-yok}, boşta sınırı '
+        f'{idle} dk (ilk {grace} dk sayılmaz)"',
+        f"  while sleep {interval_s}; do",
+        "    now=$(date +%s)",
+        '    deadline=$(cat /tmp/watchdog_deadline 2>/dev/null || echo "${WATCHDOG_DEADLINE:-0}")',
+        '    if [ "${deadline:-0}" -gt 0 ] && [ "$now" -ge "$deadline" ]; then',
+        '      self_delete "en uzun ömür doldu"; continue',
+        "    fi",
+        f"    if command -v nvidia-smi >/dev/null && [ $((now - start)) -ge {grace * interval_s} ]; then",
+        "      util=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | head -1 | tr -dc 0-9)",
+        f'      if [ "${{util:-0}}" -lt {below} ]; then idle=$((idle + 1)); else idle=0; fi',
+        f'      if [ "$idle" -ge {idle} ]; then self_delete "GPU {idle} dk boşta"; fi',
+        "    fi",
+        "  done",
+        f") >> {log} 2>&1 &",
+    ]
 
 
 # Runpod pod start script --------------------------------------------------------------------
@@ -265,6 +328,7 @@ def render_pod_script(
         f"LOG={mount}/logs/$(date -u +%Y%m%dT%H%M%SZ)-{engine_key}-{model_key}",
         'mkdir -p "$LOG"',
         'echo "[start] $(date -u +%FT%TZ)"',
+        *watchdog_lines(config_dir, log='"$LOG/watchdog.log"'),
     ]
     if download:
         lines += download_lines(config_dir)
