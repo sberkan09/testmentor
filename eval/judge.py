@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT))
 
 from core.hashing import canonical, input_hash  # noqa: E402
 from eval.golden import Golden, load_golden  # noqa: E402
+from eval.golden_v1 import load_golden_v1  # noqa: E402
 from eval.report import write_report  # noqa: E402
 from services.judge_client import JudgeClient, JudgeSettings, JudgeUnavailable  # noqa: E402
 
@@ -69,8 +70,23 @@ class Verdict(BaseModel):
     ambiguity_flagged: bool
 
 
-def reference_checks(golden: Golden) -> dict[str, list[dict[str, str]]]:
-    out: dict[str, list[dict[str, str]]] = {}
+def reference_checks(golden: Golden) -> dict[str, list[dict[str, Any]]]:
+    """v0: steps of the reference tests covering the requirement. v1: the requirement's own
+    reference checks (stage 5 of paket 1b); requirements without checks are not judged."""
+    out: dict[str, list[dict[str, Any]]] = {}
+    if golden.version == "v1":
+        for p in golden.projects:
+            for r in p.raw["requirements"]:
+                if r.get("reference_checks"):
+                    out[r["id"]] = [
+                        {
+                            "action": c["action"],
+                            "expected": c["expected"],
+                            "needs_documents": bool(c.get("needs_documents")),
+                        }
+                        for c in r["reference_checks"]
+                    ]
+        return out
     for rid, tests in golden.reference_tests().items():
         checks = []
         for tc in sorted(tests, key=lambda t: t["id"]):
@@ -147,10 +163,16 @@ async def judge_run(run_dir: Path, client: JudgeClient, golden: Golden) -> dict[
                 verdict = reply.parsed.model_dump() | {"usage": reply.usage}
                 path.write_text(json.dumps(verdict, ensure_ascii=False), encoding="utf-8")
         matched = {c["no"] for c in verdict.get("checks", []) if c["matched"]}
+        nd = {i for i, c in enumerate(checks, start=1) if c.get("needs_documents")}
         results.append(
             {
                 "repeat": rep,
                 "requirement": rid,
+                "project": rid.split("-")[0],
+                "split": raw_reqs[rid].get("split", ""),
+                "stratum": raw_reqs[rid].get("stratum", ""),
+                "checks_nd": len(nd),
+                "matched_nd": len(matched & nd),
                 "language": raw_reqs[rid]["language"],
                 "trap": str(raw_reqs[rid].get("note", "")).startswith("Tuzak"),
                 "checks": len(checks),
@@ -189,11 +211,39 @@ def _recall(rows: list[dict[str, Any]]) -> float | None:
     return round(sum(r["matched"] for r in rows) / total, 4) if total else None
 
 
+def _recall_docs(rows: list[dict[str, Any]], needs: bool) -> float | None:
+    """Recall over the checks that do (or do not) need documents (golden set v1)."""
+    rows = [r for r in rows if not r["unscored"] and "checks_nd" in r]
+    if needs:
+        total, hit = sum(r["checks_nd"] for r in rows), sum(r["matched_nd"] for r in rows)
+    else:
+        total = sum(r["checks"] - r["checks_nd"] for r in rows)
+        hit = sum(r["matched"] - r["matched_nd"] for r in rows)
+    return round(hit / total, 4) if total else None
+
+
+def _by(rows: list[dict[str, Any]], key: str) -> dict[str, float | None]:
+    return {
+        v: _recall([r for r in rows if r.get(key) == v])
+        for v in sorted({r.get(key, "") for r in rows})
+        if v
+    }
+
+
 def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
     first = [r for r in results if r["repeat"] == 0] or results
     langs = sorted({r["language"] for r in first})
     scored = [r for r in first if not r["unscored"]]
-    return {
+    v1 = {}
+    if any("checks_nd" in r for r in first):
+        v1 = {
+            "by_project": _by(first, "project"),
+            "by_split": _by(first, "split"),
+            "by_stratum": _by(first, "stratum"),
+            "checks_needing_documents": _recall_docs(first, True),
+            "checks_not_needing_documents": _recall_docs(first, False),
+        }
+    return v1 | {
         "check_recall": _recall(first),
         "by_language": {
             lang: _recall([r for r in first if r["language"] == lang]) for lang in langs
@@ -225,12 +275,14 @@ async def main() -> int:
     except JudgeUnavailable as exc:
         print(f"hakem koşamadı: {exc}")
         return 2
-    golden = load_golden()
     try:
         for run in args.runs:
             run_dir = Path(run)
-            summary = await judge_run(run_dir, client, golden)
             metrics = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+            golden = (
+                load_golden_v1() if metrics["meta"].get("golden_version") == "v1" else load_golden()
+            )
+            summary = await judge_run(run_dir, client, golden)
             metrics["judge"] = summary
             (run_dir / "metrics.json").write_text(
                 json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8"

@@ -1,0 +1,6 @@
+# Paket 1b aşama 6: altın set v1 üzerinde parçasız ve altın parçalı üretim (D9 pilotu).
+# Hakem pod kapandıktan sonra yerelde koşar (make judge). Pod sonunda her durumda silinir.
+max_hours: 1
+steps:
+  - {experiment: d9-pilot-none}
+  - {experiment: d9-pilot-gold}

@@ -136,3 +136,55 @@ def test_passage_and_basis_texts_are_verified():
         "disagrees",
     ):
         assert any(frag in p for p in problems), frag
+
+
+def test_gold_passages_and_v1_judge_checks():
+    import yaml
+
+    from eval.judge import reference_checks, summarize
+    from eval.pipeline import Pipeline
+
+    root = __import__("pathlib").Path(__file__).resolve().parent.parent
+    cfg = yaml.safe_load((root / "config" / "pipeline.yaml").read_text(encoding="utf-8"))
+    g = load_golden_v1()
+    if not g.projects:
+        return
+    p = g.projects[0]
+    with_refs = [r for r in p.raw["requirements"] if r.get("support_passages")]
+    cluster = [r["id"] for r in with_refs[:3]]
+    assert Pipeline(None, None, cfg | {"passages": "none"}, {}).passages(p, cluster) == []
+    gold = Pipeline(None, None, cfg | {"passages": "gold"}, {}).passages(p, cluster)
+    assert gold and len(gold) == len(set(gold))
+    assert gold == Pipeline(None, None, cfg | {"passages": "gold"}, {}).passages(p, cluster[::-1])
+    assert all(s.startswith("[") and " §" in s for s in gold)
+    checks = reference_checks(g)
+    rid = with_refs[0]["id"]
+    assert len(checks[rid]) == len(with_refs[0]["reference_checks"])
+    assert all(
+        r.get("reference_checks")
+        for pr in g.projects
+        for r in pr.raw["requirements"]
+        if r["id"] in checks
+    )
+    rows = [
+        {
+            "repeat": 0,
+            "requirement": "X-1",
+            "project": "X",
+            "split": "dev",
+            "stratum": "core",
+            "language": "en",
+            "trap": False,
+            "checks": 4,
+            "matched": 3,
+            "checks_nd": 2,
+            "matched_nd": 1,
+            "invented": 0,
+            "boundary_ok": True,
+            "ambiguity_flagged": False,
+            "unscored": None,
+        },
+    ]
+    s = summarize(rows)
+    assert s["checks_needing_documents"] == 0.5 and s["checks_not_needing_documents"] == 1.0
+    assert s["by_project"] == {"X": 0.75}

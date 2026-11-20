@@ -80,6 +80,9 @@ class Pipeline:
         # reference: generation gets the golden clusters and methods, so its quality is measured
         # apart from clustering (D6) and classification; predicted: end to end.
         self.generation_inputs = cfg.get("generation_inputs", "reference")
+        # none: no knowledge-base passages; gold: the support passages of golden set v1 for the
+        # cluster's requirements (oracle retrieval, D9 pilot of paket 1b)
+        self.passage_mode = cfg.get("passages", "none")
         self.methods = tuple(m["name"] for m in cfg["methods"])
         self.case_model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]))
         self.method_model = method_batch_model(self.methods)
@@ -230,6 +233,7 @@ class Pipeline:
                 types=self.cfg["test_types"],
                 priorities=self.cfg["priorities"],
                 only_ids=only,
+                passages=self.passages(p, cluster),
             )
 
         async def one(idx: int, cluster: list[str]) -> tuple[list[dict[str, Any]], set[str]]:
@@ -274,6 +278,20 @@ class Pipeline:
         tests = [t for part, _ in parts for t in part]
         covered = set().union(*(c for _, c in parts)) if parts else set()
         return tests, covered
+
+    def passages(self, p: GoldenProject, cluster: Sequence[str]) -> list[str]:
+        if self.passage_mode == "none":
+            return []
+        if self.passage_mode != "gold":
+            raise ValueError(f"unknown passages mode {self.passage_mode!r}")
+        by_id = {r["id"]: r for r in p.raw["requirements"]}
+        seen: dict[str, tuple] = {}
+        for rid in cluster:
+            for ps in by_id[rid].get("support_passages", []):
+                key = " ".join(ps["text"].split())
+                seen.setdefault(key, (ps["doc"], ps["section"], ps["text"]))
+        # deterministic order: document, section, text (prompt prefix rules)
+        return [f"[{d} §{sec}] {t}" for d, sec, t in sorted(seen.values())]
 
     def _accept(
         self, res: ChatResult | None, cluster: list[str], unit: str, start: int = 0

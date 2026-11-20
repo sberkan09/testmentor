@@ -35,6 +35,7 @@ from core.metrics import layer1, passes_thresholds  # noqa: E402
 from core.prompts import TEMPLATE_VERSION, Method, ProjectCard, generation_messages  # noqa: E402
 from core.schemas import case_set_model  # noqa: E402
 from eval.golden import load_golden  # noqa: E402
+from eval.golden_v1 import load_golden_v1  # noqa: E402
 from eval.pipeline import EmbeddingCache, Pipeline  # noqa: E402
 from eval.report import write_report  # noqa: E402
 from scripts.runpod_state import base_urls_from_state, read_state  # noqa: E402
@@ -238,7 +239,9 @@ async def main() -> int:
     exp_path = Path(args.config)
     exp, cfg = load_experiment(exp_path)
     server_info = point_at_pod(exp)
-    golden = load_golden(projects=exp.get("projects"))
+    # golden: v0 (default, eval/golden/altin-set-v0.json) or v1 (eval/golden/v1/, paket 1b)
+    loader = load_golden_v1 if exp.get("golden", "v0") == "v1" else load_golden
+    golden = loader(projects=exp.get("projects"))
     run_id = f"{time.strftime('%Y%m%d-%H%M%S')}-{exp['name']}"
     out_dir = Path(args.out) / run_id
     out_dir.mkdir(parents=True, exist_ok=True)

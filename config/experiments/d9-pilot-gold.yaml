@@ -1,0 +1,8 @@
+name: d9-pilot-gold
+question: "D9 pilotu (paket 1b aşama 6): altın set v1, öbeğin destek parçaları (kâhin getirme) ile üretim; belge gerektiren denetimlerde parçasız koşudan anlamlı biçimde iyi olmalı."
+variable: passages=gold
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: gold
+quality: true
