@@ -1,0 +1,109 @@
+{
+ "id": "ETC-902",
+ "reference_preconditions": "Level 2, mode OS or LS, radio session established, train running with a valid position whose orientation relative to the LRBG is known (nominal or reverse). No packets are attached to the radio messages used.",
+ "reference_checks": [
+  {
+   "action": "The OBU receives information by radio whose validity direction is opposite to the train orientation relative to the LRBG.",
+   "expected": "The OBU ignores the information: none of the reactions it would call for occurs.",
+   "clause": "3.6.3.1.3",
+   "channel_note": "Official test uses a conditional emergency stop message (M15) and checks for the absence of an emergency stop reaction. RTM: message 15 Conditional Emergency Stop with Q_DIR opposite to Q_DIRLRBG; DMI: system status message 'Emergency stop' NOT displayed; JRU: MESSAGE FROM RBC (NID_MESSAGE_JRU=9) is still recorded.",
+   "basis": {
+    "doc": "SUBSET-076-5-2",
+    "ref": "3060300/TC6",
+    "text": "SA-DATA.Indication with Euroradio Message … \"Conditional Emergency Stop\" I RTM Q_DIR = opposite (Q_DIRLRBG). … NOT The system status message \"Emergency … The train does not react. … stop\" is displayed"
+   },
+   "passages": [
+    "ETC-902-P1",
+    "ETC-902-P3",
+    "ETC-902-P4",
+    "ETC-902-P5",
+    "ETC-902-P6"
+   ],
+   "needs_documents": false,
+   "not_in_corpus": false
+  },
+  {
+   "action": "The OBU receives information by radio whose validity direction is the same as the train orientation relative to the LRBG.",
+   "expected": "The OBU takes the information into account: the reaction it calls for occurs.",
+   "clause": "3.6.3.1.3",
+   "channel_note": "Official test uses a track ahead free request (M34), observed as the request being presented to the driver. RTM: message 34 Track Ahead Free Request with Q_DIR = Q_DIRLRBG; DMI: driver request symbol 'Track Ahead Free' displayed; JRU: NID_MESSAGE_JRU=9, DMI SYMBOL STATUS (NID_MESSAGE_JRU=21, Bit82=1).",
+   "basis": {
+    "doc": "SUBSET-076-5-2",
+    "ref": "3060300/TC6",
+    "text": "\"Track Ahead Free Request\" I RTM Q_DIR = Q_DIRLRBG … The Driver Request symbol \"Track Ahead Free\" … is displayed"
+   },
+   "passages": [
+    "ETC-902-P1",
+    "ETC-902-P3",
+    "ETC-902-P7"
+   ],
+   "needs_documents": false,
+   "not_in_corpus": false
+  },
+  {
+   "action": "The OBU receives information by radio marked as valid for both directions.",
+   "expected": "The OBU takes the information into account: the reaction it calls for occurs.",
+   "clause": "3.6.3.1.3",
+   "channel_note": "Official test uses a conditional emergency stop message (M15), accepted. RTM: message 15 with Q_DIR = 2 (both directions); DMI: status symbol ST01 'Service Brake or Emergency Brake intervention'; JRU: NID_MESSAGE_JRU=9, DMI SYMBOL STATUS (NID_MESSAGE_JRU=21, Bit38=1). The brake reaction depends on the CES stop location (3.10.2.2), set by the bench.",
+   "basis": {
+    "doc": "SUBSET-076-5-2",
+    "ref": "3060300/TC6",
+    "text": "\"Conditional Emergency Stop\" I RTM Q_DIR = 2 (Both directions) … The Status symbol \"Service Brake or Emergency … Brake intervention\" is displayed"
+   },
+   "passages": [
+    "ETC-902-P1",
+    "ETC-902-P2",
+    "ETC-902-P4",
+    "ETC-902-P6"
+   ],
+   "needs_documents": true,
+   "not_in_corpus": false
+  }
+ ],
+ "support_passages": [
+  {
+   "id": "ETC-902-P1",
+   "doc": "SUBSET-026-3",
+   "section": "3.6.3.1.3",
+   "text": "3.6.3.1.3 When receiving information from any transmission medium, the ERTMS/ETCS on-board equipment shall only take into account information valid for the train orientation. Other information shall be ignored."
+  },
+  {
+   "id": "ETC-902-P2",
+   "doc": "SUBSET-026-3",
+   "section": "3.6.3.1.2",
+   "text": "3.6.3.1.2 Data transmitted to the on-board equipment shall be identified as being valid for a) both directions b) the nominal direction c) the reverse direction of the referenced balise group (for information sent by balise or radio) or of the loop (for information sent by loop)."
+  },
+  {
+   "id": "ETC-902-P3",
+   "doc": "SUBSET-026-3",
+   "section": "3.6.3.1.1 a)",
+   "text": "a) the LRBG orientation for information sent by radio"
+  },
+  {
+   "id": "ETC-902-P4",
+   "doc": "SUBSET-026-7",
+   "section": "7.5.1.103",
+   "text": "7.5.1.103 Q_DIR Name Validity direction of transmitted data Description Qualifier to indicate the relevant validity direction of transmitted data, with reference to directionality of the balise group sending the information or to directionality of the LRBG, in case of information sent via radio. Length of variable Minimum Value Maximum Value Resolution/formula 2 bits Special/Reserved Values 00 Reverse 01 Nominal 10 Both directions"
+  },
+  {
+   "id": "ETC-902-P5",
+   "doc": "SUBSET-026-7",
+   "section": "7.5.1.104",
+   "text": "7.5.1.104 Q_DIRLRBG Name Orientation of the train in relation to the direction of the LRBG Description Length of variable Minimum Value Maximum Value Resolution/formula 2 bits Special/Reserved Values 0 Reverse 1 Nominal 2 Unknown"
+  },
+  {
+   "id": "ETC-902-P6",
+   "doc": "SUBSET-026-3",
+   "section": "3.10.2.2",
+   "text": "3.10.2.2 A conditional emergency stop message shall contain the information of a new stop location, referred to the LRBG. In case, when receiving this message a) the train has already passed with its min safe front end the new stop location, the emergency stop message shall be rejected. b) the train has not yet passed with its min safe front end the new stop location, the emergency stop message shall be accepted:"
+  },
+  {
+   "id": "ETC-902-P7",
+   "doc": "SUBSET-026-3",
+   "section": "3.15.5.2",
+   "text": "3.15.5.2 The track ahead free request from the RBC shall indicate to the on-board a) at which location the ERTMS/ETCS on-board equipment shall begin to display the request to the driver. b) at which location the ERTMS/ETCS on-board equipment shall stop to display the request to the driver (in case the driver did not acknowledge)."
+  }
+ ],
+ "needs_documents": true,
+ "reference_note": "One test case (3060300/TC6), tagged 3.6.3.1.3. Kept 3 checks (steps 1+3, 4+6, 8+10). Dropped 5 steps (2, 5, 7, 9, 11): JRU recordings of the received radio messages and of DMI symbol status, channel duplicates (clause 3.6.3.1.3). The 'both directions' case comes from 3.6.3.1.2 and is not named in the requirement text. The exceptions of 3.6.3.1.3.1/3.6.3.1.3.2 referred to by the requirement are not exercised by this test case. No requirement defect."
+}

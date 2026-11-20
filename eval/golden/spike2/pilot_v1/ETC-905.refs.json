@@ -1,0 +1,104 @@
+{
+ "id": "ETC-905",
+ "reference_preconditions": "Level 2, mode FS, OS, LS or AD, radio session established, train running. An MA with complete track description (gradient, SSP) is stored. MA request parameters from the RBC are stored: a time before reaching the perturbation location (T_MAR) and a repetition period of 10 s, with the section/LOA speed timer criterion disabled. No new MA is sent by the RBC.",
+ "reference_checks": [
+  {
+   "action": "With a time before reaching the perturbation location defined by the RBC, the train's max safe front end reaches the location from which it would reach the perturbation location within that time at warning speed.",
+   "expected": "The OBU sends an MA request to the RBC.",
+   "clause": "3.8.2.2.2",
+   "channel_note": "RTM: message 132 MA Request with packet 0/1; criterion from packet 57 T_MAR (T_TIMEOUTRQST=1023, T_CYCRQST=10); JRU: MESSAGE TO RBC (NID_MESSAGE_JRU=10).",
+   "basis": {
+    "doc": "SUBSET-076-5-2",
+    "ref": "3080200/TC7",
+    "text": "The train reaches a location with its max safe … pertubation location in T_MAR seconds if … it would be driving at warning speed. … SA-DATA.Request with Euroradio Message \"MA … Request\" (NID_MESSAGE=132; … Q_MARQSTREASON=<xxx1x>) containing"
+   },
+   "passages": [
+    "ETC-905-P1",
+    "ETC-905-P11",
+    "ETC-905-P5",
+    "ETC-905-P6",
+    "ETC-905-P10",
+    "ETC-905-P12"
+   ],
+   "needs_documents": true,
+   "not_in_corpus": false
+  },
+  {
+   "action": "The MA request triggered by passing the perturbation-location criterion is sent.",
+   "expected": "The OBU informs the RBC with the request that the reason is 'time before reaching the perturbation location reached'.",
+   "clause": "3.8.2.1.7",
+   "channel_note": "RTM: message 132 with Q_MARQSTREASON = xxx1x; the same reason is carried by the cyclic repetitions (steps 5, 11).",
+   "basis": {
+    "doc": "SUBSET-076-5-2",
+    "ref": "3080200/TC7",
+    "text": "The train reaches a location with its max safe … SA-DATA.Request with Euroradio Message \"MA … Request\" (NID_MESSAGE=132; … Q_MARQSTREASON=<xxx1x>) containing … packet 0/1 is transmitted"
+   },
+   "passages": [
+    "ETC-905-P2",
+    "ETC-905-P3",
+    "ETC-905-P8",
+    "ETC-905-P12"
+   ],
+   "needs_documents": true,
+   "not_in_corpus": false
+  }
+ ],
+ "support_passages": [
+  {
+   "id": "ETC-905-P1",
+   "doc": "SUBSET-026-3",
+   "section": "3.8.2.2.1",
+   "text": "a) A defined time before the train reaches the perturbation location assuming it is running at the warning speed (see section 3.13.11 for details). b) A defined time before the Section timer (not the End Section timer, not the Overlap timer) for any section of the MA expires, or before the LOA speed timer expires."
+  },
+  {
+   "id": "ETC-905-P11",
+   "doc": "SUBSET-026-3",
+   "section": "3.8.2.2.2",
+   "text": "3.8.2.2.2 With regard to the above possibilities, the MA request shall be triggered when the train front has passed the location defined by 3.8.2.2.1 a) / when the moment defined by 3.8.2.2.1 b) is reached."
+  },
+  {
+   "id": "ETC-905-P12",
+   "doc": "SUBSET-026-8",
+   "section": "8.6.3",
+   "text": "8.6.3 Message 132: MA Request Field VARIABLE/ Remarks No. PACKET 1 NID_MESSAGE 2 L_MESSAGE 3 T_TRAIN 4 NID_ENGINE 5 Q_MARQSTREAS ON 6 Packet 0 or 1"
+  },
+  {
+   "id": "ETC-905-P2",
+   "doc": "SUBSET-026-3",
+   "section": "3.8.2.1.7",
+   "text": "3.8.2.1.7 Together with any MA request the on-board shall inform the RBC about the reason(s) that is (are) applicable at the time the MA request is sent."
+  },
+  {
+   "id": "ETC-905-P3",
+   "doc": "SUBSET-026-3",
+   "section": "3.8.2.2.3",
+   "text": "3.8.2.2.3 Once the resulting location regarding 3.8.2.2.1 a) is passed by the train front, the reason \"Time before reaching the perturbation location reached\" shall remain applicable until the triggering criterion is not fulfilled anymore, e.g. due to the reception of a new MA or to a temporary EOA that is no longer supervised."
+  },
+  {
+   "id": "ETC-905-P5",
+   "doc": "SUBSET-026-7",
+   "section": "7.4.2.14",
+   "text": "7.4.2.14 Packet Number 57: Movement Authority Request Parameters Description This packet is intended to give parameters telling when and how often the train has to ask for a movement authority. Transmitted by RBC Content Variable Length Comment NID_PACKET 8 Q_DIR 2 L_PACKET 13 T_MAR 8 T_TIMEOUTRQST 10 T_CYCRQST 8"
+  },
+  {
+   "id": "ETC-905-P6",
+   "doc": "SUBSET-026-7",
+   "section": "7.5.1.147",
+   "text": "7.5.1.147 T_MAR Name Time before reaching the perturbation location Description Length of variable Minimum Value Maximum Value Resolution/formula 8 bits 0s 254 s 1s Special/Reserved Values 255 No MA request triggering with regards to this function"
+  },
+  {
+   "id": "ETC-905-P8",
+   "doc": "SUBSET-026-7",
+   "section": "7.5.1.118.3",
+   "text": "7.5.1.118.3 Q_MARQSTREASON Name Reason for MA request sending Description Qualifier to indicate the reason why the MA request is sent to the RBC Length of variable Minimum Value Maximum Value Resolution/formula 5 bits Bitset Special/Reserved Values xxxx1 Start selected by driver xxx1x Time before reaching the perturbation location reached xx1xx Time before a section timer/LOA speed timer expires reached x1xxx Track description deleted 1xxxx TAF up to level 2 transition location"
+  },
+  {
+   "id": "ETC-905-P10",
+   "doc": "SUBSET-026-3",
+   "section": "3.13.11.1",
+   "text": "3.13.11.1 The purpose of the perturbation location is to trigger the MA request to the RBC in order to renew the Movement Authority in due time before the train would have to brake to an EOA/SvL or LOA target."
+  }
+ ],
+ "needs_documents": true,
+ "reference_note": "One test case (3080200/TC7), tagged 3.8.2.1.7 and 3.8.2.2.2. Kept 2 checks: steps 1+2 (trigger, reason). Dropped 10 steps: 3, 6, 9, 12 (JRU recordings), 4-5 and 10-11 (cyclic repetition every T_CYCRQST and continued requests at standstill: clauses 3.8.2.1.5, 3.8.2.2.3), 7-8 (standstill position report: 3.6.5.1.4 a)). The supplied block was wrongly cut and ran into 3080200/TC8; the TC8 checks (section/LOA speed timer criterion and its reason) were removed and TC8 is not used. Requirement text does not name the triggering criteria (time before perturbation location at warning speed; time before a section timer or the LOA speed timer expires) or the reason values; both come from 3.8.2.2.1 and the reason definitions. No requirement defect."
+}

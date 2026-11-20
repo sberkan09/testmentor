@@ -1,0 +1,46 @@
+{
+ "id": "ETC-904",
+ "reference_preconditions": "Level 1 (FS, AD, LS, OS) or level 2 (FS, AD, LS, OS, SM; radio session established). An MA and an SSP are stored; the stored SSP extends beyond the start location of the SSP that will be received. Speed and distance information reflecting the stored SSP is shown to the driver (requested by the driver in OS).",
+ "reference_checks": [
+  {
+   "action": "A new SSP that differs from the stored one and starts at a location the train has already reached (valid immediately), while the stored SSP extends beyond that start location, is received from a balise group (level 1) or the RBC (level 2).",
+   "expected": "The OBU replaces the stored SSP from the start location of the new SSP and supervises speed according to the new SSP.",
+   "clause": "3.7.3.1",
+   "channel_note": "BTM (L1): balise group BGa, N_TOTAL=1, packet 27 + 255; RTM (L2): message 24 General message with packet 27; DMI: speed and distance monitoring information reflects the new SSP (not in LS); JRU: NID_MESSAGE_JRU=6 / 9, SPEED AND DISTANCE MONITORING INFORMATION (NID_MESSAGE_JRU=20).",
+   "basis": {
+    "doc": "SUBSET-076-5-2",
+    "ref": "3070300/TC14",
+    "text": "One Balise Group message (N_TOTAL=1; … Info: If in L1; the SSP is different from the … NID_BG=<BGa>) containing packet 27, packet … previous one and shall be valid … \"General message\" (NID_MESSAGE=24) … Info: If in L2; the SSP is different from the … containing packet 27 is received … The new SSP is the one recieved from … The speed and distance monitoring information is"
+   },
+   "passages": [
+    "ETC-904-P1",
+    "ETC-904-P2",
+    "ETC-904-P3"
+   ],
+   "needs_documents": false,
+   "not_in_corpus": false
+  }
+ ],
+ "support_passages": [
+  {
+   "id": "ETC-904-P1",
+   "doc": "SUBSET-026-3",
+   "section": "3.7.3.1 a)",
+   "text": "3.7.3.1 New track description and linking information shall replace (in the ERTMS/ETCS on- board equipment) stored information as detailed below: a) New Static Speed Profile information shall replace all stored Static Speed Profile information from the start location of the new information."
+  },
+  {
+   "id": "ETC-904-P2",
+   "doc": "SUBSET-026-3",
+   "section": "3.11.3.1.1",
+   "text": "3.11.3.1.1 The Static Speed Profile (SSP) is a description of the fixed speed restrictions of a given piece of track. The speed restrictions can be related to e.g. maximum line speed, curves, points, tunnel profiles, bridges."
+  },
+  {
+   "id": "ETC-904-P3",
+   "doc": "SUBSET-026-7",
+   "section": "7.4.2.7",
+   "text": "7.4.2.7 Packet Number 27: International Static Speed Profile Description Static speed profile and optionally speed limits depending on the international train category. Transmitted by Any Content Variable Length Comment NID_PACKET 8 Q_DIR 2 L_PACKET 13 Q_SCALE 2"
+  }
+ ],
+ "needs_documents": false,
+ "reference_note": "One test case (3070300/TC14), tagged 3.7.3.1 a). Kept 1 check (L1 balise and L2 radio variants merged: steps 3/5 + 7). Dropped 5 steps: 1-2 (driver requests speed and distance display in OS, setup) and 4, 6, 8 (JRU recordings, channel duplicates). The test case does not verify that the stored SSP in rear of the new start location is kept, nor the relocation exception 3.7.3.1.1. No requirement defect."
+}
