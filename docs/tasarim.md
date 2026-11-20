@@ -58,6 +58,8 @@ Her düğümde ortak alanlar bulunur: `input_hash`, `cache_key`, `status` (`fres
 Kurallar:
 
 - `input_hash`, düğüm tipinin, sıralı girdi içeriklerinin, prompt sürümünün, model kimliğinin ve üretim parametrelerinin SHA-256 özetidir. Düğüm tipi hash'e girer: aynı girdili ve aynı ayarlı iki aşamanın (örneğin tek üyeli öbeğin adı ile o gereksinimin yöntemi) çıktıları cache'te karışmaz. Girdiler düz JSON'dur; aşağı akış düğümleri ham içerik (örneğin vektör) yerine üst düğümün hash'ini kullanır.
+- Prompt sürümü aşama başınadır (paket 3'te netleşti): `prompt_version = <ortak sürüm>.<aşama sürümü>+<parmak izi>`. Ortak sürüm sistem talimatını ve proje kartı çizimini, aşama sürümü o aşamanın şablonunu sayar; ikisi de kodda şablonun yanında durur. Parmak izi, ayarla çizilmiş sabit katmanların (sistem talimatı, aşama talimatı, şema, örnekler) SHA-256 özetinin ilk 12 karakteridir; örnek ya da etiket listesi değişince sürüm kendiliğinden değişir. Ortak katman değişirse tüm model aşamaları, bir aşamanın şablonu değişirse yalnızca o aşama bayatlar. Dinamik çizim (gereksinim bloğu, kuyruk) değişince aşama sürümü elle artırılır; anlık görüntü testi bunu denetler.
+- Proje kartı düğümü yöntem listesini ve ölçütlerini yapısal olarak da taşır; kart metni bundan çizilir, yöntem şemasının değer listesi buradan gelir (paket 3).
 - Bağımlılık ile bağlam ayrıdır (paket 2'de netleşti). Bağımlılıklar `input_hash`'e girer ve bayatlığı belirler. Bağlam (sabitlenmiş test durumlarının içeriği, kullanıcının ek talimatı) bayatlatmaz, ama çıktı cache'inin anahtarına girer: `cache_key = H(input_hash, bağlam hash'i)`. Üretim biçimi (artımlı, baştan, birleştirme, onarım; önceki set) hiçbir anahtara girmez, `produced_by` içinde kaydedilir. Böylece test durumunu elle düzenlemek model çağırmaz, gereksinimi taşıyıp geri almak cache'ten döner.
 - Düğüm bayattır ⇔ kayıtlı `input_hash`, güncel girdilerden hesaplanan beklenen hash'ten farklıdır. Her olaydan sonra beklenen hash'ler projenin tamamı için yeniden hesaplanır. Üretim sonucu yazıldığında yalnızca yazılan düğümün aşağı akışı yeniden hesaplanır; sonucun baştan hesapla aynı olduğu testle doğrulanır. Ters bağımlılık dizini arayüz ve doğrulama listesi için tutulur.
 - Bir düğümün üstü taze değilse (bayat, çalışıyor, başarısız ya da kendisi bekliyor) düğüm, kendi girdileri değişmediyse bayat sayılmaz, doğrulanacak listesine girer: durumu `fresh` kalır, üstü taze olana kadar kuyruğa alınmaz. Üst düğüm yeniden üretilir; çıktısı aynıysa aşağısı taze kalır (erken kesme). Arama sonucu bu yolla çalışır. Embedding istisnadır: vektörler bayt düzeyinde kararlı olmadığı için aşağısı embedding'i beklenen hash'iyle görür, girdisi değişen embedding'in aşağısı (öbekleme ağacı) doğrudan bayatlar.
@@ -88,6 +90,8 @@ Yüklenen set gereksinim kayıtlarına ayrıştırılır. Kimliği olmayan gerek
 - Arayüzdeki ayrıntı kaydırıcısı ağacı farklı seviyeden keser. Öbek sayısı model çağrısı olmadan anında değişir.
 - Kullanıcının taşıdığı gereksinim sabit atama olur. Yeniden kümeleme sabit atamaları bozmaz.
 - Öbek üyeliği somut durumdur; öbekler ağaca değil üyeliğe bağlıdır. Embedding değişince ağaç bayatlar ve arayüzde gösterilir, ama yeniden kesim yalnızca açık komutla (ayrıntı kaydırıcısı, yeniden öbekle) yapılır. Böylece tek metin değişikliği öbekleri dağıtmaz (paket 2'de netleşti).
+- İlk kesim içe almada, embedding'ler hesaplanınca vektörlerden yapılır; proje öbeklerle birlikte kurulur (paket 3).
+- Yeniden kesimde yeni öbekler eski öbeklerle kesişim büyüklüğüne göre birebir eşlenir. Eski anahtar yalnızca eski üyelerin yarısından fazlası yeni öbekteyse yeniden kullanılır, aksi halde öbek yeni kimlik alır; var olan anahtar tamamen başka üyelerle kullanılmaz. Böylece sabitlenmiş test durumları çoğunlukla kendi gereksinimleriyle aynı sette kalır (paket 3).
 - Son üyesi taşınan öbek silinir; adı, seti ve arama sonucu kaldırılır.
 - Model her öbek için 3–6 kelimelik ad ve bir cümle gerekçe yazar. Kullanıcının elle yazdığı ad sabittir.
 
@@ -101,6 +105,16 @@ Yüklenen set gereksinim kayıtlarına ayrıştırılır. Kimliği olmayan gerek
 - 25'ten fazla gereksinimli öbek alt parçalara bölünerek üretilir.
 - Öbeğe gereksinim eklenince set baştan yazılmaz. Artımlı prompt mevcut test durumlarını ve yeni gereksinimi alır, yalnızca ekleme ya da güncelleme döner.
 - Sabitlenmiş test durumları prompt'a değiştirilemez olarak verilir.
+
+Paket 3'te netleşenler:
+
+- Tüm üretim biçimleri (baştan, artımlı, birleştirme, onarım, şema yeniden denemesi) prompt'un 1–5. katmanlarını bayt bayt aynı kullanır. Biçime özgü malzeme (sabit test durumları, mevcut testler, değişiklik bildirimi, biçimin çıktı şeması, onarım talimatı) prompt'un sonuna eklenir; artımlı ve onarım çağrıları böylece baştan üretimin önek cache'ini kullanır.
+- Her üretilen set `produced_by` içinde dayanağını kaydeder: aşama ayarı, kart hash'i, parça kimlikleri, üye başına metin hash'i ve yöntemler. Artımlı biçim yalnızca kart, aşama ayarı ve parça kimlikleri dayanakla aynıyken kullanılır; aksi halde set baştan üretilir. Çekirdeğin üretim ipucu (`Hint`) nedene bakmadığı için kararı üretici verir.
+- Artımlı ve birleştirme sonucu tam set olarak yazılır: değişmeyen testler aynı kimlik ve içerikle döner, düğümleri ve matris satırları taze kalır. Sabit teste gelen güncelleme yok sayılır.
+- Artımlı prompt'ta değişen ya da çıkan gereksinimi kapsayan testler tam metinle, diğerleri başlık ve kapsama özetiyle verilir (D8 ölçer). Yalnızca çıkan gereksinimi kapsayan testler kodla düşer; karışık kapsamlı testlerin kapsaması kırpılır.
+- Birleştirmede model yalnızca düşürülecek tekrarların kimliklerini döner.
+- Sunucu `covers` listesini öbeğin yöntemi Test içeren üyelerine süzer; geçersiz ya da Test olmayan kimlik atılır, boş kalan test düşer. Tek onarım çağrısından sonra da kapsanmamış kalan gereksinim düğümü `failed` yapmaz: set yazılır, gereksinim matriste kapsanmamış görünür. Şema hatasında çağrı bir kez yeniden denenir (hata sona eklenir), sonra düğüm `failed` olur.
+- İki ayrı 25 sınırı vardır: `clustering.max_cluster_size` kesimde öbekleri, `generation.max_unit_size` üretimde birimi sınırlar (kullanıcının oluşturduğu ya da birleştirdiği büyük öbekler). D7 ikincisini değiştirir.
 
 ### 4. Doğrulama yöntemi
 
@@ -429,7 +443,7 @@ Aynı yöntemlerin geliştirme sürecine uygulanışı deponun `CLAUDE.md` dosya
 | 0 | Altyapı: aday sunum motorları, embedding servisi, Postgres, Docker Compose, `LLMClient` | Sonnet | 16 eşzamanlı istek hatasız ve şemaya uygun dönüyor |
 | 1 | Altın set ve ölçüm koşucusu | Opus tasarlar, Sonnet yazar | D0–D5 deneyleri koşuldu; motor, model ve ayarlar ölçümle seçildi |
 | 2 | Çekirdek: veri modeli, hash, bağımlılık grafiği, geçersiz kılma ([plan](paketler/paket-2-plan.md)) | Opus | Bayatlama tablosundaki her satırın birim testi geçiyor |
-| 3 | Aşamalar ve prompt'lar: öbekleme, test üretimi (artımlı dahil), doğrulama yöntemi | Opus | Altın sette belirlenen eşikler aşılıyor |
+| 3 | Aşamalar ve prompt'lar: öbekleme, test üretimi (artımlı dahil), doğrulama yöntemi ([plan](paketler/paket-3-plan.md)) | Opus | Altın sette belirlenen eşikler aşılıyor. Yorum (kullanıcı kararı, 20 Kasım 2026): yeni aşama koduyla, referans öbek ve yöntemlerle v0 ve v1'de katman 1 eşikleri geçer; check_recall paket 1 tabanından gürültüden fazla düşmez; uçtan uca koşu raporlanır ve orada kapsama tahmin edilen yöntemlere göre %100'dür |
 | 4 | İçe alma, matris görünümü, xlsx dışa aktarım | Sonnet | Örnek set uçtan uca matrise dönüşüyor |
 | 5 | Orkestratör ve kuyruk: komut işleme, öncelik, bekleme, iptal, aşama kapıları | Opus | Taşıma senaryosu iki çağrıyla bitiyor, diğer öbekler cache'ten geliyor |
 | 6 | API ve olay akışı: REST komutları, WebSocket, snapshot ve tekrar oynatma | Sonnet | Bağlantı kopup gelince istemci durumu sunucuyla aynı; iki kullanıcının çakışan komutu doğru reddediliyor |
