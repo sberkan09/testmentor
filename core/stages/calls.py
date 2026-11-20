@@ -54,7 +54,8 @@ async def call(
 ) -> Any:
     """One call; on a schema error one retry with `schema_retry_section` appended. Returns the
     parsed output as plain JSON; raises `CallFailed` after a second schema error, or at once when
-    the output was truncated (`finish_reason == "length"`: a retry would be cut again)."""
+    the output was truncated (`finish_reason == "length"`: a retry doubles the cost and most
+    likely repeats the degeneration)."""
     msgs = list(messages)
     error = ""
     for attempt in range(2):
@@ -74,7 +75,8 @@ async def call(
             return plain(reply.parsed)
         error = reply.schema_error or "output does not match the schema"
         if reply.finish_reason == "length":
-            # Cut at max_tokens: the same prompt would be cut again; no retry.
+            # Cut at max_tokens: a retry doubles the costliest call and most likely degenerates
+            # again (KDH-030, paket 3); no retry.
             raise CallFailed(f"output truncated at max_tokens ({params.max_tokens}): {error}")
         msgs = append_tail(messages, schema_retry_section(error))
     raise CallFailed(error)
