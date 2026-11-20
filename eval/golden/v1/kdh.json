@@ -1956,7 +1956,7 @@
    },
    "stratum": "control",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.1.8.6"
    ],
@@ -1982,7 +1982,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.1.2"
    ],
@@ -2008,7 +2008,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.1.6"
    ],
@@ -2034,7 +2034,7 @@
    },
    "stratum": "core",
    "split": "holdout",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.1.9"
    ],
@@ -2060,7 +2060,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.1.10"
    ],
@@ -2086,7 +2086,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.1.13"
    ],
@@ -2112,7 +2112,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.2.1"
    ],
@@ -2138,7 +2138,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.2.3"
    ],
@@ -2164,7 +2164,7 @@
    },
    "stratum": "core",
    "split": "holdout",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.2.5"
    ],
@@ -2190,7 +2190,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.3.1"
    ],
@@ -2216,7 +2216,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.3.2"
    ],
@@ -2242,7 +2242,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.4.3"
    ],
@@ -2268,7 +2268,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.4.5"
    ],
@@ -2294,7 +2294,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.4.6"
    ],
@@ -2320,7 +2320,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.8.1"
    ],
@@ -2346,7 +2346,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.8.6"
    ],
@@ -2372,7 +2372,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.9.3"
    ],
@@ -2398,7 +2398,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.10.1"
    ],
@@ -2424,7 +2424,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.10.5"
    ],
@@ -2450,7 +2450,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.10.6"
    ],
@@ -2476,7 +2476,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.10.14"
    ],
@@ -2502,7 +2502,7 @@
    },
    "stratum": "control",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "Rehber Denetim Maddeleri 3.2.11.8"
    ],
@@ -2528,7 +2528,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A AC-5"
    ],
@@ -2537,7 +2537,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Zor",
    "note": ""
   },
@@ -2555,7 +2555,7 @@
    },
    "stratum": "control",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A AC-7"
    ],
@@ -2564,7 +2564,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": "Personel için kural farklıdır (10 denemede yönetici kilidi); bu madde yalnızca dış kullanıcıyı kapsar."
   },
@@ -2582,7 +2582,7 @@
    },
    "stratum": "control",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A AC-11"
    ],
@@ -2591,7 +2591,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": "Kilit sonrası 15. dakikada sonlandırma AC-12 kapsamındadır, buraya alınmadı."
   },
@@ -2608,7 +2608,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A AC-12"
    ],
@@ -2617,7 +2617,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": ""
   },
@@ -2634,7 +2634,7 @@
    },
    "stratum": "core",
    "split": "holdout",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A AU-3"
    ],
@@ -2643,7 +2643,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": ""
   },
@@ -2660,7 +2660,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A AU-8"
    ],
@@ -2669,7 +2669,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": "Kontrol UTC ofsetli seçeneklere de izin verir; tasarım UTC'yi seçmiştir."
   },
@@ -2686,7 +2686,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A AU-9"
    ],
@@ -2695,7 +2695,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Zor",
    "note": "Tasarım belgesi AU-9 uyarı alıcısını açıkça doldurmuyor."
   },
@@ -2712,7 +2712,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A IA-6"
    ],
@@ -2721,7 +2721,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Kolay",
    "note": ""
   },
@@ -2738,7 +2738,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A IA-11"
    ],
@@ -2747,7 +2747,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": ""
   },
@@ -2764,7 +2764,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A SC-8"
    ],
@@ -2773,7 +2773,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Kolay",
    "note": "sc-08_odp (gizlilik/bütünlük) tasarımda açıkça seçilmemiş; TLS ve karşılıklı TLS ikisini de karşılıyor."
   },
@@ -2790,7 +2790,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A SI-10"
    ],
@@ -2799,7 +2799,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": "Denetlenecek girdi listesi (si-10_odp) tasarımda ayrıca sayılmamış."
   },
@@ -2816,7 +2816,7 @@
    },
    "stratum": "core",
    "split": "dev",
-   "reference_origin": "official",
+   "reference_origin": "official_tagged",
    "reference_candidates": [
     "800-53A SI-11"
    ],
@@ -2825,7 +2825,7 @@
     "Test",
     "İnceleme"
    ],
-   "method_rationale": "800-53A değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
+   "method_rationale": "800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: EXAMINE, INTERVIEW, TEST.",
    "difficulty": "Orta",
    "note": ""
   },

@@ -40,15 +40,18 @@ def sort_key(ref: str) -> list:
 
 
 def methods_53a() -> dict[str, set[str]]:
+    """Control id → assessment methods, from the 5.2.0 OSCAL catalog the requirements were worded
+    from (not the 2022 XLSX)."""
+    cat = json.loads((TEXT / "NIST-SP-800-53r5.txt").read_text(encoding="utf-8"))["catalog"]
     out: dict[str, set[str]] = {}
-    for row in (TEXT / "NIST-SP-800-53Ar5.txt").read_text(encoding="utf-8").splitlines():
-        c = row.split("\t")
-        m = re.match(r"([A-Z]{2})-0*(\d+)$", c[1]) if len(c) > 7 else None
-        if m:  # base control rows only (enhancements are AC-02(01) etc.)
-            key = f"{m.group(1)}-{m.group(2)}"
-            for col, name in ((5, "EXAMINE"), (6, "INTERVIEW"), (7, "TEST")):
-                if c[col].strip():
-                    out.setdefault(key, set()).add(name)
+    for g in cat["groups"]:
+        for c in g.get("controls", []):
+            key = c["id"].upper()
+            for part in c.get("parts", []):
+                if part["name"] == "assessment-method":
+                    for q in part.get("props", []):
+                        if q["name"] == "method" and q["value"] in NIST_MAP:
+                            out.setdefault(key, set()).add(q["value"])
     return out
 
 
@@ -83,16 +86,18 @@ def main(worded_path: str) -> None:
         elif pool == "rehber":
             c = rehber[ref]
             methods = sorted({REHBER_MAP[m] for m in c["methods"]}, key=["Test", "İnceleme"].index)
-            origin, cands = "official", [f"Rehber Denetim Maddeleri {ref}"]
+            origin, cands = "official_tagged", [f"Rehber Denetim Maddeleri {ref}"]
             cluster = f"Rehber {'.'.join(ref.split('.')[:3])}"
             rationale = f"Rehber denetim yöntem önerileri: {', '.join(c['methods'])}."
         elif pool == "nist53":
             key = ref.upper()
             ms = m53.get(key, {"TEST"})
             methods = sorted({NIST_MAP[m] for m in ms}, key=["Test", "İnceleme"].index)
-            origin, cands = "official", [f"800-53A {key}"]
+            origin, cands = "official_tagged", [f"800-53A {key}"]
             cluster = f"NIST 800-53 {key.split('-')[0]}"
-            rationale = f"800-53A değerlendirme yöntemleri: {', '.join(sorted(ms))}."
+            rationale = (
+                f"800-53 Rev.5.2.0 katalog değerlendirme yöntemleri: {', '.join(sorted(ms))}."
+            )
         elif pool == "asvs":
             stmt = asvs[ref]["statement"]
             doc_only = bool(re.search(r"\bdocument", stmt, re.I))

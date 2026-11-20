@@ -89,3 +89,50 @@ def test_repository_v1_files_are_valid():
         p = load_project(path)
         assert p.key.lower() == path.stem
         assert validate_project(p) == [], path
+
+
+def test_passage_and_basis_texts_are_verified():
+    from eval.golden_v1 import CorpusTexts
+
+    texts = CorpusTexts.__new__(CorpusTexts)
+    texts.ok = True
+    texts.full = {
+        "SUBSET-026-3": ["the obu shall report"],
+        "SUBSET-076-5-2": ["Check on the RTM that x"],
+    }
+    texts.writer = {"SUBSET-026-3": ["the obu shall report"]}
+    check = {
+        "action": "a",
+        "expected": "e",
+        "clause": "3.6.5.1.4",
+        "passages": ["P1"],
+        "needs_documents": True,
+        "basis": {"doc": "SUBSET-076-5-2", "ref": "3060500/TC1", "text": "Check on the  RTM … x"},
+    }
+    good = REQ | {
+        "needs_documents": True,
+        "support_passages": [
+            {"id": "P1", "doc": "SUBSET-026-3", "section": "s", "text": "obu shall"}
+        ],
+        "reference_checks": [check],
+    }
+    assert validate_project(project(good), texts=texts) == []
+    bad = good | {
+        "needs_documents": False,
+        "support_passages": [
+            {"id": "P1", "doc": "SUBSET-026-3", "section": "s", "text": "invented"}
+        ],
+        "reference_checks": [
+            check | {"clause": "3.9.9", "basis": check["basis"] | {"text": "not there"}},
+            check | {"basis": None},
+        ],
+    }
+    problems = validate_project(project(bad), texts=texts)
+    for frag in (
+        "not found in writer view",
+        "basis text not found",
+        "outside source.clauses",
+        "has no basis",
+        "disagrees",
+    ):
+        assert any(frag in p for p in problems), frag

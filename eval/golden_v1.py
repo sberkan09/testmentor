@@ -8,6 +8,7 @@ reference checks, support passages and `needs_documents`. `load_golden_v1` retur
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Literal
 
@@ -41,12 +42,25 @@ class Passage(Strict):
     text: str
 
 
+class Basis(Strict):
+    """Where an official check comes from; `text` is quoted verbatim from the reference document
+    (whitespace-insensitive; separate quoted segments with " … ")."""
+
+    doc: str  # manifest document id of the reference (e.g. SUBSET-076-5-2, NIST-800-63-4-CC)
+    ref: str  # test case / criterion / rule / measure / objective id
+    text: str
+
+
 class Check(Strict):
-    action: str
-    expected: str
-    clause: str = ""  # SRS clause the step verifies (ERTMS, step-level judging unit)
-    channel_note: str = ""  # interface detail kept apart from the behaviour (RTM, JRU, DMI)
+    action: str  # shown to the judge
+    expected: str  # shown to the judge: one observable outcome
+    clause: str = ""  # clause the step verifies (ERTMS step-level unit); must be in source.clauses
+    channel_note: str = (
+        ""  # interface detail kept apart from the behaviour (RTM, JRU, DMI); not judged
+    )
+    basis: Basis | None = None  # required unless reference_origin is claude
     passages: list[str] = []  # support passage ids needed to write this check
+    needs_documents: bool | None = None  # cannot be written from the requirement text alone
     not_in_corpus: bool = False  # the expected result relies on text outside the corpus
 
 
@@ -65,7 +79,8 @@ class RequirementV1(Strict):
     difficulty: Literal["Kolay", "Orta", "Zor"] = "Orta"
     note: str = ""
     # stage 5
-    needs_documents: bool | None = None
+    needs_documents: bool | None = None  # any check needs documents
+    reference_note: str = ""  # stage 5: dropped out-of-scope checks, defects found, gaps
     reference_preconditions: str = ""
     reference_checks: list[Check] = []
     support_passages: list[Passage] = []
@@ -93,8 +108,72 @@ def pipeline_config(root: Path = ROOT) -> dict:
     return yaml.safe_load((root / "config" / "pipeline.yaml").read_text(encoding="utf-8"))
 
 
-def validate_project(p: ProjectV1, root: Path = ROOT) -> list[str]:
+class CorpusTexts:
+    """Extracted corpus texts from the cache (python -m eval.corpus fetch), whitespace-normalised.
+    Absent cache → text checks are skipped (unit tests without network)."""
+
+    def __init__(self, project: str, root: Path = ROOT) -> None:
+        base = root / "eval" / "corpus" / "cache" / project.lower()
+        index_path = base / "index.json"
+        self.ok = index_path.exists()
+        self.full: dict[str, list[str]] = {}
+        self.writer: dict[str, list[str]] = {}
+        if not self.ok:
+            return
+        for doc, v in json.loads(index_path.read_text(encoding="utf-8")).items():
+            for e in v["texts"]:
+                self.full.setdefault(doc, []).append(
+                    _flat((base / e["file"]).read_text(encoding="utf-8"))
+                )
+                wf = e.get("writer_file") or (e["file"] if v["role"] == "corpus" else None)
+                if wf:
+                    self.writer.setdefault(doc, []).append(
+                        _flat((base / wf).read_text(encoding="utf-8"))
+                    )
+
+    def __bool__(self) -> bool:
+        return self.ok
+
+    def contains(self, doc: str, text: str, writer: bool = False) -> bool:
+        pool = (self.writer if writer else self.full).get(doc, [])
+        segments = [_norm(t) for t in re.split(r"\s*(?:…|\[\.\.\.\])\s*", text) if t.strip()]
+        return bool(segments) and all(any(seg in t for t in pool) for seg in segments)
+
+
+def _norm(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _flat(text: str) -> str:
+    """Normalised text; for JSON documents (OSCAL) the string values joined, so quoted prose
+    matches without JSON escapes."""
+    if text.lstrip().startswith("{"):
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            return _norm(text)
+        out: list[str] = []
+
+        def walk(n: object) -> None:
+            if isinstance(n, str):
+                out.append(n)
+            elif isinstance(n, dict):
+                for v in n.values():
+                    walk(v)
+            elif isinstance(n, list):
+                for v in n:
+                    walk(v)
+
+        walk(data)
+        return _norm("\n".join(out))
+    return _norm(text)
+
+
+def validate_project(
+    p: ProjectV1, root: Path = ROOT, texts: CorpusTexts | None = None
+) -> list[str]:
     """Cross-file rules; returns problems (empty list = valid)."""
+    texts = texts if texts is not None else CorpusTexts(p.key, root)
     cfg = pipeline_config(root)
     methods = {m["name"] for m in cfg["methods"]}
     limit = int(cfg["clustering"]["max_cluster_size"])
@@ -112,12 +191,27 @@ def validate_project(p: ProjectV1, root: Path = ROOT) -> list[str]:
             if len(r.verification_methods) == 1:
                 problems.append(f"{where}: non_testable requirement with Test as only method")
         for ps in r.support_passages:
-            if roles.get(ps.doc) != Role.corpus:
+            if roles.get(ps.doc) not in (Role.corpus, Role.mixed):
                 problems.append(f"{where}: passage {ps.id} from non-corpus document {ps.doc!r}")
+            elif texts and not texts.contains(ps.doc, ps.text, writer=True):
+                problems.append(f"{where}: passage {ps.id} not found in writer view of {ps.doc}")
         ids = {ps.id for ps in r.support_passages}
-        for c in r.reference_checks:
+        for n, c in enumerate(r.reference_checks, start=1):
             if missing := set(c.passages) - ids:
-                problems.append(f"{where}: check cites unknown passages {sorted(missing)}")
+                problems.append(f"{where}: check {n} cites unknown passages {sorted(missing)}")
+            if r.reference_origin != "claude" and c.basis is None:
+                problems.append(f"{where}: check {n} of an official requirement has no basis")
+            if c.basis is not None:
+                if c.basis.doc not in roles:
+                    problems.append(f"{where}: check {n} basis doc {c.basis.doc!r} unknown")
+                elif texts and not texts.contains(c.basis.doc, c.basis.text):
+                    problems.append(f"{where}: check {n} basis text not found in {c.basis.doc}")
+            if c.clause and r.source.clauses and c.clause not in r.source.clauses:
+                problems.append(f"{where}: check {n} clause {c.clause} outside source.clauses")
+        if r.reference_checks:
+            flags = [c.needs_documents for c in r.reference_checks]
+            if r.needs_documents is not None and r.needs_documents != any(bool(f) for f in flags):
+                problems.append(f"{where}: needs_documents disagrees with its checks")
         clusters[r.reference_cluster] = clusters.get(r.reference_cluster, 0) + 1
     for name, n in clusters.items():
         if n > limit:
