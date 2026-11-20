@@ -126,3 +126,17 @@ Ek testler: yöntem elle değişti (1 çağrı); kart değişti (tüm model çı
 - Depo arayüzü: `get_node`, `put_node(expected_version)`, `remove_node`, `history`, `load`, `append_event`, `events`, ve çıktı cache'i için `get` / `put` (`OutputCache`).
 - Gözden geçirmeden sonra eklenenler (tasarım commit'i `9897d7f`): düzenleme düğümü güncel hash'le damgalar, bayat düğümü düzeltmek kalıcı uyarı bırakmaz; `node_kept` ("benimkini koru"); silinen ya da birleştirilen öbeğin sabit test durumları kapsadığı ilk gereksinimin öbeğine taşınır (`Invalidation.carried`, çakışmada `<öbek>:<eski öbek>.<kimlik>`); durum değişikliği sürüm yazmaz (`NodeStore.set_status`), silinip yeniden oluşan düğüm 1. sürümden başlar; `mark_failed` ve `Analysis.failed`; matris satırı test durumunu anahtarıyla görür.
 - Adım 4 için not: tam yeniden hesap her `settle`'da da çalışır; ölçek kontrolü tek `apply` değil, 2.000 gereksinimin baştan üretim döngüsüyle yapılır.
+
+## Uygulama adımı sonuçları (adım 4, 20 Kasım 2026)
+
+- `tests/core`: 60 test geçiyor (bayatlama tablosunun 10 satırı, kurallar, graf, hash, depo sözleşmesi). Tüm takım: 150 test. `make lint` yalnızca main'den gelen `eval/golden/v1/tools/rubric_holdout.py:42` B023 hatasıyla düşüyor; bu dalın dosyalarında hata yok.
+- Ölçek (`uv run python scripts/core_scale.py 2000`; 2.000 gereksinim, 100 öbek, üretimden sonra 10.403 düğüm; sahte üretici, model çağrısı yok):
+
+| İş | Süre |
+| --- | --- |
+| Baştan üretim, dalga başına `settle_many` (3 dalga) | 0,7 sn |
+| Baştan üretim, sonuçlar tek tek (6.301 `settle`) | 47,9 sn; `settle` başına 7,6 ms |
+| Olay: taşıma / metin değişikliği / belge ekleme (`apply`) | 232 / 269 / 151 ms |
+
+- İlk sürüm her `settle`'da projeyi baştan hesaplıyordu: 200 gereksinimde `settle` başına 33 ms, 2.000'de baştan üretim 10 dakikayı aştı. Planın risk satırındaki geçiş yapıldı: olaylar (`apply`) projeyi baştan hesaplar; `settle` önceki durumun hash ezberini taşır, yalnızca yazılan düğümün aşağı akışını yeniden hesaplar ve analizi o kapsamla günceller. `test_incremental_state_matches_full_recompute` her adımda artımlı sonucu baştan hesapla karşılaştırır. Diğer kazançlar: `NodeRef` için hafif `__hash__`/`__eq__`, iç sonuç modellerinde doğrulamasız kurulum (`model_construct`), toplu sonuçlar için tek geçişli `settle_many`.
+- Orkestratör (paket 5) için: embedding, yöntem ve matris sonuçları toplu geldiğinde `settle_many` kullanılmalı. Olay başına ~250 ms, 1,5 sn bekleme süresinin içinde kalıyor.

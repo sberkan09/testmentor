@@ -96,9 +96,10 @@ class ProjectState(BaseModel):
         return copied
 
     def _index(self) -> _Index:
-        idx = self._memo.get("index")
+        memo = memo_of(self)
+        idx = memo.get("index")
         if idx is None:
-            idx = self._memo["index"] = _Index(self.nodes)
+            idx = memo["index"] = _Index(self.nodes)
         return idx
 
     # Plain accessors (no hashing) ---------------------------------------------------------------
@@ -136,6 +137,11 @@ class ProjectState(BaseModel):
 
     def cases_covering(self, req_id: str) -> list[NodeRef]:
         return list(self._index().covering.get(req_id, ()))
+
+
+def memo_of(state: ProjectState) -> dict[str, Any]:
+    """The state's memo dict, read without pydantic's slow private-attribute lookup."""
+    return state.__pydantic_private__["_memo"]  # type: ignore[index]
 
 
 def placeholder(ref: NodeRef) -> Node:
@@ -208,7 +214,7 @@ def upstream(state: ProjectState, ref: NodeRef) -> tuple[NodeRef, ...]:
         return ()
     if ref.kind in CHILD_KINDS:
         return (NodeRef(kind=NodeKind.TEST_SET, key=case_cluster(ref.key)),)
-    deps = state._memo.setdefault("deps", {})
+    deps = memo_of(state).setdefault("deps", {})
     found = deps.get(ref)
     if found is None:
         found = deps[ref] = tuple(stages.get(ref.kind).dependencies(state, ref.key))
@@ -216,19 +222,33 @@ def upstream(state: ProjectState, ref: NodeRef) -> tuple[NodeRef, ...]:
 
 
 def _reverse(state: ProjectState) -> dict[NodeRef, set[NodeRef]]:
-    rev = state._memo.get("reverse")
+    memo = memo_of(state)
+    rev = memo.get("reverse")
     if rev is None:
         rev = {}
         for r in state.ordered_refs():
             for u in upstream(state, r):
                 rev.setdefault(u, set()).add(r)
-        state._memo["reverse"] = rev
+        memo["reverse"] = rev
     return rev
 
 
 def dependents(state: ProjectState, ref: NodeRef) -> frozenset[NodeRef]:
     """Direct downstream nodes (reverse of `upstream`)."""
     return frozenset(_reverse(state).get(ref, ()))
+
+
+def downstream_closure(state: ProjectState, refs: set[NodeRef]) -> set[NodeRef]:
+    """`refs` and every node reachable from them through dependents."""
+    rev = _reverse(state)
+    seen = set(refs)
+    todo = list(refs)
+    while todo:
+        for d in rev.get(todo.pop(), ()):
+            if d not in seen:
+                seen.add(d)
+                todo.append(d)
+    return seen
 
 
 # Hashes -----------------------------------------------------------------------------------------
@@ -269,7 +289,7 @@ def identity(state: ProjectState, ref: NodeRef) -> str | None:
 
 
 def _config_key(state: ProjectState, kind: NodeKind) -> str:
-    keys = state._memo.setdefault("config_keys", {})
+    keys = memo_of(state).setdefault("config_keys", {})
     found = keys.get(kind)
     if found is None:
         found = keys[kind] = canonical(state.stage_configs[kind].model_dump(mode="json"))
@@ -278,7 +298,7 @@ def _config_key(state: ProjectState, kind: NodeKind) -> str:
 
 def expected_hash(state: ProjectState, ref: NodeRef) -> str:
     """`input_hash` the derived node would have if produced from the current state."""
-    memo = state._memo.setdefault("expected", {})
+    memo = memo_of(state).setdefault("expected", {})
     found = memo.get(ref)
     if found is not None:
         return found

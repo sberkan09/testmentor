@@ -75,6 +75,16 @@ class NodeRef(BaseModel):
     def sort_key(self) -> tuple[int, str]:
         return (_ORDER[self.kind], self.key)
 
+    # Pydantic's generated hash and eq are generic and dominate graph work; refs are compared by
+    # kind and key only. Enum members are singletons, so `is` compares kinds.
+    def __hash__(self) -> int:
+        return hash(self.key) * 31 + str.__hash__(self.kind)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, NodeRef):
+            return NotImplemented
+        return self.kind is other.kind and self.key == other.key
+
     def __str__(self) -> str:
         return f"{self.kind.value}:{self.key}"
 

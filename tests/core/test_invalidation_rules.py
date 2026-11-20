@@ -293,3 +293,66 @@ def test_failed_node_blocks_and_recovers(project):
     state, _ = apply(state, RequirementMoved(requirement="R3", to_cluster="A"))
     assert state.node(SET("A")).status == Status.STALE
     assert SET("A") in analyze(state).stale
+
+
+def test_incremental_state_matches_full_recompute(project):
+    """`settle` rehashes only the result's downstream; a state rebuilt from scratch (fresh memo)
+    must agree on every expected hash and on the analysis."""
+    from core.graph import ProjectState, expected_hash
+    from core.nodes import CHILD_KINDS, SOURCE_KINDS
+
+    state, cache = project
+    events = [
+        RequirementMoved(requirement="R2", to_cluster="B"),
+        TestCaseEdited(case=TC("C", "R5").key, content=case("R5", covers=("R5", "R1"))),
+        RequirementTextChanged(requirement="R6", text="The system shall support 500 users."),
+        ClustersMerged(sources=("A", "C"), new_cluster="D"),
+    ]
+    for event in events:
+        state, _ = apply(state, event)
+        for _ in range(20):
+            ready = analyze(state).ready
+            if not ready:
+                break
+            for r in ready:
+                state = settle(state, r, fake_result(state, r)).state
+                rebuilt = ProjectState(
+                    project_id=state.project_id,
+                    nodes=state.nodes,
+                    stage_configs=state.stage_configs,
+                )
+                derived = [x for x in state.nodes if x.kind not in SOURCE_KINDS | CHILD_KINDS]
+                assert {x: expected_hash(state, x) for x in derived} == {
+                    x: expected_hash(rebuilt, x) for x in derived
+                }
+                assert analyze(state) == analyze(rebuilt)
+                for x in derived:  # every status agrees with the full-recompute rule
+                    n = state.node(x)
+                    want = n.content is None or n.input_hash != expected_hash(rebuilt, x)
+                    assert (n.status == Status.STALE) == want, x
+
+
+def test_settle_many_matches_one_by_one(project):
+    """A batch reaches the same contents as settling one by one; a stale result is rejected."""
+    from core.invalidation import settle_many
+
+    state, _ = project
+    state, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    ready = analyze(state).ready
+    results = [(r, fake_result(state, r)) for r in ready]
+
+    one_by_one = state
+    for r, result in results:
+        one_by_one = settle(one_by_one, r, result).state
+    out = settle_many(state, results)
+
+    assert out.accepted == set(ready) and out.rejected == frozenset()
+    assert {r: n.content for r, n in out.state.nodes.items()} == {
+        r: n.content for r, n in one_by_one.nodes.items()
+    }
+    assert analyze(out.state) == analyze(one_by_one)
+    assert out.invalidation.stale == frozenset()  # ready nodes became fresh, nothing new
+
+    stale_result = fake_result(project[0], SET("A"))  # made before the move
+    again = settle_many(out.state, [(SET("A"), stale_result)])
+    assert again.rejected == {SET("A")} and again.state is out.state
