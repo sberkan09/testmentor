@@ -143,3 +143,25 @@ Ek testler: yöntem elle değişti (1 çağrı); kart değişti (tüm model çı
 - Gözden geçirmeden sonra (tasarım commit'i `ed5b263`): matris satırı kendi gereksinimine bağlandı (iki satır aynı cache anahtarını paylaşabiliyordu; metin değişikliğinde satır artık doğrudan bayat, model çağrısı eklenmez); silinen ya da elle düzenlenen çalışan düğüm de `cancel` listesine girer; `ClusterCreated` ve `MembershipChanged` testleri eklendi.
 - Paket 5'e devredilen depo sınırı: yer tutucular (sürüm 0, içerik yok) depoya yazılmaz; durum depodan kurulurken `with_declared_nodes` onları yeniden oluşturur. `set_status` yalnızca depolanmış düğümde çalışır. Durumu depoya yazıp geri okuyan gidiş-dönüş testi Postgres bağdaştırıcısıyla birlikte paket 5'te yazılır.
 - Açık: planın 5. adımı (paket 2 kodunun ayrı bir Opus oturumunda incelenmesi) yapılmadı.
+
+## Bağımsız inceleme (adım 5, 20 Kasım 2026)
+
+Ayrı Opus oturumu (`session_011u662jZq7JAYJUrGuXYW6N`) kodu ve testleri inceledi; artımlı yolu 600 rastgele tohumla zorladı ve bayat ezber bulamadı. Bulgular ve yapılanlar (tasarım commit'i `65c44a0`, testler `tests/core/test_review_findings.py`):
+
+| No | Önem | Bulgu | Yapılan |
+| --- | --- | --- | --- |
+| 1 | engelleyici | Aynı girdili ve aynı ayarlı iki aşamanın düğümleri (tek üyeli öbeğin adı ve o gereksinimin yöntemi) aynı `cache_key`'i paylaşıyordu; cache'ten yanlış düğüme yanlış içerik yazılıyordu | Düğüm tipi `input_hash` girdisine eklendi; `settle` içerik tipini denetliyor |
+| 2 | önemli | Çalışan düğüm sabitlenince `running` kalıyor, aşağısını süresiz bekletiyordu | Sabitlenen çalışan düğüm iptal edilir, durumu normal kuralla belirlenir |
+| 3 | önemli | Hiç üretilmemiş düğüm sabitlenip korunabiliyordu | `NodePinned` ve `NodeKept` içeriksiz düğümü reddediyor |
+| 4 | önemli | Set çalışırken bağlamı değişirse (öbekte test durumu düzenlendi) eski bağlamla üretilen sonuç yazılıyordu | Bağlam değişince iş iptal edilir; `settle` güncel `cache_key`'i şart koşar |
+| 5 | küçük | Girdisi eski hash'ine dönen çalışan düğüm `stale` oluyordu | İptalden sonra durum normal kuralla belirlenir |
+| 6 | küçük | Üstü bekleyen düğümün sonucu kabul ediliyordu (embedding bayatken ağaç) | `settle` üstü taze ya da sabit değilse reddeder |
+| 7 | küçük | Tasarım dokümanı geride (embedding'de erken kesme yok, cache anahtarı, plan satırı) | Düzeltildi |
+| 8 | küçük | `settle_many` yinelenen sonucu bildirmiyordu; `mark_failed` her düğümü kabul ediyordu; `nodes` yerinde yazılırsa ezber bayatlar | Yinelenen `rejected`'da; `mark_failed` yalnızca çalışan ya da bayat düğüm; docstring uyarısı |
+
+Rastgele özellik testi depoya eklendi (30 tohum × 12 olay; taşıma, birleştirme, silme, metin, belge, yöntem, sabitle/çöz, test durumu düzenleme, cache'li ya da cache'siz `apply`, `mark_running`, kısmi üretim). Sonuç: `tests/core` 105 test, tüm takım 195 test geçiyor, `make lint` temiz. Ölçek değişmedi (2.000 gereksinimde toplu baştan üretim 1,1 sn, `settle` başına 8,8 ms, olay başına 170–400 ms).
+
+Paket 5'e devredilen notlar (incelemeden):
+- `InMemoryStore`'da silinip yeniden oluşan düğümün geçmişinde iki "sürüm 1" kaydı olur; "geri alma sürüm değiştirmektir" için Postgres şemasında nesil sayacı ya da sıra numarası gerekir.
+- `MembershipChanged` var olan bir öbek anahtarını tamamen başka üyelerle yeniden kullanırsa o öbeğin sabit test durumları yerinde kalır (taşıma yalnızca silinen setlerde). Paket 3'ün yeniden kesimi öbek anahtarlarını üyelik örtüşmesine göre seçmeli.
+- Süreç genelindeki hash ezberleri (`_CONTENT_HASHES`, `_INPUT_HASHES`) projeler arasında paylaşılır ve 1M kayda kadar büyür; çok projeli uzun ömürlü işçide bellek ölçülmeli.

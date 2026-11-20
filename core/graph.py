@@ -12,8 +12,8 @@ Hashes:
   A test case's identity also covers its key, so a matrix row notices an identical case that
   moved to another cluster. Other identities do not include keys, so that a set's hash is not
   tied to its cluster id (a merged cluster with old members still hits the cache).
-- `expected_hash(state, ref)` = `core.hashing.input_hash` over the identities of the node's
-  dependencies, with the stage config's prompt version, model and parameters.
+- `expected_hash(state, ref)` = `core.hashing.input_hash` over the node kind and the identities
+  of the node's dependencies, with the stage config's prompt version, model and parameters.
 - `cache_key(state, ref)` = hash of the expected hash and the stage context.
 """
 
@@ -79,7 +79,8 @@ def case_cluster(case_key: str) -> str:
 class ProjectState(BaseModel):
     """Treat as immutable: every change returns a new state (`model_copy(update=...)`).
 
-    Lookups and hashes are memoised per instance; `model_copy` starts a fresh memo.
+    Lookups and hashes are memoised per instance; `model_copy` starts a fresh memo. Never write
+    into `nodes` in place: the memo would silently go stale.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -310,7 +311,7 @@ def expected_hash(state: ProjectState, ref: NodeRef) -> str:
     if h is None:
         cfg = state.stage_configs[ref.kind]
         h = input_hash(
-            inputs=list(idents),
+            inputs=[ref.kind.value, *idents],  # the kind keeps two stages apart
             prompt_version=cfg.prompt_version,
             model=cfg.model,
             params=cfg.params,

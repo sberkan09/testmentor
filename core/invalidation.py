@@ -11,9 +11,9 @@ Rules (docs/tasarim.md, Veri modeli kuralları):
   settles. If the upstream result is unchanged it stays fresh (early cutoff).
 - A pinned stale node is never regenerated: it is reported in `pinned_warnings`, not counted in
   `llm_calls`, and does not block its dependents (the user's pinned value is authoritative).
-- A running node whose expected hash changes becomes stale and is listed in `cancel`, as is a
-  running node that an event removes or edits; a result produced for an old hash is not written
-  to the node (`settle` rejects it).
+- A running node is cancelled (listed in `cancel`) when its expected hash or its cache key
+  (context) changes, or when an event removes, edits or pins it; its status is then set by the
+  normal rule. A result produced for an old hash or context is not written (`settle` rejects it).
 - Status changes are not versions; only content changes are (production, edit, carrying a
   pinned case, keep). An edit stamps the node with its current expected hash, so editing a
   stale node makes it fresh; `NodeKept` does the same without changing content.
@@ -306,13 +306,15 @@ def apply(
             configs = configs | {kind: config}
         case NodePinned(node=r) | NodeUnpinned(node=r):
             node = _editable(state, r)
+            if node.content is None:
+                raise ValueError(f"a node that was never produced cannot be pinned: {r}")
             nodes[r] = node.model_copy(
                 update={"pinned": isinstance(event, NodePinned), "version": node.version + 1}
             )
         case NodeKept(node=r):
             node = _editable(state, r)
-            if not node.pinned or r.kind in CHILD_KINDS:
-                raise ValueError(f"only a pinned derived node can be kept: {r}")
+            if not node.pinned or r.kind in CHILD_KINDS or node.content is None:
+                raise ValueError(f"only a produced, pinned derived node can be kept: {r}")
             nodes[r] = node.model_copy(
                 update={
                     "input_hash": expected_hash(state, r),
@@ -357,22 +359,27 @@ def mark_running(state: ProjectState, ref: NodeRef) -> ProjectState:
 
 def mark_failed(state: ProjectState, ref: NodeRef) -> ProjectState:
     """Production of `ref` failed (schema invalid after the retry, or an error)."""
-    if not _is_derived(ref):
-        raise ValueError(f"{ref} is not produced by a stage")
+    node = state.node(ref)
+    if not _is_derived(ref) or node.pinned or node.status not in (Status.RUNNING, Status.STALE):
+        raise ValueError(f"{ref} is not being produced ({node.status})")
     return _with_statuses(state, {ref: Status.FAILED})
 
 
 def settle(state: ProjectState, ref: NodeRef, result: Result) -> Settled:
-    """Write a produced result if `result.input_hash` equals the node's current expected hash;
-    otherwise reject it and leave the state unchanged (the caller may still cache it under its
-    own key). For a test set, keep its pinned cases, write `result.cases` as new case nodes and
-    remove the set's unpinned cases that are not in the result."""
-    new, touched, accepted = _write_results(state, ((ref, result),))
+    """Write a produced result if it matches the node as it is now: same kind, `input_hash`
+    equal to the expected hash, `cache_key` equal to the current cache key (context), node not
+    pinned, every upstream node fresh or pinned. Otherwise reject it and leave the state
+    unchanged (the caller may still cache it under its own key). For a test set, keep its
+    pinned cases, write `result.cases` as new case nodes and remove the set's unpinned cases
+    that are not in the result."""
+    new, touched, accepted, _ = _write_results(state, ((ref, result),))
     if not accepted:
         return Settled.model_construct(state=state, accepted=False, invalidation=Invalidation())
     removed = frozenset(r for r in touched if r not in new.nodes)
     return Settled.model_construct(
-        state=new, accepted=True, invalidation=_diff(state, new, removed=removed)
+        state=new,
+        accepted=True,
+        invalidation=_diff(state, new, removed=removed, settled=frozenset(accepted)),
     )
 
 
@@ -388,14 +395,15 @@ class SettledMany(BaseModel):
 def settle_many(state: ProjectState, results: Sequence[tuple[NodeRef, Result]]) -> SettledMany:
     """`settle` for a batch (an embedding batch, a method batch, the matrix rows) with one
     rehash and one invalidation. Every result is checked against `state`; a result that another
-    result of the same batch makes stale is written and shows as stale."""
-    new, touched, accepted = _write_results(state, results)
+    result of the same batch makes stale is written and shows as stale. A second result for the
+    same ref is not written and its ref is listed in `rejected`."""
+    new, touched, accepted, rejected = _write_results(state, results)
     removed = frozenset(r for r in touched if r not in new.nodes)
     return SettledMany.model_construct(
         state=new,
         accepted=frozenset(accepted),
-        rejected=frozenset(r for r, _ in results if r not in accepted),
-        invalidation=_diff(state, new, removed=removed),
+        rejected=frozenset(rejected),
+        invalidation=_diff(state, new, removed=removed, settled=frozenset(accepted)),
     )
 
 
@@ -415,25 +423,21 @@ def _is_derived(ref: NodeRef) -> bool:
 
 def _write_results(
     state: ProjectState, results: Iterable[tuple[NodeRef, Result]]
-) -> tuple[ProjectState, set[NodeRef], set[NodeRef]]:
-    """Write accepted results; returns the new state, the refs written or removed, and the
-    accepted refs. Only the downstream of what was written is rehashed: the memo of `state` is
-    carried over minus the affected nodes."""
+) -> tuple[ProjectState, set[NodeRef], set[NodeRef], set[NodeRef]]:
+    """Write accepted results (see `settle` for the conditions); returns the new state, the refs
+    written or removed, the accepted refs and the rejected refs. Only the downstream of what was
+    written is rehashed: the memo of `state` is carried over minus the affected nodes."""
     nodes: dict[NodeRef, Node] | None = None
     touched: set[NodeRef] = set()
     accepted: set[NodeRef] = set()
+    rejected: set[NodeRef] = set()
     for ref, result in results:
-        node = state.get(ref)
-        if (
-            node is None
-            or ref in accepted
-            or not _is_derived(ref)
-            or node.pinned
-            or result.input_hash != expected_hash(state, ref)
-        ):
+        if not _acceptable(state, ref, result) or ref in accepted:
+            rejected.add(ref)
             continue
         if nodes is None:
             nodes = dict(state.nodes)
+        node = state.nodes[ref]
         content = result.content
         if ref.kind == NodeKind.TEST_SET:
             content, changed_cases = _write_cases(state, nodes, ref, result)
@@ -452,7 +456,7 @@ def _write_results(
         touched.add(ref)
         accepted.add(ref)
     if nodes is None:
-        return state, touched, accepted
+        return state, touched, accepted, rejected
     new = state.model_copy(update={"nodes": nodes})
     old_memo, new_memo = memo_of(state), memo_of(new)
     # Writing test cases can change which cases cover a requirement (matrix dependencies) and
@@ -469,7 +473,21 @@ def _write_results(
     new_memo["expected"] = {r: h for r, h in old_expected.items() if r not in affected}
     final = _refresh(state, new, scope=affected)
     memo_of(final)["analysis_base"] = (old_memo.get("analysis_sets"), affected)
-    return final, touched, accepted
+    return final, touched, accepted, rejected
+
+
+def _acceptable(state: ProjectState, ref: NodeRef, result: Result) -> bool:
+    node = state.get(ref)
+    if node is None or not _is_derived(ref) or node.pinned:
+        return False
+    if result.content.kind != ref.kind.value:
+        return False
+    if result.input_hash != expected_hash(state, ref):
+        return False
+    sets = _analysis_sets(state)
+    if any(u in sets["blocking"] or u in sets["waiting"] for u in upstream(state, ref)):
+        return False  # produced while an input was still pending
+    return result.cache_key == cache_key(state, ref)
 
 
 def _with_statuses(state: ProjectState, statuses: dict[NodeRef, Status]) -> ProjectState:
@@ -498,9 +516,8 @@ def _refresh(
             continue
         node = state.nodes[r]
         expected = expected_hash(state, r)
-        if node.status in (Status.RUNNING, Status.FAILED):
-            unchanged = r in before.nodes and expected_hash(before, r) == expected
-            status = node.status if unchanged else Status.STALE
+        if node.status in (Status.RUNNING, Status.FAILED) and _still_valid(before, state, r):
+            status = node.status
         elif node.content is None or node.input_hash != expected:
             status = Status.STALE
         else:
@@ -508,6 +525,17 @@ def _refresh(
         if status != node.status:
             statuses[r] = status
     return _with_statuses(state, statuses) if statuses else state
+
+
+def _still_valid(before: ProjectState, state: ProjectState, r: NodeRef) -> bool:
+    """A running or failed node keeps its status while its job still makes sense: same expected
+    hash, and for a running node also not pinned and the same cache key (context)."""
+    if r not in before.nodes or expected_hash(before, r) != expected_hash(state, r):
+        return False
+    node = state.nodes[r]
+    if node.status == Status.FAILED:
+        return True
+    return not node.pinned and cache_key(before, r) == cache_key(state, r)
 
 
 def _resolve_cache(
@@ -541,6 +569,7 @@ def _diff(
     merges: dict[NodeRef, tuple[NodeRef, ...]] | None = None,
     removed: frozenset[NodeRef] | None = None,
     cancel: frozenset[NodeRef] | None = None,
+    settled: frozenset[NodeRef] = frozenset(),
 ) -> Invalidation:
     """Set operations here use the analysis sets (stored hashes): no pass over every node."""
     sets0, sets1 = _analysis_sets(before), _analysis_sets(after)
@@ -556,13 +585,12 @@ def _diff(
         else:
             hints[r] = Hint(mode="full")
     if cancel is None:
-        running = sets0["blocking"] - sets0["stale"] - sets0["failed"]
+        running = sets0["blocking"] - sets0["stale"] - sets0["failed"] - settled
         cancel = frozenset(
             r
             for r in running
             if before.nodes[r].status == Status.RUNNING
-            and r in after.nodes
-            and after.nodes[r].status == Status.STALE
+            and (r not in after.nodes or after.nodes[r].status != Status.RUNNING)
         )
     if removed is None:
         removed = frozenset(r for r in before.nodes if r not in after.nodes)
