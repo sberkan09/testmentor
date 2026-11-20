@@ -208,8 +208,8 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 | D4 | Ağırlık hassasiyeti | 16 bit, FP8, 4 bit (resmî 4 bit depo olmadığı için BF16'dan çalışma anında nicemleme) | kalite kaybı ve eşzamanlılık kazancı | FP8 | **FP8.** BF16 ile recall farkı yok (0,44), FP8 1,8 kat hızlı. 4 bit (çalışma anında MXFP4) bu modelde yüklenemedi. [D4](deneyler/D4.md) |
 | D5 | Eşzamanlılık ve bağlam | dizi sınırı 8 ile 64 arası; bağlam 8, 16, 32 bin token | toplam token/sn ve öncelikli işin ilk token süresi | 16–32 dizi | **64 dizi, 32 bin bağlam.** Dizi sınırı 32'de 64 istek kuyruğa giriyor (ilk token 35,8 sn); 16'da 64 istekte 3 hata (kuyrukta ~100 sn bekleyen bağlantılar koptu). 64 dizi 64 istekte 1.183 token/sn, ilk token 1,2 sn. 16 bin bağlamın hız faydası yok. [D5](deneyler/D5.md) |
 | D6 | Embedding ve kümeleme | BGE-M3 ve iki alternatif; agglomerative ve HDBSCAN | uzmanın elle öbeklemesiyle uyum, kullanıcının yapmak zorunda kaldığı taşıma sayısı | BGE-M3, agglomerative | **BGE-M3, agglomerative average, eşik 0,35 (değişmedi)** (paket 3). Alternatif modeller geçmedi; HDBSCAN v1'de iyi ama ağaç tutmuyor, v0'da öbekleri dağıtıyor. Eşik 0,30 v1'de taşımayı azalttı (54 → 45, 70 → 66) ama gereksinim bootstrap aralıkları sıfırı geçmiyor ve v0'da kötü: aday olarak kaldı. Referans belge bölümleri (uzman değil), iki proje: uzman öbeklemesiyle yeniden ölçülmeli. [D6](deneyler/D6.md) |
-| D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; birim sınırı 10 ve 25 (50 çıkarıldı: Test gereksinimi başına ~624 çıktı token'ıyla ~31 bin token eder, 32 bin bağlama sığmaz; paket 3) | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | bu paketin kapsamı dışında |
-| D8 | Yeniden üretim biçimi | artımlı ve baştan (ekleme), artımlı çağrı ve modelsiz budama (çıkarma), birleştirme prompt'u ve baştan (birleştirme); kollar aynı taban üzerinde | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | bu paketin kapsamı dışında |
+| D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; birim sınırı 10 ve 25 (50 çıkarıldı: Test gereksinimi başına ~624 çıktı token'ıyla ~31 bin token eder, 32 bin bağlama sığmaz; paket 3) | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | **Ölçüldü, karar kullanıcıda** (paket 3). Hakem recall'ı: gereksinim başına çağrı 0,495, öbek başına 0,426, 10'luk paket 0,385, 25'lik paket 0,355. Gereksinim başına çağrı öbek başınadan ölçülebilir biçimde iyi (+0,069 [+0,028, +0,110]) ama uydurma içerik %48 (1,26 → 1,87), test sayısı %57, çıktı token'ı %55 artıyor; öbekleri paketlemek ölçülebilir biçimde kötü. Ayar değişmedi (öbek başına). [D7](deneyler/D7.md) |
+| D8 | Yeniden üretim biçimi | artımlı ve baştan (ekleme), artımlı çağrı ve modelsiz budama (çıkarma), birleştirme prompt'u ve baştan (birleştirme); kollar aynı taban üzerinde | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | **Ekleme: artımlı; çıkarma: modelsiz budama; birleştirme: birleştirme prompt'u** (paket 3). Eklemede artımlı önceki testlerin %100'ünü korudu (baştan %9), düzeltmeleri tekrarlamadı (baştan 7), token'ın dörtte birini harcadı; recall farkı yok (+0,029 [−0,020, +0,079]). Çıkarmada çağrı ile budama aynı seti verdi (fark +0,008 [0, +0,024]): daha basit olan budama (`generation.prune_removals: true`). Birleştirmede prompt 100 kat az token, 8 kat kısa; recall farkı yok. [D8](deneyler/D8.md) |
 | D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | pilot (paket 1b): altın set v1 belgenin etkisini ölçebiliyor; kâhin parçalarla belge gerektiren denetimlerde recall 0,28 → 0,49 ([`D9`](deneyler/D9.md)). Parça boyu, sayı ve reranker paket 7'de |
 | D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | bu paketin kapsamı dışında |
 | D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 | bu paketin kapsamı dışında |
@@ -254,7 +254,7 @@ Sayılar büyük model çağrısıdır; embedding ayrı sayılır. Matris satır
 
 | Olay | Bayatlayan | Model çağrısı |
 | --- | --- | --- |
-| Gereksinim A öbeğinden B'ye taşındı | A ve B'nin test setleri ve adları | 2 artımlı test, 2 ad |
+| Gereksinim A öbeğinden B'ye taşındı | A ve B'nin test setleri ve adları | 1 artımlı test (B; A'nın seti çağrısız budanır, D8), 2 ad |
 | Öbek yeniden adlandırıldı | hiçbir şey | 0 |
 | Öbek silindi, üyeleri dağıtıldı | üye alan öbeklerin setleri ve adları | üye alan öbek başına 1 test, 1 ad |
 | İki öbek birleştirildi | yeni öbeğin seti ve adı | 1 test (iki set birleştirilir, model yalnızca tekrarları ayıklar), 1 ad |
@@ -265,6 +265,8 @@ Sayılar büyük model çağrısıdır; embedding ayrı sayılır. Matris satır
 | Doğrulama yöntemi elle değişti | öbeğin test seti | 1 |
 | Proje kartı değişti | projedeki tüm model çıktıları, kullanıcı onayıyla | toplu, arka planda |
 
+D8 (paket 3) sonrası: yalnızca üye çıkan set modelsiz budanır (`generation.prune_removals: true`): yalnızca çıkan gereksinimi kapsayan sabit olmayan testler düşer, karışık testlerin `covers` listesi kırpılır. Çekirdeğin `llm_calls` tahmini budamayı bilmez, bu seti hâlâ bir çağrı sayar (kuyruk ve tahmin paket 5).
+
 İki ayrıntı önemlidir. Test setinin hash'ine indeks sürümü değil, getirilen parçaların kimlikleri girer; belge eklemek, arama sonucu değişmeyen öbekleri bayatlatmaz. Bayatlayan sabitlenmiş düğüm kendiliğinden yeniden üretilmez, çağrı sayısına girmez, kullanıcıya uyarı olarak gösterilir.
 
 ### İş kuyruğu
@@ -273,12 +275,12 @@ Sayılar büyük model çağrısıdır; embedding ayrı sayılır. Matris satır
 - Düzenlemeden sonra 1,5 saniye beklenir; art arda gelen sürüklemeler tek işe indirgenir.
 - Aynı düğüm için bekleyen iş varsa yenisi onun yerine geçer. Çalışan işin girdisi değiştiyse akış kesilerek iptal edilir.
 - Eşzamanlılık sınırı vLLM'in dizi sınırına eşittir; P2 işleri yuvaların en çok %70'ini kullanır.
-- Şema doğrulaması başarısız olursa bir kez yeniden denenir, sonra düğüm `failed` olur.
+- Şema doğrulaması başarısız olursa bir kez yeniden denenir, sonra düğüm `failed` olur. Çıktı `max_tokens`'ta kesildiyse (`finish_reason: length`) yeniden denenmez: aynı prompt yine kesilir (paket 3).
 - İlk sürümde kuyruk, iş kayıtları Postgres'te duran bir asyncio işçi havuzudur. Tek GPU için Redis ya da Celery gerekmez.
 
 ### Beklenen süreler (tahmin, ölçülecek)
 
-200 gereksinim ve 20 öbek için ilk üretim yaklaşık 20 test çağrısı, 8 doğrulama çağrısı ve 20 ad çağrısıdır. Çağrı başına 1.200 çıktı token'ı ve yukarıdaki 380 token/sn ölçümüyle test üretimi 1–2 dakika sürer. Tek bir taşıma, sonucu birkaç saniyede akmaya başlayan iki artımlı çağrıdır.
+200 gereksinim ve 20 öbek için ilk üretim yaklaşık 20 test çağrısı, 8 doğrulama çağrısı ve 20 ad çağrısıdır. Çağrı başına 1.200 çıktı token'ı ve yukarıdaki 380 token/sn ölçümüyle test üretimi 1–2 dakika sürer. Tek bir taşıma, sonucu birkaç saniyede akmaya başlayan bir artımlı çağrıdır (çıkılan set çağrısız budanır, D8).
 
 ## Proje bilgi havuzu
 
