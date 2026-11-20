@@ -244,9 +244,49 @@ documents:
   license: Open Government Licence v3.0
   license_evidence: 'Sayfa altbilgisi: ''All content is available under the Open Government Licence v3.0'''
   repo_text: 'yes'
+- id: VBP-KIB-001
+  title: Vatandaş Başvuru Portalı Kavramsal İşletim Belgesi
+  publisher: Kamu Hizmetleri Genel Müdürlüğü (kurgusal)
+  version: 1.0 (2026-11-20)
+  kind: system
+  role: corpus
+  language: tr
+  path: eval/corpus/kdh/system/kavramsal-isletim.md
+  extract: &id002
+    method: raw
+  license: Sentetik; bu projede yazıldı
+  license_evidence: Paket 1b aşama 4'te alt ajan yazdı; yalnızca test yazarına görünür standart metinlerini gördü,
+    referans testleri ve denetim tablolarını görmedi
+  repo_text: 'yes'
+- id: VBP-PYP-001
+  title: Vatandaş Başvuru Portalı Proje Yönetim Planı
+  publisher: Kamu Hizmetleri Genel Müdürlüğü (kurgusal)
+  version: 1.0 (2026-11-20)
+  kind: system
+  role: corpus
+  language: tr
+  path: eval/corpus/kdh/system/proje-yonetim-plani.md
+  extract: *id002
+  license: Sentetik; bu projede yazıldı
+  license_evidence: Paket 1b aşama 4'te alt ajan yazdı; yalnızca test yazarına görünür standart metinlerini gördü,
+    referans testleri ve denetim tablolarını görmedi
+  repo_text: 'yes'
+  notes: Teste ilgisiz gerçekçi içerik de taşır.
+- id: VBP-YTB-001
+  title: Vatandaş Başvuru Portalı Yazılım Tasarım Belgesi
+  publisher: Kamu Hizmetleri Genel Müdürlüğü (kurgusal)
+  version: 1.0 (2026-11-20)
+  kind: system
+  role: corpus
+  language: tr
+  path: eval/corpus/kdh/system/tasarim.md
+  extract: *id002
+  license: Sentetik; bu projede yazıldı
+  license_evidence: Paket 1b aşama 4'te alt ajan yazdı; yalnızca test yazarına görünür standart metinlerini gördü,
+    referans testleri ve denetim tablolarını görmedi
+  repo_text: 'yes'
+  notes: Standart çatışmalarının çözümü (Ç-1..Ç-9) ve kuruma bırakılan parametrelerin değerleri (§13, §14).
 excluded:
   KVKK (6698 sayılı Kanun, İngilizce metin): kvkk.gov.tr bu konteynerden sertifika hatası veriyor; metin doğrulanamadı.
     Gerekirse kullanıcıdan istenir.
   NIST SP 800-53A Rev.5 PDF: PDF metninde 'ti' bağları düşüyor; aynı içerik XLSX ve OSCAL kataloğunda.
-  Sistem belgeleri (kavramsal işletim, proje yönetim planı, tasarım): 'Aşama 4''te alt ajan yazar; kind: system,
-    path ile eklenecek.'
