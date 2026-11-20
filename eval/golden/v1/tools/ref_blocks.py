@@ -114,7 +114,14 @@ def rehber_block(no: str) -> str:
     hits = [i for i in nums if lines[i].strip() == no]
     i = hits[-1]
     prev = max([j for j in nums if j < i] or [i - 40])
-    nxt = min([j for j in nums if j > i] or [i + 60])
+    after = [j for j in nums if j > i] or [i + 60]
+    # where row numbers are stacked (3.2.10.1-3.2.10.4), the questions of a row sit several
+    # numbers further down: widen the window until it holds questions, at most 6 numbers ahead
+    nxt = after[0]
+    for j in after[:6]:
+        nxt = j
+        if any(line.rstrip().endswith("?") for line in lines[i:j]):
+            break
     return "\n".join(line for line in lines[prev : nxt + 1] if line.strip())
 
 
