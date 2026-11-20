@@ -30,8 +30,6 @@ from core.stages.test_generation import (
 from tests.core.helpers import produce_all
 from tests.stages.helpers import case_json, project
 
-pytestmark = pytest.mark.xfail(raises=NotImplementedError, strict=True, reason="paket 3 adım 4")
-
 
 def tc(cid: str, *covers: str, title: str = "") -> TestCaseContent:
     return TestCaseContent(

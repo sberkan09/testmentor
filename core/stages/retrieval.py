@@ -6,8 +6,9 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING
 
-from core.nodes import KB_INDEX_KEY, NodeKind, NodeRef
+from core.nodes import KB_INDEX_KEY, NodeKind, NodeRef, RetrievalContent
 from core.stages.base import ProduceContext, ProduceOutcome, StageSpec, register
+from core.stages.calls import result
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
@@ -29,7 +30,15 @@ def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
 async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
     """`ctx.retrieve(members)`; `RetrievalContent(passage_ids)` in the returned order,
     duplicates removed. Missing `ctx.retrieve` gives an empty list (no knowledge base)."""
-    raise NotImplementedError("paket 3 adım 4")
+    out = []
+    for r in ctx.refs:
+        ids: list[str] = []
+        if ctx.retrieve is not None:
+            members = [ctx.state.requirement(m) for m in ctx.state.members(r.key)]
+            ids = list(dict.fromkeys(await ctx.retrieve(members)))
+        content = RetrievalContent(passage_ids=tuple(ids))
+        out.append((r, result(ctx.state, r, content, mode="algorithm")))
+    return ProduceOutcome(results=tuple(out))
 
 
 SPEC = register(

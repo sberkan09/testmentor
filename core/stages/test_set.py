@@ -8,11 +8,47 @@ as fixed and so key the output cache, but do not stale the set when edited.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Any
 
-from core.nodes import PROJECT_CARD_KEY, NodeKind, NodeRef
+from core.nodes import (
+    PROJECT_CARD_KEY,
+    NodeKind,
+    NodeRef,
+    ProjectCardContent,
+    RetrievalContent,
+    TestCaseContent,
+    TestSetContent,
+)
+from core.prompts import (
+    ContentCard,
+    append_tail,
+    generation_messages,
+    incremental_section,
+    merge_section,
+    pinned_section,
+    repair_section,
+)
+from core.schemas import MergeDecision, Requirement, case_set_model, incremental_model
 from core.stages.base import ProduceContext, ProduceOutcome, StageSpec, register
+from core.stages.calls import CallFailed, CallLog, call, result
+from core.stages.test_generation import (
+    BASIS_PARAM,
+    apply_incremental,
+    apply_merge,
+    basis_of,
+    choose_mode,
+    delta,
+    filter_covers,
+    merge_sources,
+    need,
+    prune_removed,
+    read_basis,
+    renumber,
+    split_units,
+    uncovered,
+)
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
@@ -81,7 +117,239 @@ async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
        rows.
     Stats per ref: `mode`, `calls`, `units`, `dropped_ids`, `dropped_cases`, `uncovered`,
     `covered_before_repair`, `pinned_update_attempts`."""
-    raise NotImplementedError("paket 3 adım 4")
+    results, failed, stats = [], {}, {}
+    for ref in ctx.refs:
+        job = _SetJob(ctx, complete, ref)
+        try:
+            results.append((ref, await job.run()))
+        except _NodeFailed as exc:
+            failed[ref] = str(exc)[:500]
+        stats[ref] = job.stats()
+    return ProduceOutcome(results=tuple(results), failed=failed, stats=stats)
+
+
+class _NodeFailed(Exception):
+    pass
+
+
+class _SetJob:
+    """Production of one test set (see `produce`)."""
+
+    def __init__(self, ctx: ProduceContext, complete: Complete, ref: NodeRef) -> None:
+        self.ctx, self.complete, self.ref = ctx, complete, ref
+        self.state = ctx.state
+        self.settings = ctx.settings
+        self.cluster = ref.key
+        self.log = CallLog()
+        self.mode = "full"
+        self.units = 0
+        self.dropped_ids = 0
+        self.dropped_cases = 0
+        self.uncovered: list[str] = []
+        self.covered_before_repair: list[str] = []
+        self.pinned_update_attempts = 0
+
+        state, cluster = self.state, self.cluster
+        self.members = state.members(cluster)
+        self.need = need(state, cluster, self.settings.test_method)
+        self.pinned: list[TestCaseContent] = []
+        self.pinned_ids: set[str] = set()
+        self.existing: list[TestCaseContent] = []
+        node = state.node(ref)
+        order = node.content.case_keys if isinstance(node.content, TestSetContent) else ()
+        present = {r.key: r for r in state.test_cases(cluster)}
+        keys = [k for k in order if k in present] + sorted(k for k in present if k not in order)
+        for k in keys:
+            case_node = state.node(present[k])
+            if not isinstance(case_node.content, TestCaseContent):
+                continue
+            if case_node.pinned:
+                self.pinned.append(case_node.content)
+                self.pinned_ids.add(k.split(":", 1)[1])  # the key decides collisions
+            else:
+                self.existing.append(case_node.content)
+        types, priorities = self.settings.test_types, self.settings.priorities
+        self.case_schema = case_set_model(types, priorities)
+        self.delta_schema = incremental_model(types, priorities)
+
+    def stats(self) -> dict[str, Any]:
+        return {
+            **self.log.stats(),
+            "mode": self.mode,
+            "units": self.units,
+            "dropped_ids": self.dropped_ids,
+            "dropped_cases": self.dropped_cases,
+            "uncovered": self.uncovered,
+            "covered_before_repair": self.covered_before_repair,
+            "pinned_update_attempts": self.pinned_update_attempts,
+        }
+
+    # Prompt ---------------------------------------------------------------------------------
+
+    def _passages(self) -> list[str]:
+        ret = self.state.node(NodeRef(kind=NodeKind.RETRIEVAL, key=self.cluster)).content
+        ids = ret.passage_ids if isinstance(ret, RetrievalContent) else ()
+        if not ids:
+            return []
+        if self.ctx.passages is None:
+            raise _NodeFailed("retrieval has passage ids but no passage source was given")
+        return list(self.ctx.passages(ids))
+
+    def _base(self, reqs: Sequence[str]) -> list[dict[str, str]]:
+        """Layers 1–5 for `reqs` (paket 1 `generation_messages`) and the pinned section."""
+        state = self.state
+        card = state.node(CARD).content
+        assert isinstance(card, ProjectCardContent)
+        rows = [
+            Requirement(
+                id=m, text=state.requirement(m).text, language=state.requirement(m).language
+            )
+            for m in reqs
+        ]
+        methods = {}
+        for m in reqs:
+            content = state.node(NodeRef(kind=NodeKind.METHOD, key=m)).content
+            if content is not None:
+                methods[m] = list(content.methods)  # type: ignore[union-attr]
+        msgs = generation_messages(
+            ContentCard(card),
+            rows,
+            methods,
+            schema=self.case_schema.model_json_schema(),
+            examples=self.settings.examples,
+            test_method=self.settings.test_method,
+            types=self.settings.test_types,
+            priorities=self.settings.priorities,
+            passages=self.passages,
+        )
+        return append_tail(msgs, pinned_section(self.pinned))
+
+    async def _call(self, unit: str, messages, schema) -> Any:
+        try:
+            return await call(
+                self.complete,
+                self.log,
+                stage=NodeKind.TEST_SET,
+                unit=f"{self.cluster}/{unit}",
+                messages=messages,
+                schema=schema,
+                params=self.settings.llm[NodeKind.TEST_SET],
+            )
+        except CallFailed as exc:
+            raise _NodeFailed(f"schema: {exc}") from exc
+
+    def _filter(self, cases: Iterable[Any]) -> list[TestCaseContent]:
+        out = filter_covers(cases, self.need)
+        self.dropped_ids += out.dropped_ids
+        self.dropped_cases += out.dropped_cases
+        return list(out.cases)
+
+    # Modes ----------------------------------------------------------------------------------
+
+    async def run(self):
+        self.passages = self._passages()
+        self.mode = choose_mode(
+            self.state,
+            self.cluster,
+            self.ctx.hint,
+            self.ctx.sources,
+            max_unit_size=self.settings.max_unit_size,
+        )
+        if not self.need:
+            cases: list[TestCaseContent] = []  # nothing may be covered
+        elif self.mode == "full":
+            cases = await self._full()
+        elif self.mode == "incremental":
+            cases = await self._incremental()
+        else:
+            cases = await self._merge()
+        cases = await self._repair(cases)
+        basis = basis_of(self.state, self.cluster)
+        return result(
+            self.state,
+            self.ref,
+            TestSetContent(),
+            mode=self.mode,
+            extra_params={BASIS_PARAM: basis.model_dump(mode="json")},
+            cases=cases,
+        )
+
+    async def _full(self) -> list[TestCaseContent]:
+        pinned_cover = {r for c in self.pinned for r in c.covers}
+        if not [m for m in self.need if m not in pinned_cover]:
+            return []
+        size = self.settings.max_unit_size
+        units = split_units(self.members, size) if len(self.members) > size else [self.members]
+        need = set(self.need)
+        units = [u for u in units if need.intersection(u)]
+        self.units = len(units)
+        replies = await asyncio.gather(
+            *(
+                self._call(
+                    f"full/{i}" if len(units) > 1 else "full", self._base(u), self.case_schema
+                )
+                for i, u in enumerate(units)
+            )
+        )
+        cases = self._filter(c for reply in replies for c in reply["test_cases"])
+        return renumber(cases, self.pinned_ids)
+
+    async def _incremental(self) -> list[TestCaseContent]:
+        self.units = 1
+        old = read_basis(self.state.node(self.ref))
+        assert old is not None  # choose_mode checked it
+        d = delta(old, basis_of(self.state, self.cluster))
+        # A member that left, or stayed but lost the test method, takes its covers along.
+        lost = set(d.removed) | {m for m in self.members if m not in set(self.need)}
+        kept, trimmed = prune_removed(self.existing, lost)
+        touched = set(d.changed) | set(d.removed)
+        full = [c for c in kept if c.id in trimmed or touched.intersection(c.covers)]
+        summary = [c for c in kept if c not in full]
+        section = incremental_section(
+            full=full,
+            summary=summary,
+            added=d.added,
+            changed=d.changed,
+            removed=d.removed,
+            schema=self.delta_schema.model_json_schema(),
+        )
+        reply = await self._call(
+            "incremental", append_tail(self._base(self.members), section), self.delta_schema
+        )
+        cases, ignored = apply_incremental(
+            kept, self._filter(reply["add"]), self._filter(reply["update"]), self.pinned_ids
+        )
+        self.pinned_update_attempts = ignored
+        return cases
+
+    async def _merge(self) -> list[TestCaseContent]:
+        self.units = 1
+        assert self.ctx.hint is not None
+        merged = merge_sources(
+            {s: self.ctx.sources[s] for s in self.ctx.hint.sources}, self.pinned_ids
+        )
+        section = merge_section(merged, schema=MergeDecision.model_json_schema())
+        reply = await self._call(
+            "merge", append_tail(self._base(self.members), section), MergeDecision
+        )
+        kept = apply_merge(merged, reply["drop"])
+        return self._filter(c.model_dump(mode="json", exclude={"kind"}) for c in kept)
+
+    async def _repair(self, cases: list[TestCaseContent]) -> list[TestCaseContent]:
+        missing = uncovered([*self.pinned, *cases], self.need)
+        self.covered_before_repair = sorted(set(self.need) - set(missing))
+        if missing and self.settings.repair:
+            split = len(self.members) > self.settings.max_unit_size
+            base = self._base(missing if split else self.members)
+            reply = await self._call(
+                "repair", append_tail(base, repair_section(missing)), self.case_schema
+            )
+            new = self._filter(reply["test_cases"])
+            taken = self.pinned_ids | {c.id for c in cases}
+            cases = cases + renumber(new, taken)
+            missing = uncovered([*self.pinned, *cases], self.need)
+        self.uncovered = missing
+        return cases
 
 
 SPEC = register(

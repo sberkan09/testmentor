@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from core.llm import LLMReply, LLMRequest
-from services.llm_client import LLMClient
+from core.llm import LLMReply, LLMRequest, LLMUsage
+from services.llm_client import ChatResult, LLMClient, LLMError
 
 
 class ClientComplete:
@@ -15,4 +15,29 @@ class ClientComplete:
         self.client = client
 
     async def __call__(self, request: LLMRequest) -> LLMReply:
-        raise NotImplementedError("paket 3 adım 4")
+        p = request.params
+        result: ChatResult | None = None
+        async for item in self.client.chat_stream(
+            list(request.messages),
+            schema=request.schema,
+            max_tokens=p.max_tokens,
+            temperature=p.temperature,
+            thinking=p.thinking,
+        ):
+            if isinstance(item, ChatResult):
+                result = item
+        if result is None:  # pragma: no cover - chat_stream always ends with a result
+            raise LLMError("stream ended without a result")
+        m = result.metrics
+        return LLMReply(
+            content=result.content,
+            parsed=result.parsed,
+            schema_error=result.schema_error,
+            usage=LLMUsage(
+                prompt_tokens=m.prompt_tokens,
+                completion_tokens=m.completion_tokens,
+                cached_tokens=m.cached_tokens,
+                ttft_s=m.ttft_s,
+                total_s=m.total_s,
+            ),
+        )

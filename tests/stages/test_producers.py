@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from core.invalidation import analyze
 from core.nodes import (
     ClusteringContent,
@@ -27,8 +25,6 @@ from tests.stages.helpers import (
     sequence,
     smart_reply,
 )
-
-pytestmark = pytest.mark.xfail(raises=NotImplementedError, strict=True, reason="paket 3 adım 4")
 
 LLM_KINDS = {NodeKind.METHOD, NodeKind.CLUSTER_LABEL}
 FREE_KINDS = {NodeKind.EMBEDDING, NodeKind.CLUSTERING, NodeKind.RETRIEVAL, NodeKind.MATRIX_ROW}

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
 import yaml
 
 from core import stages
@@ -16,8 +15,6 @@ from core.schemas import ClusterLabel
 from tests.core.helpers import produce_all
 from tests.fake_openai import FakeReply, FakeServer
 from tests.stages.helpers import CARD_METHODS, CARD_TEXT, ROOT, SETTINGS, project
-
-xfail_step4 = pytest.mark.xfail(raises=NotImplementedError, strict=True, reason="paket 3 adım 4")
 
 
 def test_every_stage_has_a_producer():
@@ -57,7 +54,6 @@ def test_config_has_generation_unit_and_label_params():
 # Settings (services) ------------------------------------------------------------------------
 
 
-@xfail_step4
 def test_load_stage_settings_matches_config():
     from services.settings import load_stage_settings
 
@@ -70,7 +66,6 @@ def test_load_stage_settings_matches_config():
     assert s.clustering.distance_threshold == 0.35
 
 
-@xfail_step4
 def test_stage_configs_carry_prompt_versions_and_params():
     from core.prompts import prompt_version
     from services.settings import stage_configs
@@ -95,7 +90,6 @@ def test_stage_configs_carry_prompt_versions_and_params():
 # Model adapter (services) -------------------------------------------------------------------
 
 
-@xfail_step4
 async def test_client_complete_returns_parsed_reply():
     from services.llm_client import LLMClient
     from services.settings import LLMSettings

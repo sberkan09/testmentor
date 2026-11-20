@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING
 
-from core.nodes import NodeKind, NodeRef
+from core.nodes import MatrixRowContent, MethodContent, NodeKind, NodeRef
 from core.stages.base import ProduceContext, ProduceOutcome, StageSpec, register
+from core.stages.calls import result
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
@@ -32,7 +33,19 @@ async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
     """Batched, no model call. Per requirement: its METHOD methods (empty if the method
     has no content), the keys of the test cases covering it (`state.cases_covering`), and
     `covered` = any case covers it."""
-    raise NotImplementedError("paket 3 adım 4")
+    state = ctx.state
+    out = []
+    for r in ctx.refs:
+        method = state.node(NodeRef(kind=NodeKind.METHOD, key=r.key)).content
+        keys = tuple(c.key for c in state.cases_covering(r.key))
+        content = MatrixRowContent(
+            requirement_id=r.key,
+            methods=method.methods if isinstance(method, MethodContent) else (),
+            test_case_keys=keys,
+            covered=bool(keys),
+        )
+        out.append((r, result(state, r, content, mode="algorithm")))
+    return ProduceOutcome(results=tuple(out))
 
 
 SPEC = register(

@@ -25,8 +25,6 @@ from core.prompts import (
 from core.schemas import ClusterLabel, Requirement, case_set_model
 from tests.stages.helpers import CARD_METHODS, EXAMPLES, SETTINGS
 
-pytestmark = pytest.mark.xfail(raises=NotImplementedError, strict=True, reason="paket 3 adım 4")
-
 MODEL_STAGES = (NodeKind.METHOD, NodeKind.CLUSTER_LABEL, NodeKind.TEST_SET)
 REQS = [
     Requirement(
@@ -138,7 +136,11 @@ def test_stage_version_changes_only_that_stage(monkeypatch):
 # (or `SHARED_VERSION`) and add the new (stage, version) → hash line that the failure prints.
 # Never edit the hash of an existing version.
 
-RENDER_HASHES: dict[tuple[str, str], str] = {}
+RENDER_HASHES: dict[tuple[str, str], str] = {
+    ("method", "s1.m1"): "f11b68c9892b3bce",
+    ("cluster_label", "s1.l1"): "bb68f09522d0a4f1",
+    ("test_set", "s1.g3"): "01a6c677cadd67e8",
+}
 
 
 def _render_fixture(stage: NodeKind) -> str:

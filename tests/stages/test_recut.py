@@ -5,8 +5,6 @@ from __future__ import annotations
 
 import itertools
 
-import pytest
-
 from core.events import RequirementMoved
 from core.invalidation import apply
 from core.nodes import ClusterContent, NodeKind, ref
@@ -15,9 +13,13 @@ from core.stages.clustering import cut, initial_membership, recut
 from tests.core.helpers import produce_all
 from tests.stages.helpers import REQS, project
 
-pytestmark = pytest.mark.xfail(raises=NotImplementedError, strict=True, reason="paket 3 adım 4")
-
-AXES = {"x": (1.0, 0.0, 0.0), "y": (0.0, 1.0, 0.0), "z": (0.0, 0.0, 1.0)}
+AXES = {
+    "x": (1.0, 0.0, 0.0),
+    "y": (0.0, 1.0, 0.0),
+    "z": (0.0, 0.0, 1.0),
+    "xy": (0.5, 0.866, 0.0),  # cosine distance 0.5 to x
+    "-z": (0.0, 0.0, -1.0),  # distance ~1 to x and xy: farther than x is from xy
+}
 SETTINGS = ClusteringSettings()
 
 
@@ -54,7 +56,10 @@ def test_cut_respects_max_cluster_size():
 
 
 def test_hdbscan_puts_noise_in_singletons():
-    v = vectors({"R1": "x", "R2": "x", "R3": "x", "R4": "y", "R5": "y", "R6": "z"})
+    # With three orthogonal axes every inter-group distance is ~0.99 and R6 sits as close to
+    # R4/R5 as the groups sit to each other, so HDBSCAN may join it to them. Here the groups are
+    # 0.5 apart and R6 is ~1 from both: an unambiguous outlier.
+    v = vectors({"R1": "x", "R2": "x", "R3": "x", "R4": "xy", "R5": "xy", "R6": "-z"})
     order = sorted(v)
     hd = SETTINGS.model_copy(update={"method": "hdbscan", "min_cluster_size": 2})
     clusters = cut(order, [v[r] for r in order], hd)

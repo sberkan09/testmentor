@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from core.events import (
     ClustersMerged,
     MethodEdited,
@@ -39,8 +37,6 @@ from tests.stages.helpers import (
     requirement_rows,
     smart_reply,
 )
-
-pytestmark = pytest.mark.xfail(raises=NotImplementedError, strict=True, reason="paket 3 adım 4")
 
 SCHEMA = case_set_model(SETTINGS.test_types, SETTINGS.priorities)
 
