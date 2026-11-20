@@ -290,6 +290,10 @@ async def main() -> int:
                         pipe = Pipeline(client, cache, cfg, examples)
                     meta["prompt_versions"] = pipe.prompt_versions()
                     res = await pipe.run(golden)
+                    # Outputs first: a failure in metrics or the report must not lose a paid run.
+                    for rec in res.records:
+                        fh.write(json.dumps({"repeat": rep} | rec, ensure_ascii=False) + "\n")
+                    fh.flush()
                     m = layer1(
                         res.outcomes,
                         golden.refs(),
@@ -302,13 +306,12 @@ async def main() -> int:
                     if res.extra:
                         m["scenario"] = res.extra
                     runs.append(m)
-                    for rec in res.records:
-                        fh.write(json.dumps({"repeat": rep} | rec, ensure_ascii=False) + "\n")
                     c, a = m["calls"], m["all"]
                     print(
                         f"  tekrar {rep + 1}/{repeats}: kapsama {a['coverage_rate']}, şema "
                         f"{c['schema_valid_rate']}, yöntem {a['method_exact_match']}, ihlal "
-                        f"{a.get('no_test_violations_raw', a['no_test_violations'])}, {c['wall_s']} sn, {c['tokens_per_second']} tok/sn, "
+                        f"{a.get('no_test_violations_raw', a['no_test_violations'])}, "
+                        f"{c['wall_s']} sn, {c['tokens_per_second']} tok/sn, "
                         f"hata {c['errors']}",
                         flush=True,
                     )

@@ -5,5 +5,5 @@ server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
 golden: v1
 pipeline:
   generation:
-    max_tokens: 16384     # kollarla aynı; yalnızca kesilmede çıktıyı etkiler
+    max_tokens: 20480     # kollarla aynı; yalnızca kesilmede çıktıyı etkiler
 quality: true

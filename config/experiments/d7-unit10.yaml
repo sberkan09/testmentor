@@ -7,5 +7,5 @@ pipeline:
   unit_packing: true
   generation:
     max_unit_size: 10
-    max_tokens: 16384     # 25 Test gereksinimi ~15,6 bin çıktı token'ı (paket 1: gereksinim başına ~624)
+    max_tokens: 20480     # 25 Test üyesi: ortalama ~10,1 bin, en kötü gözlenen oranla ~16,2 bin çıktı token'ı; prompt + bu < 32k
 quality: true

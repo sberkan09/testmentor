@@ -1,5 +1,5 @@
 name: p3-smoke-unit25
-question: "Paket 3 duman testi (pod 1): en büyük birim (25 gereksinim, max_tokens 16384) kesilmeden ve şemaya uyarak üretiliyor mu."
+question: "Paket 3 duman testi (pod 1): en büyük birim (25 gereksinim, max_tokens 20480) kesilmeden ve şemaya uyarak üretiliyor mu."
 variable: generation.max_unit_size=25, unit_packing (duman)
 server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
 golden: v1
@@ -8,5 +8,5 @@ pipeline:
   unit_packing: true
   generation:
     max_unit_size: 25
-    max_tokens: 16384
+    max_tokens: 20480
 quality: true

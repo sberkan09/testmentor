@@ -190,3 +190,68 @@ def test_duplicate_tests_and_similarity():
     out = duplicate_tests([ProjectOutcome("P", [], {}, [a, b, c])])
     assert out == {"duplicate_pairs": 1, "duplicate_test_rate": round(2 / 3, 4)}
     assert similarity(a, a) == 1.0 and similarity(a, c) < 1.0
+
+
+async def test_runner_main_writes_outputs_metrics_report(tmp_path, monkeypatch):
+    """`eval.run.main` end to end (fake model): plain and scenario experiments write outputs,
+    metrics and the report, and the judge's loader reads the outputs."""
+    import sys as _sys
+
+    import eval.run as run
+    from eval.golden_v1 import load_golden_v1
+    from eval.judge import judge_prompt, load_projects, reference_checks
+
+    fake = SchemaFake()
+
+    def from_config(cls, *a, **kw):
+        return LLMClient(llm_settings(), transport=httpx.MockTransport(fake.handle))
+
+    async def served(client):
+        return "m"
+
+    monkeypatch.setattr(run.LLMClient, "from_config", classmethod(from_config))
+    monkeypatch.setattr(run, "check_served", served)
+    monkeypatch.setattr(
+        run,
+        "EmbeddingCache",
+        lambda path, version, embed: EmbeddingCache(tmp_path / "e.json", version, fake_embed),
+    )
+    monkeypatch.setattr(run, "read_state", lambda: {})
+    for k, v in {
+        "LLM_BASE_URL": "http://fake/v1",
+        "LLM_ENGINE": "vllm",
+        "LLM_MODEL": "qwen3.8-27b",
+    }.items():
+        monkeypatch.setenv(k, v)
+    monkeypatch.delenv("EMBEDDING_BASE_URL", raising=False)
+
+    for name in ("p3-smoke-v0", "p3-smoke-d8"):
+        out = tmp_path / name
+        monkeypatch.setattr(
+            _sys,
+            "argv",
+            [
+                "run",
+                "--config",
+                str(ROOT / "config/experiments" / f"{name}.yaml"),
+                "--out",
+                str(out),
+            ],
+        )
+        assert await run.main() == 0
+        run_dir = next(out.iterdir())
+        metrics = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+        report = (run_dir / "report.md").read_text(encoding="utf-8")
+        assert metrics["meta"]["prompt_versions"]["test_set"].startswith("s1.g3+")
+        assert "no_test_violations_raw" in metrics["runs"][0]["all"]
+        projects = load_projects(run_dir)[0]
+        assert projects and all(p["test_cases"] for p in projects.values())
+        if name == "p3-smoke-d8":
+            assert set(metrics["runs"][0]["scenario"]["arms"]) == {"incremental", "full"}
+            assert "Senaryo (add" in report
+            golden = load_golden_v1(projects=["ETC"])
+            checks = reference_checks(golden)
+            rid = next(r for r in checks if r.startswith("ETC"))
+            tests = [t for t in projects["ETC"]["test_cases"] if rid in t["covers"]]
+            raw = next(r for r in golden.projects[0].raw["requirements"] if r["id"] == rid)
+            assert judge_prompt(raw, checks[rid], tests)

@@ -61,7 +61,9 @@ def test_load_stage_settings_matches_config():
     assert s.test_types == SETTINGS.test_types and s.priorities == SETTINGS.priorities
     assert s.examples == SETTINGS.examples
     assert s.max_unit_size == 25 and s.method_batch_size == 25
-    assert s.llm[NodeKind.TEST_SET] == LLMParams(temperature=0.0, thinking=False, max_tokens=8192)
+    assert s.llm[NodeKind.TEST_SET] == LLMParams(
+        temperature=0.0, thinking=False, max_tokens=CFG["generation"]["max_tokens"]
+    )
     assert s.llm[NodeKind.CLUSTER_LABEL].max_tokens == 512
     assert s.clustering.distance_threshold == CFG["clustering"]["distance_threshold"]
 

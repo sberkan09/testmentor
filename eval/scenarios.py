@@ -361,7 +361,18 @@ class ScenarioPipeline(Pipeline):
         return ProjectOutcome(p.key, [], {}, tests, set())
 
     async def run(self, golden: Golden) -> PipelineResult:
-        res = await super().run(golden)
+        """Projects one after another (not concurrently as in `Pipeline.run`), so a phase's wall
+        time is not mixed with another project's phase. Arms run in a fixed order; output tokens
+        and call counts are the primary cost measure, wall time secondary."""
+        started = time.perf_counter()
+        outcomes = [await self.run_project(p) for p in golden.projects]
+        res = PipelineResult(
+            outcomes,
+            self.records,
+            self.calls,
+            time.perf_counter() - started,
+            raw_outputs=self.recorder.raw_outputs,
+        )
         res.extra = summarize(self.kind, self.rows, self.phases, self.records)
         return res
 

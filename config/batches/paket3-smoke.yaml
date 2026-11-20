@@ -1,7 +1,10 @@
 # Paket 3 pod 1: duman testi (yeni aşama kodu gerçek modelle). Pod sonunda her durumda silinir.
-max_hours: 0.5
+# Sıra: pod 2'yi koruyan adımlar önce (en büyük birim ve kesilme, D8 artımlı çağrısı).
+# Geçme koşulu: finish_reason length yok, proje ve senaryo kayıtlarında errors boş,
+# TestCaseDelta çağrıları şemaya uyuyor; adım süreleri pod 2'nin 2 saatine göre yeniden kestirilir.
+max_hours: 0.6
 steps:
-  - {experiment: p3-smoke-v0}
-  - {experiment: p3-smoke-v1}
   - {experiment: p3-smoke-unit25}
   - {experiment: p3-smoke-d8}
+  - {experiment: p3-smoke-v1}
+  - {experiment: p3-smoke-v0}
