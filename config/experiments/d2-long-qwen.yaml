@@ -1,0 +1,6 @@
+name: d2-long-qwen
+question: "D2 uzun bağlam: Qwen3.8-27B, istek başına ~12 bin token getirilmiş parça (bilgi havuzu yükü), 8 ve 16 eşzamanlı istekte hız ve ilk token."
+variable: model=qwen3.8-27b, passage_tokens=12000
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+throughput: {concurrency: [8, 16], min_requests: 4, passage_tokens: 12000}
+quality: false

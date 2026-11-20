@@ -158,3 +158,14 @@ def test_experiment_files_are_valid():
         for stage in ("generation", "classification"):
             assert set(cfg[stage]) == set(CFG[stage])
         assert exp.get("quality", True) or exp.get("throughput")
+
+
+def test_synthetic_passages_differ_per_cluster_and_hit_size():
+    from eval.run import synthetic_passages
+
+    golden = load_golden()
+    a = synthetic_passages(golden, "P/c1", 2000)
+    b = synthetic_passages(golden, "P/c2", 2000)
+    assert a != b and a == synthetic_passages(golden, "P/c1", 2000)
+    assert sum(map(len, a)) >= 8000
+    assert synthetic_passages(golden, "x", 0) == []

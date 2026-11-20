@@ -1,0 +1,6 @@
+name: d2-gpt-oss-r3
+question: "D2 tekrar: gpt-oss-120b, güncel ayarlarla 3 koşu."
+variable: model=gpt-oss-120b
+server: {engine: vllm, model: gpt-oss-120b, overrides: {}}
+quality: true
+repeat: 3

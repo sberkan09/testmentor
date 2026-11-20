@@ -1,0 +1,10 @@
+# D2 kararını netleştirme: Qwen ve gpt-oss için 3'er tekrar (güncel ayarlarla), uzun bağlam yükü,
+# D5 tutarsızlığının (64 dizi / 32 istek) tekrarı. Pod sonunda her durumda silinir.
+max_hours: 2
+steps:
+  - {experiment: d2-qwen-r3}
+  - {experiment: d2-long-qwen}
+  - {experiment: d5-seqs64, overrides: {max_num_seqs: 64}}
+  - {experiment: d5-seqs32, overrides: {max_num_seqs: 32}}
+  - {experiment: d2-gpt-oss-r3, model: gpt-oss-120b}
+  - {experiment: d2-long-gpt-oss, model: gpt-oss-120b}

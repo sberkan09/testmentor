@@ -103,6 +103,25 @@ async def check_served(client: LLMClient) -> str:
     return served
 
 
+def synthetic_passages(golden, seed: str, tokens: int) -> list[str]:
+    """Stand-in for retrieved knowledge-base passages, for load tests only (D9 measures real
+    retrieval). Text differs per cluster so the engine's prefix cache cannot reuse it across
+    clusters, as with real retrieval; ~4 characters per token."""
+    if tokens <= 0:
+        return []
+    import random
+
+    rng = random.Random(seed)
+    sentences = [r.text for p in golden.projects for r in p.requirements]
+    passages, size, k = [], 0, 0
+    while size < tokens * 4:
+        body = " ".join(rng.choice(sentences) for _ in range(12))
+        passages.append(f"[Doc {k + 1}, section {rng.randint(1, 40)}] {body}")
+        size += len(passages[-1])
+        k += 1
+    return passages
+
+
 async def throughput(client: LLMClient, cfg: dict[str, Any], spec: dict[str, Any], golden) -> list:
     """Load at fixed concurrency levels with generation requests over the reference clusters."""
     model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]))
@@ -130,6 +149,9 @@ async def throughput(client: LLMClient, cfg: dict[str, Any], spec: dict[str, Any
                     test_method=cfg["test_method"],
                     types=cfg["test_types"],
                     priorities=cfg["priorities"],
+                    passages=synthetic_passages(
+                        golden, f"{p.key}/{cluster[0]}", int(spec.get("passage_tokens", 0))
+                    ),
                 )
             )
     levels = []
