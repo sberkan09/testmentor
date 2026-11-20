@@ -747,13 +747,13 @@
    "method_rationale": "SUBSET-076-7 Tablo 3'te kısmen test edilebilir olarak listeli; test edilebilen kısım Test, kalanı Analiz.",
    "difficulty": "Orta",
    "note": "Radyo sistemi ayrıntısı SUBSET-037-1'de; yeniden kurulamazsa oturumun sonlandırılması 3.5.4.2.1'de, dahil edilmedi.",
-   "reference_preconditions": "Communication session established and safe radio connection set up with the trackside (Level 2 with an RBC in FS, OS, SR, LS, AD, SB; or Level 1 with a radio infill unit); trackside has not ordered a disconnection. For the second check the OBU has both radio systems installed.",
+   "reference_preconditions": "Communication session established and safe radio connection set up with the trackside (Level 2 with an RBC in FS, OS, SR, LS, AD, SB, SM, PT; or Level 1 with a radio infill unit); trackside has not ordered a disconnection. For the second check the OBU has both radio systems installed.",
    "reference_checks": [
     {
      "action": "During an established communication session (with an RBC, or with a radio infill unit in Level 1) EURORADIO indicates that the safe radio connection is lost; no disconnection has been ordered by trackside.",
      "expected": "The OBU immediately requests the set-up of a new safe radio connection with the same trackside unit.",
      "clause": "3.5.4.2",
-     "channel_note": "RTM: SA-DISCONNECT.Indication received, then SA-CONNECT.Request transmitted. Same behaviour in 3180300/TC1 steps 10-11 (L2, RBC, during Train Data exchange) and 3050700/TC15 step 1 (L2). Official 3050400/TC1 uses a Level 1 RIU session with a pending RIU 'terminate session' order (packet 133).",
+     "channel_note": "RTM: SA-DISCONNECT.Indication received, then SA-CONNECT.Request transmitted. Same behaviour in 3180300/TC1 steps 10-11 (L2, RBC, during Train Data exchange) and 3050700/TC15 step 1 (L2). Official 3050400/TC1 uses a Level 1 RIU session with a pending RIU 'terminate session' order (packet 133). 3180300/TC7 steps 1-2 show the same in Level 2 including SM mode (connection lost before the acknowledgement of the safe consist length information for SM).",
      "basis": {
       "doc": "SUBSET-076-5-2",
       "ref": "3050400/TC1",
@@ -791,7 +791,7 @@
     }
    ],
    "needs_documents": false,
-   "reference_note": "Requirement is listed as non_testable/partially testable; both kept checks are observable by running the OBU on the bench. Dropped steps: 3050400/TC1 16 steps (repeated attempts and their end conditions: 3.5.4.3; connection status indication: 3.5.7.5; disconnection at the RIU order location; JRU recordings), 3050700/TC15 5 steps (indication transition 3.5.7.5 Table 2 [4], JRU), 3180300/TC1 14 steps (Train Data entry and resending after reconnection: 3.18.3.4.2; JRU). Candidate 3180300/TC7 was not provided as a block. Requirement text omits 3.5.4.3 (repeat attempts) and 3.5.4.2.1 (session terminated after the defined time), as its note states."
+   "reference_note": "Requirement is listed as non_testable/partially testable; both kept checks are observable by running the OBU on the bench. Dropped steps: 3050400/TC1 16 steps (repeated attempts and their end conditions: 3.5.4.3; connection status indication: 3.5.7.5; disconnection at the RIU order location; JRU recordings), 3050700/TC15 5 steps (indication transition 3.5.7.5 Table 2 [4], JRU), 3180300/TC1 14 steps (Train Data entry and resending after reconnection: 3.18.3.4.2; JRU). 3180300/TC7 (supplied later): steps 1-2 repeat the first check and are folded into it; dropped 5 steps (connection confirmed, safe consist length information for SM sent again and acknowledged: 3.18.3.10.2, 4.8.4.2; JRU). Requirement text omits 3.5.4.3 (repeat attempts) and 3.5.4.2.1 (session terminated after the defined time), as its note states."
   },
   {
    "id": "ETC-011",
@@ -2642,7 +2642,7 @@
    "reference_checks": [],
    "support_passages": [],
    "needs_documents": false,
-   "reference_note": "No check survives. The three supplied official tests tagged with 3.6.3.2.4 (4080424/TC8: Euroloop message with Mode Profile accepted; 4080445/TC16 and 4080445/TC8: track conditions received by balise rejected per the 4.8 acceptance tables around a level transition; candidate 4080454/TC8 was not supplied as a block) only check acceptance or rejection of messages (clauses 4.8.3/4.8.4); no step observes how the OBU interprets profile elements, incremental distances or overlapping elements. Dropped 16 steps (3 + 6 + 7): clauses 4.8.3.1.1 / 4.8.4.2. Requirement defect: 3.6.3.2.4 is a data-structure definition (Figure 12) and item d) is a Note; the requirement restates them as OBU obligations ('shall interpret', 'shall accept that elements overlap')."
+   "reference_note": "No check survives. The four official tests tagged with 3.6.3.2.4 (4080424/TC8: Euroloop message with Mode Profile accepted; 4080445/TC16, 4080445/TC8 and 4080454/TC8: track conditions received by balise rejected per the 4.8 acceptance tables around a level transition) only check acceptance or rejection of messages (clauses 4.8.3/4.8.4); no step observes how the OBU interprets profile elements, incremental distances or overlapping elements. Dropped 27 steps (3 + 6 + 7 + 11): clauses 4.8.3.1.1 / 4.8.4.2 and level/mode set-up steps. Requirement defect: 3.6.3.2.4 is a data-structure definition (Figure 12) and item d) is a Note; the requirement restates them as OBU obligations ('shall interpret', 'shall accept that elements overlap')."
   },
   {
    "id": "ETC-034",
@@ -3904,7 +3904,7 @@
    "method_rationale": "SUBSET-076-7 Tablo 3'te yok ve SUBSET-076-5-2'de resmî test vakası var: Test.",
    "difficulty": "Orta",
    "note": "\"Tam uzunluk\" tanımı alt maddelerde (3.7.2.3.1–3.7.2.3.2), srs_text'te yok.",
-   "reference_preconditions": "Level 1 or Level 2 (radio session established in Level 2), mode FS, OS or AD; an MA with end location at x, a gradient profile and an International SSP stored; one of the stored profiles ends between x and x+500 m (finite profile); the train stands where a new MA would change the displayed supervision information.",
+   "reference_preconditions": "Level 1 or Level 2 (radio session established in Level 2), mode FS, OS, AD or LS; an MA with end location at x, a gradient profile and an International SSP stored; for the first three checks one of the stored profiles ends between x and x+500 m (finite profile) and the new MA comes without profiles; for the fourth the profiles sent with the new MA fall short of its end; the train stands where a new MA would change the displayed supervision information.",
    "reference_checks": [
     {
      "action": "An MA is stored and being supervised; a new MA (by balise group in Level 1 or by radio in Level 2) is received without SSP or gradient, extending beyond the end of the SSP stored on-board, while the stored gradient covers it.",
@@ -3942,11 +3942,27 @@
      "action": "An MA is stored and being supervised; a new MA together with a mode profile starting immediately (e.g. Shunting or Limited Supervision) is received without SSP or gradient, extending beyond the end of the SSP stored on-board.",
      "expected": "The OBU rejects the related mode profile as well: it does not change to the mode requested by the mode profile and keeps supervising the previous MA.",
      "clause": "3.7.2.3",
-     "channel_note": "Mode profile packet 80 (D_MAMODE=0, M_MAMODE=01/10 i.e. SH or LS) with packet 12 (L1) or packet 15 in M3 (L2). DMI: mode symbol SH/LS NOT displayed; JRU: no record with M_MODE=3/12.",
+     "channel_note": "Mode profile packet 80 (D_MAMODE=0, M_MAMODE=01/10 i.e. SH or LS) with packet 12 (L1) or packet 15 in M3 (L2). DMI: mode symbol SH/LS NOT displayed; JRU: no record with M_MODE=3/12. 3070200/TC4 shows the same outcome when the stored gradient (G_A=255) instead of the SSP is too short.",
      "basis": {
       "doc": "SUBSET-076-5-2",
       "ref": "3070200/TC3",
       "text": "Reception of packet 12, without SSP and GP which is REJECTED because the SSP is too short according to the current MA. … NOT The Mode symbol \"Mode SH/LS\" is The on-board unit does not change the 6 N/A N/A O DMI N/A N/A - displayed mode"
+     },
+     "passages": [
+      "ETC-050-P1"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "An MA is stored and being supervised; a new MA (by balise group in Level 1 or by radio in Level 2) is received together with an SSP and gradient profile that do not cover its full length, and no profile already on board covers the rest.",
+     "expected": "The OBU rejects the new MA and keeps supervising the train against the previous MA (target distance and permitted speed unchanged).",
+     "clause": "3.7.2.3",
+     "channel_note": "Official 4080425/TC1: L1 balise group (N_TOTAL=1) with packets 12, 21, 27, or L2 Movement Authority message (M3) with packets 15, 21, 27. DMI: target distance unchanged (FS/AD/OS); in LS the permitted speed is unchanged (checked by overpassing it and observing the overspeed status). In SR/SB/PT, where no MA is supervised, the same rejection is observed as no change to Full Supervision (FS mode symbol not displayed).",
+     "basis": {
+      "doc": "SUBSET-076-5-2",
+      "ref": "4080425/TC1",
+      "text": "Only for Level 1. One Balise Group message (N_TOTAL=1) Track description sending is optional if it is 3 N/A N/A containing packet 12, packet 21, packet 27 is I BTM already stored on-board N/A N/A - received Track description does not cover the movement authority distance … Only if in FS/AD/OS/LS mode. The Onboard device continues to run supervising to the initial MA. If in in FS/AD/OS mode, check: The speed and distance monitoring information is 7 N/A N/A O DMI The Target Distance does not change."
      },
      "passages": [
       "ETC-050-P1"
@@ -3964,7 +3980,7 @@
     }
    ],
    "needs_documents": false,
-   "reference_note": "Dropped 7 steps (JRU recordings of the received telegram/message). Candidates 3070200/TC4, 4080425/TC1 and 4080425/TC2 were not provided as blocks. No provided test covers the infill MA or Supervised Manoeuvre definitions of full length (3.7.2.3.1 second part, 3.7.2.3.2), nor the case where SSP/gradient received together with the MA are too short."
+   "reference_note": "Dropped 7 steps of 3070200/TC1-TC3 (JRU recordings of the received telegram/message). 3070200/TC4 (stored gradient too short, MA with mode profile) has the same outcome as the third check and is folded into its channel note; dropped 2 steps (JRU). 4080425/TC1 gives the fourth check (profiles received together with the MA too short); dropped 4 steps (optional OS display request and initial display, JRU). 4080425/TC2 (3 steps) dropped as a whole: it is the positive counterpart (profiles sent with the MA cover it, MA accepted, change to FS), which the requirement does not state. No provided test covers the infill MA or Supervised Manoeuvre definitions of full length (3.7.2.3.1 second part, 3.7.2.3.2)."
   },
   {
    "id": "ETC-051",
@@ -5604,13 +5620,13 @@
    "method_rationale": "SUBSET-076-7 Tablo 3'te yok ve SUBSET-076-5-2'de resmî test vakası var: Test.",
    "difficulty": "Orta",
    "note": "",
-   "reference_preconditions": "An MA (with track description) received earlier is stored and supervised: Level 2 with radio session (FS, AD, or OS with an OS mode profile), or Level 1 (FS, LS). The new MA extends the old one.",
+   "reference_preconditions": "An MA (with track description) received earlier is stored and supervised: Level 2 with radio session (FS, LS, AD, or OS with an OS mode profile), or Level 1 (FS, LS, AD, or OS with an OS mode profile). The new MA extends the old one. For the speed restriction check a signalling-related speed restriction received with the previous MA is stored; for the infill check linking including the balise group at the next main signal is stored.",
    "reference_checks": [
     {
      "action": "Level 2: an MA is stored and supervised; the OBU receives from the RBC a new MA (with its track description) that differs from the previous one, e.g. extends it.",
      "expected": "The OBU supervises the train according to the new MA in place of the previous one (new end of authority, speeds and track data used and shown).",
      "clause": "3.8.5.1",
-     "channel_note": "Official 3080500/TC10: OS with a Mode Profile; the train had run into the service brake intervention of the old EOA; RTM: Movement Authority (M3) with packets 15, 5, 21, 27, 80; then PASP shows the extended MA, the intervention symbol is removed and the service brake released (TIU), normal status with the new permitted speed; JRU NID_MESSAGE_JRU=4/20. Same outcome in 3080500/TC3 (FS/AD, before the indication limit, M3 with packets 15, 5, 21, 27; planning information 'gradient profile' of the extended MA displayed).",
+     "channel_note": "Official 3080500/TC10: OS with a Mode Profile; the train had run into the service brake intervention of the old EOA; RTM: Movement Authority (M3) with packets 15, 5, 21, 27, 80; then PASP shows the extended MA, the intervention symbol is removed and the service brake released (TIU), normal status with the new permitted speed; JRU NID_MESSAGE_JRU=4/20. Same outcome in 3080500/TC3 (FS/AD, before the indication limit, M3 with packets 15, 5, 21, 27; planning information 'gradient profile' of the extended MA displayed). Same outcome in 3080500/TC4 (FS/LS, train at the old SBI limit, M3 with packets 15, 5, 21, 27: intervention removed, service brake released, new permitted speed) and 3080500/TC9 (OS, M3 with packet 80, before the indication limit: PASP of the extended MA, new permitted speed).",
      "basis": {
       "doc": "SUBSET-076-5-2",
       "ref": "3080500/TC10",
@@ -5627,7 +5643,7 @@
      "action": "Level 1: an MA is stored and supervised; the train passes a main-signal balise group (non-infill) giving a new MA that differs from the previous one, e.g. extends it.",
      "expected": "The OBU supervises the train according to the new MA in place of the previous one (new end of authority and speeds used and shown).",
      "clause": "3.8.5.1",
-     "channel_note": "Official 3080500/TC2: FS or LS; the train had run into the service brake intervention of the old MA; BTM: balise group BGa with packets 5, 12, 21, 27, 255 (no packet 80 in FS); then PASP shows the new MA (FS), intervention symbol removed, service brake released, normal status with the new permitted speed; JRU DMI_SYMB_STATUS Bit38, NID_MESSAGE_JRU=4/20.",
+     "channel_note": "Official 3080500/TC2: FS or LS; the train had run into the service brake intervention of the old MA; BTM: balise group BGa with packets 5, 12, 21, 27, 255 (no packet 80 in FS); then PASP shows the new MA (FS), intervention symbol removed, service brake released, normal status with the new permitted speed; JRU DMI_SYMB_STATUS Bit38, NID_MESSAGE_JRU=4/20. Same outcome in 3080500/TC7 and TC8 (OS, balise group with packets 5, 12, 21, 27, 80, 255, before the indication limit / at the old SBI limit).",
      "basis": {
       "doc": "SUBSET-076-5-2",
       "ref": "3080500/TC2",
@@ -5636,6 +5652,42 @@
      "passages": [
       "ETC-070-P1",
       "ETC-070-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Level 1: an MA with a signalling-related speed restriction is stored and supervised; a main-signal balise group gives a new MA whose signalling-related speed restriction differs from the stored one.",
+     "expected": "The OBU applies the signalling-related speed restriction of the new MA: the permitted speed changes to the new value instead of the previous one.",
+     "clause": "3.8.5.1",
+     "channel_note": "Official 3080500/TC1: FS/AD, before the indication limit; BTM balise group (N_TOTAL=1) with packets 5, 12, 21, 27, 255, V_MAIN in packet 12 differing from the stored value; DMI permitted speed equals the new V_MAIN, and the MA extension is visible in the planning area.",
+     "basis": {
+      "doc": "SUBSET-076-5-2",
+      "ref": "3080500/TC1",
+      "text": "One Balise Group message (N_TOTAL=1) The permitted speed is given by V_MAIN 1 L1 FS / AD containing packet 5, packet 12, packet 21, packet I BTM N/A N/A - and differs from the previous value. 27, packet 255 is received … The permitted speed of the new MA is displayed. It equals the signalling related The speed and distance monitoring information is 3 N/A N/A O DMI speed restriction received with the MA."
+     },
+     "passages": [
+      "ETC-070-P1",
+      "ETC-070-P2",
+      "ETC-070-P3"
+     ],
+     "needs_documents": true,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Level 1: an MA is stored and supervised; a new MA is received as infill information (announcing the balise group at the next main signal), extending the previous one.",
+     "expected": "The OBU extends the stored MA by starting the new MA section at the balise group at the next main signal (infill location reference), and supervises and shows the extended MA.",
+     "clause": "3.8.5.1",
+     "channel_note": "Official 3080500/TC6: FS/LS, train at the old SBI limit; BTM infill balise group (N_TOTAL=0) with packets 136, 5, 12, 21, 27, 255; DMI PASP of the extension, intervention symbol removed, service brake released (TIU). 3080500/TC5: same before the indication limit (FS/AD, planning 'gradient profile' displayed). 3040500/TC2 steps 3 and 5: infill MA by Euroloop (packets 136, 12) accepted when the loop identity matches the stored EOLM, speed and distance information updated. The tests observe only the extension, not that the previous MA data up to the main-signal balise group are retained.",
+     "basis": {
+      "doc": "SUBSET-076-5-2",
+      "ref": "3080500/TC6",
+      "text": "One Balise Group message (N_TOTAL=0) 8 N/A N/A containing packet 136, packet 5, packet 12, I BTM - N/A N/A - packet 21, packet 27, packet 255 is received … The MA stored on-board is extended by starting a new MA section at the infill 10 N/A N/A The planning information \"PASP\" is displayed O DMI location reference, i.e. the balise group at N/A N/A the next main signal"
+     },
+     "passages": [
+      "ETC-070-P1",
+      "ETC-070-P4",
+      "ETC-070-P5"
      ],
      "needs_documents": false,
      "not_in_corpus": false
@@ -5653,10 +5705,28 @@
      "doc": "SUBSET-026-3",
      "section": "3.8.5.1.1",
      "text": "3.8.5.1.1 Note: This refers to all information included in the MA as listed in section 3.8.1.1 and the Signalling related speed restriction (see section 3.11.6)."
+    },
+    {
+     "id": "ETC-070-P3",
+     "doc": "SUBSET-026-3",
+     "section": "3.11.6",
+     "text": "3.11.6.1 In level 1, it shall be possible to send to the on-board equipment a speed restriction with a value depending on the current state of signalling. 3.11.6.2 This speed value shall be taken into account by the on-board equipment as soon as it is received on-board, with the exception of a signalling related speed restriction from an infill device. In case of infill information the speed restriction shall be taken into account from the location reference of the balise group at the next main signal. 3.11.6.3 The speed restriction shall be valid until a new signalling related speed restriction is received."
+    },
+    {
+     "id": "ETC-070-P4",
+     "doc": "SUBSET-026-3",
+     "section": "3.8.5.1.2",
+     "text": "3.8.5.1.2 When an infill MA is received, the on-board shall start a new MA section at the infill location reference, i.e. the balise group at the next main signal (see 3.6.2.3.1)."
+    },
+    {
+     "id": "ETC-070-P5",
+     "doc": "SUBSET-026-3",
+     "section": "3.6.2.3.1",
+     "text": "3.6.2.3.1 All location and profile data transmitted as infill information shall refer to the location reference of the balise group at the next main signal (identified by the infill information) and to the orientation given by the infill device."
     }
    ],
-   "needs_documents": false,
-   "reference_note": "Kept one check per non-infill source named in 3.8.5.1 a) (RBC, main-signal balise group). Dropped 26 steps of 3080500/TC10 and TC2 (reaching the SBI of the old MA and the brake command/indications, optional OS display request, JRU recordings); 3080500/TC3 (same outcome, Level 2 before the indication limit) merged into the first check. Candidates 3080500/TC1, TC4-TC9 and 3040500/TC2 were not provided, so the infill case (3.8.5.1 b): only data beyond the next main-signal balise group replaced) has no check. The provided tests only show extension; none distinguishes full replacement from merging (old MA data absent from the new MA being dropped)."
+   "needs_documents": true,
+   "reference_note": "Kept one check per non-infill source named in 3.8.5.1 a) (RBC, main-signal balise group), one for replacement of the signalling-related speed restriction included in the MA data (3.8.5.1.1, from 3080500/TC1) and one for the infill case 3.8.5.1 b) (3080500/TC6, with TC5 and the Euroloop case of 3040500/TC2 folded in). 3080500/TC3, TC4, TC9 (RBC) and TC7, TC8 (balise group, OS) repeat the outcome of the first two checks and are folded into their channel notes. Dropped steps: 3080500/TC10 and TC2 26 (reaching the SBI of the old MA and the brake command/indications, optional OS display request, JRU recordings); TC4 13, TC8 15, TC6 11, TC7 3, TC9 3 (same kinds); TC1 1, TC5 1 (JRU); 3040500/TC2 8 (EOLM acceptance and deletion: 3.4.5.1.6, 3.4.5.2.1; JRU). The provided tests show only extension; apart from the speed restriction change (TC1) none distinguishes full replacement from merging, and the infill tests do not show that the previous MA data up to the next main-signal balise group are retained."
   },
   {
    "id": "ETC-071",
@@ -6343,7 +6413,7 @@
      "action": "Level 1, radio infill area information received by balise group and a session with the radio infill unit established: the train's estimated front end passes the location indicated in the order (beginning of the infill area).",
      "expected": "The OBU sends information (an infill request) to the radio infill unit as soon as that location is passed.",
      "clause": "3.9.3.10",
-     "channel_note": "Order: packet 133 (D_INFILL). RTM: Radio infill request (message 153) with packet 0/1, Q_INFILL=0 (enter); JRU: MESSAGE TO RADIO INFILL UNIT (NID_MESSAGE_JRU=5).",
+     "channel_note": "Order: packet 133 (D_INFILL). RTM: Radio infill request (message 153) with packet 0/1, Q_INFILL=0 (enter); JRU: MESSAGE TO RADIO INFILL UNIT (NID_MESSAGE_JRU=5). Same message in 9990500/TC35 step 11 and 9990500/TC18 step 13 (session with the RIU set up after reading the order; in TC18 the start location is jumped over by relocation).",
      "basis": {
       "doc": "SUBSET-076-5-2",
       "ref": "9990500/TC14",
@@ -6360,7 +6430,7 @@
      "action": "Inside the infill area, the train passes and reads the next main signal balise group indicated in the order.",
      "expected": "The OBU sends information to the radio infill unit as soon as it reads that main signal balise group.",
      "clause": "3.9.3.10",
-     "channel_note": "RTM: message 153 'Radio infill request' with packet 0/1; JRU record of the exchange.",
+     "channel_note": "RTM: message 153 'Radio infill request' with packet 0/1; JRU record of the exchange. Same in 3090300/TC7 steps 1-3 (main signal balise group that also carries the order to terminate the RIU session; message 153 with packet 0).",
      "basis": {
       "doc": "SUBSET-076-5-2",
       "ref": "3090300/TC14",
@@ -6413,7 +6483,7 @@
     }
    ],
    "needs_documents": true,
-   "reference_note": "Dropped steps: 9990500/TC14 9 (moving back and forth over the infill start without a second message: A.3.5.1; JRU), 3090300/TC14 2 (JRU), 3090300/TC11 6 (infill MA referring to the missed group ignored: other clause; JRU). Candidates 9990500/TC35, 3090300/TC7 and 9990500/TC18 were not provided. Content of the information (3.9.3.11) excluded per requirement note; missed-group detection timing needs 3.16.2.3.1.1."
+   "reference_note": "Dropped steps: 9990500/TC14 9 (moving back and forth over the infill start without a second message: A.3.5.1; JRU), 3090300/TC14 2 (JRU), 3090300/TC11 6 (infill MA referring to the missed group ignored: other clause; JRU). Blocks supplied later: 9990500/TC35 (informing only once although the infill start is passed twice) and 9990500/TC18 (informing once although the start location is jumped over by relocation) turn on A.3.5.1 e) / 3.6.4.1.5 / 3.9.3.5, not on the requirement; their entry message step is folded into the first check, dropped 17 + 15 steps (RIU session set-up, relocation, no second message, JRU). 3090300/TC7: steps 1-3 folded into the second check, dropped 7 steps (termination of the RIU session at the indicated location and release of the safe connection: 3.9.3.11, 3.9.3.16; JRU). Content of the information (3.9.3.11) excluded per requirement note; missed-group detection timing needs 3.16.2.3.1.1."
   },
   {
    "id": "ETC-081",
