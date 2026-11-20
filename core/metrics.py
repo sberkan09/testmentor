@@ -86,10 +86,13 @@ def requirement_metrics(
                 violations += 1
     needs_test = [rid for rid, r in selected.items() if test_method in r.methods]
     predicted = {rid: m for o in outcomes for rid, m in o.methods.items()}
+    # Bitti ölçütü 3 (paket 3): end to end, coverage is required against the predicted methods.
+    needs_pred = [rid for rid in selected if test_method in predicted.get(rid, [])]
     method_rows = [(set(predicted.get(rid, [])), r.methods) for rid, r in selected.items()]
     return {
         "requirements": len(selected),
         "coverage_rate": _rate(sum(r in covered for r in needs_test), len(needs_test)),
+        "coverage_rate_predicted": _rate(sum(r in covered for r in needs_pred), len(needs_pred)),
         "coverage_rate_before_repair": _rate(
             sum(r in covered_before for r in needs_test), len(needs_test)
         ),

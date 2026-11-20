@@ -1,0 +1,230 @@
+{
+  "meta": {
+    "run_id": "20261120-210424-p3-smoke-v1",
+    "experiment": {
+      "name": "p3-smoke-v1",
+      "question": "Paket 3 duman testi (pod 1): altın set v1 ETC uçtan uca (gerçek öbekleme ve yöntem aşaması).",
+      "variable": "generation_inputs=predicted (duman)",
+      "server": {
+        "engine": "vllm",
+        "model": "qwen3.8-27b",
+        "overrides": {}
+      },
+      "golden": "v1",
+      "projects": [
+        "ETC"
+      ],
+      "pipeline": {
+        "generation_inputs": "predicted"
+      },
+      "quality": true
+    },
+    "config_file": "config/experiments/p3-smoke-v1.yaml",
+    "pipeline_config": {
+      "generation_inputs": "predicted",
+      "unit_packing": false,
+      "passages": "none",
+      "methods": [
+        {
+          "name": "Test",
+          "criterion": "Davranış sistem çalıştırılarak ve girdi verilerek gözlenebiliyorsa."
+        },
+        {
+          "name": "Analiz",
+          "criterion": "Doğrulama hesap, model, benzetim ya da istatistik gerektiriyorsa."
+        },
+        {
+          "name": "İnceleme",
+          "criterion": "Belge, kod, yapılandırma ya da fiziksel ürün gözle denetlenerek doğrulanıyorsa."
+        },
+        {
+          "name": "Gösterim",
+          "criterion": "İşlev ölçüm yapılmadan, çalıştırılıp gözlemlenerek gösteriliyorsa."
+        }
+      ],
+      "test_method": "Test",
+      "test_types": [
+        "Normal",
+        "Sınır",
+        "Hata"
+      ],
+      "priorities": [
+        "Yüksek",
+        "Orta",
+        "Düşük"
+      ],
+      "clustering": {
+        "method": "agglomerative",
+        "linkage": "average",
+        "distance_threshold": 0.35,
+        "max_cluster_size": 25
+      },
+      "classification": {
+        "batch_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 4096
+      },
+      "cluster_label": {
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 512
+      },
+      "generation": {
+        "max_unit_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 16384,
+        "repair": true,
+        "regeneration": "incremental",
+        "prune_removals": false
+      },
+      "concurrency": 16,
+      "prefix_warmup": false,
+      "examples_file": "config/prompts/examples-generation.yaml",
+      "thresholds": {
+        "schema_valid_rate": 0.99,
+        "coverage_rate": 1.0,
+        "step_structure_rate": 1.0,
+        "no_test_violations": 0
+      }
+    },
+    "golden_version": "v1",
+    "server": {
+      "pod": "gnqzu0saamorfv",
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "overrides": {}
+    },
+    "model_spec": {
+      "repo_id": "Qwen/Qwen3.8-27B-FP8",
+      "served_name": "qwen3.8-27b",
+      "precision": "fp8",
+      "context_length": 32768,
+      "max_num_seqs": 64,
+      "engine_args": {
+        "vllm": [
+          "--reasoning-parser",
+          "qwen3",
+          "--language-model-only"
+        ],
+        "sglang": [
+          "--reasoning-parser",
+          "qwen3"
+        ]
+      },
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "gated": false,
+      "gpu_memory_utilization": null,
+      "download_ignore": [],
+      "approx_size_gb": 30.0,
+      "notes": "Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık. Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek."
+    },
+    "started_at": "2026-11-20T21:04:24Z",
+    "served_model": "qwen3.8-27b",
+    "engine_settings": {
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "base_url": "https://gnqzu0saamorfv-8000.proxy.runpod.net/v1",
+      "served_model_name": "qwen3.8-27b",
+      "api_key_env": "LLM_API_KEY",
+      "request_timeout_s": 900.0,
+      "connect_timeout_s": 15.0,
+      "default_max_tokens": 4096,
+      "default_temperature": null,
+      "extra_body": {},
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    "prompt_versions": {
+      "embedding": "BAAI/bge-m3",
+      "clustering": "c1",
+      "method": "s1.m1+5d9f798bd379",
+      "cluster_label": "s1.l1+7f6b859095cb",
+      "retrieval": "r1",
+      "test_set": "s1.g3+18f7be32bb16",
+      "matrix_row": "x1"
+    }
+  },
+  "runs": [
+    {
+      "all": {
+        "requirements": 109,
+        "coverage_rate": 0.9815,
+        "coverage_rate_before_repair": 0.9815,
+        "no_test_violations": 1,
+        "step_structure_rate": 1.0,
+        "test_cases": 175,
+        "method_exact_match": 0.9358,
+        "method_jaccard": 0.9541,
+        "duplicate_pairs": 13,
+        "duplicate_test_rate": 0.1314,
+        "no_test_violations_raw": 1
+      },
+      "by_language": {
+        "en": {
+          "requirements": 109,
+          "coverage_rate": 0.9815,
+          "coverage_rate_before_repair": 0.9815,
+          "no_test_violations": 1,
+          "step_structure_rate": 1.0,
+          "test_cases": 175,
+          "method_exact_match": 0.9358,
+          "method_jaccard": 0.9541
+        }
+      },
+      "traps": {
+        "requirements": 0,
+        "coverage_rate": null,
+        "coverage_rate_before_repair": null,
+        "no_test_violations": 0,
+        "step_structure_rate": null,
+        "test_cases": 0,
+        "method_exact_match": null,
+        "method_jaccard": null
+      },
+      "cluster_ari": 0.3213,
+      "cluster_ari_by_project": {
+        "ETC": 0.3213
+      },
+      "calls": {
+        "calls": 24,
+        "errors": 0,
+        "schema_valid_rate": 1.0,
+        "schema_valid_rate_generation": 1.0,
+        "tokens_total": 96703,
+        "prompt_tokens": 41533,
+        "completion_tokens": 55170,
+        "cached_tokens": 16640,
+        "prefix_cache_hit_rate": 0.4006,
+        "wall_s": 183.38,
+        "seconds_per_cluster": 9.65,
+        "tokens_per_second": 300.8
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": false,
+        "step_structure_rate": true,
+        "no_test_violations": false
+      }
+    }
+  ],
+  "throughput": null
+}

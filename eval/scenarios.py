@@ -338,7 +338,12 @@ class ScenarioPipeline(Pipeline):
         if pinned is not None:
             kept = [c for c in after_all if c["pinned"] and _content(c) == _content(pinned)]
             row["pinned_kept"] = bool(kept)
-            row["pinned_repeats"] = sum(1 for a in after if similarity(a, pinned) >= REPEATED)
+            # Only cases the change wrote (new or updated): siblings already in the baseline that
+            # resemble the pinned case are not a repeat caused by regeneration.
+            # (By title and steps, so a case whose covers were only trimmed is not "written".)
+            before_texts = {case_text(b) for b in before}
+            written = [a for a in after if case_text(a) not in before_texts]
+            row["pinned_repeats"] = sum(1 for a in written if similarity(a, pinned) >= REPEATED)
         if self.kind == "add":
             row["new_covered_before_repair"] = changed in st.get("covered_before_repair", [])
             row["new_covered"] = any(changed in c["covers"] for c in after_all)

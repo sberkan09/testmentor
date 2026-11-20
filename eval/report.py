@@ -26,6 +26,7 @@ def _req_table(m: dict[str, Any]) -> list[str]:
     cols = [
         "requirements",
         "coverage_rate",
+        "coverage_rate_predicted",
         "coverage_rate_before_repair",
         "no_test_violations",
         "no_test_violations_raw",
