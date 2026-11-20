@@ -1,0 +1,307 @@
+                                   Table 3: Non testable requirements
+
+ SUBSET-026 requirement                                    Justification                                Partially
+                                                                                                        testable
+
+           3.5.3.7.1                   See remarks for parts 1), 2) and 3) of requirement                  Yes
+                                  FRMCS adaptor needed for full establishment of safe radio
+          3.5.3.7.1 1)                                     connection                                       No
+                              Without FRMCS adaptor, testing limited to mission with only GSM-
+          3.5.3.7.1 2)                                  R radio system                                     Yes
+                                 Without FRMCS adaptor, the full establishment of safe radio
+                                  connection is not possible in case the radio network type is
+          3.5.3.7.1 3)           FRMCS; it may also be difficult/impossible to ensure that the
+                                     previous radio system stored by Euroradio is FRMCS                    Yes
+                              Testing limited to storage of GSM-R as radio system used for safe
+           3.5.3.7.2           radio connection: otherwise FRMCS adaptor strictly necessary                Yes
+                              Testing limited to re-connecting via GSM-R (as radio system used
+            3.5.4.2              for safe radio connection): otherwise FRMCS adaptor strictly
+                                                           necessary                                       Yes
+                                       See remarks for parts a), b) and c) of requirement
+            3.5.6.7                                                                                        Yes
+                                 The configuration with FRMCS being the only radio system
+          3.5.6.7 a)            installed on-board is not tested, so testing limited to the case
+                                        where the stored radio network type is FRMCS                       Yes
+                             Without FRMCS adaptor, testing limited to the case where FRMCS
+          3.5.6.7 b)                              on-board is not registered                               Yes
+                             Without FRMCS adaptor, testing limited to mission with only GSM-
+           3.5.6.7 c)                                   R radio system                                     Yes
+
+
+                                                 Version 4.0.0                                     PAGE 7 OF 62
+                                     ERA ERTMS UNIT
+                          SCOPE OF THE TEST SPECIFICATIONS
+
+
+
+SUBSET-026 requirement                                  Justification                                       Partially
+                                                                                                            testable
+                                        Requirement to be tested with SUBSET-074
+       3.6.3.1.4.1                                                                                              No
+                            To ensure that the transition to Trip mode is due to condition Id [11]
+                             and not [16], the conditions of test are difficult to reproduce in lab,
+                            in particular due to the distance of 5m between the balise antenna
+                             and the front end of the train which is defined in SUBSET-094 for
+                             all the tests of SUBSET-076 (and that we do not intend to change
+                                                 to cover this sub-requirement).
+                                It has been considered that condition Id [16] will apply before
+                            condition Id [11] when the first possible location of the BG is known
+    3.13.10.2.6 b) b)                     to be at the EOA or in advance of the EOA.
+                              Therefore the most probable operational situation is tested with
+                              3.13.10.2.6 b) a), which is also the easiest configuration to test
+                                  because at very low speed, the "on-board tolerances when
+                            determining the reference location of the balise group" which are at
+                            least above 3m according to constraints exported to the supplier in
+                            SUBSET-094, should ensure that the min safe front end of the train
+                                 does not overpass the EOA before the transition to Trip with
+                                                        condition Id [11].                                      No
+                            To ensure that the transition to Trip mode is due to condition Id [11]
+                             and not [16], the conditions of test are difficult to reproduce in lab,
+                            in particular due to the distance of 5m between the balise antenna
+                             and the front end of the train which is defined in SUBSET-094 for
+                             all the tests of SUBSET-076 (and that we do not intend to change
+                                                 to cover this sub-requirement).
+                                It has been considered that condition Id [16] will apply before
+                            condition Id [11] when the first possible location of the BG is known
+    3.13.10.2.6 b) c)                     to be at the EOA or in advance of the EOA.
+                              Therefore the most probable operational situation is tested with
+                              3.13.10.2.6 b) a), which is also the easiest configuration to test
+                                  because at very low speed, the "on-board tolerances when
+                            determining the reference location of the balise group" which are at
+                            least above 3m according to constraints exported to the supplier in
+                            SUBSET-094, should ensure that the min safe front end of the train
+                                 does not overpass the EOA before the transition to Trip with
+                                                        condition Id [11].                                      No
+                                         Requirement to be tested with SUBSET-074
+     3.16.2.4.8.2.1                                                                                             No
+                                     Not testable with actual System Version X values
+       3.17.3.5 b)                                                                                              No
+                                     Not testable with actual System Version X values
+       3.17.3.6 a)                                                                                              No
+A.3.4.1.3 table - STM max               Requirement to be tested with SUBSET-074
+           speed                                                                                                No
+  A.3.4.1.3 table - STM                 Requirement to be tested with SUBSET-074
+ system speed/distance                                                                                          No
+    A.3.4.1.3 table -        None of the special situations listed by A.3.4.1.2 seems possible
+Unconditional Emergency        while UES stored on-board (which immediately leads to trip
+          Stop                                          procedure).
+                                                                                                                No
+                            None of the special situations listed by A.3.4.1.2 seems possible to
+A.3.4.1.3 table - RBC/RIU   provoke between reception of Msg 32 and the immediate reply by
+     System Version                              sending of Msg 159/154.                                        No
+
+                                               Version 4.0.0                                           PAGE 8 OF 62
+                                        ERA ERTMS UNIT
+                              SCOPE OF THE TEST SPECIFICATIONS
+
+
+
+SUBSET-026 requirement                                     Justification                                    Partially
+                                                                                                            testable
+                                    Use of "can": cannot really be considered as an on-board
+        4.4.7.1.6 a)            requirement. Will at least be indirectly tested with chapter 3 Table
+                                                            2c anyway).                                         No
+                                    Use of "can": cannot really be considered as an on-board
+        4.4.7.1.6 b)            requirement. Will at least be indirectly tested with chapter 3 Table
+                                                            2c anyway).                                         No
+                                            Generic requirement related to NP mode
+          4.5.1.4                                                                                               No
+ 4.6.3 table - Condition Id                 STM - National Trip procedure is active
+            [35]                          Requirement to be tested with SUBSET-074
+                                                                                                                No
+ 4.6.3 table - Condition Id                 STM - National Trip procedure is active
+            [38]                          Requirement to be tested with SUBSET-074
+                                                                                                                No
+  4.7.2.1.4 table - Input                Condition A testable at least in a specific mode
+   information Perform
+mission with only one radio     Without FRMCS simulator, tests limited to cases where GSM-R is
+         system                                            chosen.
+                                                                                                               Yes
+  4.7.2.1.4 table - Output                Requirement to be tested with SUBSET-074
+   information NTC not
+         available                                                                                              No
+  4.7.2.1.4 table - Output                Requirement to be tested with SUBSET-074
+information NTC data need                                                                                       No
+  4.7.2.1.4 table - Output                Requirement to be tested with SUBSET-074
+  information NTC failed                                                                                        No
+                                    Testing limited to Packet 42 (Session Management for RBC
+ 4.8.3.1.1 table - Session       interfaced to GSM-R): otherwise FRMCS adaptor needed for full
+       Management                              establishment of safe radio connection                          Yes
+                                    Testing limited to Packet 131 (RBC transition order for RBC
+   4.8.3.1.1 table - RBC         interfaced to GSM-R): otherwise FRMCS adaptor needed for full
+     Transition Order                          establishment of safe radio connection                          Yes
+4.8.3.1.1 table - Data to be
+   used by applications           Data used by applications outside the ERTMS/ETCS system
+  outside ERTMS/ETCS                                                                                            No
+                                   For first bullet point: Testing limited to Radio Network type
+4.8.3.1.1 table - Exception      =FRMCS otherwise FRMCS adaptor or OBU only equipped with
+            [15]                                     FRMCS strictly necessary.                                 Yes
+ 4.8.3.2 Table - STM max                   Requirement to be tested with SUBSET-074
+          speed                                                                                                 No
+4.8.3.2 Table - STM system                Requirement to be tested with SUBSET-074
+       speed/distance                                                                                           No
+                                          Requirement to be tested with SUBSET-074
+   4.8.3.2 exception [6]                                                                                        No
+                                          Requirement to be tested with SUBSET-074
+   4.8.3.2 exception [7]                                                                                        No
+                                    Testing limited to Packet 42 (Session Management for RBC
+  4.8.4.2 table - Session        interfaced to GSM-R): otherwise FRMCS adaptor needed for full
+       Management                              establishment of safe radio connection                          Yes
+
+
+
+                                                  Version 4.0.0                                        PAGE 9 OF 62
+                                       ERA ERTMS UNIT
+                              SCOPE OF THE TEST SPECIFICATIONS
+
+
+
+SUBSET-026 requirement                                    Justification                                   Partially
+                                                                                                          testable
+                                    Testing limited to Packet 131 (RBC transition order for RBC
+    4.8.4.2 table - RBC          interfaced to GSM-R): otherwise FRMCS adaptor needed for full
+     Transition Order                          establishment of safe radio connection                        Yes
+ 4.8.4.2 table - Data to be        Data used by applications outside the ERTMS/ETCS system
+   used by applications
+  outside ERTMS/ETCS                                                                                         No
+                                            Action "not relevant" in next table of 4.10
+        4.10.1.3 e)                                                                                          No
+ 4.10.1.3 table - line STM                Requirement to be tested with SUBSET-074
+        max speed                                                                                            No
+ 4.10.1.3 table - line STM                Requirement to be tested with SUBSET-074
+  system speed/distance                                                                                      No
+4.10.1.3 table - line Radio      Not testable without FRMCS simulator (to check the connection
+system used for safe radio          attempt with the radio that was not in use before the NP)
+       connection                                                                                            No
+4.10.1.3 table - line Mission   Without FRMCS simulator, tests limited to cases where GSM-R is
+  performed with only one                                  chosen.
+        radio system                                                                                         Yes
+                                 Not relevant case and as stated in the requirement: "there is no
+                                  transition from the mode in which the brake command reason
+                                     could be applicable to the entered mode or the transition
+        4.12.1.2 d)              condition(s) to the entered mode can only be fulfilled when the
+                                  condition(s) to release the brake command associated to this
+                                           individual reason (see 3.14.1) is(are) fulfilled"                  No
+                                   Not defined case: "the action on the brake command reason
+        4.12.1.2 e)                cannot be determined. This concerns the entry in SF and IS
+                                                              modes"                                         No
+                                           See remarks for parts a) and b) of requirement
+         5.4.3.2 D7                                                                                          Yes
+                                  FRMCS adaptor strictly necessary (OBU only equipped with
+       5.4.3.2 D7 a)              FRMCS also strictly necessary for a part of the requirement)               No
+                                            FRMCS adaptor strictly necessary
+       5.4.3.2 D7 b)                                                                                         No
+                                      See remarks for parts c), d), e) and i) of requirement
+         5.4.3.2 S3                                                                                          Yes
+                                FRMCS adaptor strictly necessary and for parts additionally OBU
+       5.4.3.2 S3 c)                   only equipped with FRMCS strictly necessary                           No
+                                             FRMCS adaptor strictly necessary
+       5.4.3.2 S3 d)                                                                                         No
+                                 Without FRMCS simulator, only the case where the GSM-R is
+       5.4.3.2 S3 e)                                   chosen is testable                                    Yes
+                                Not testable for subcase which demands OBU only equipped with
+        5.4.3.2 S3 i)                                       FRMCS                                            Yes
+                                        See remarks for parts a), b) and c) of requirement
+         5.4.3.2 S4                                                                                          Yes
+                                               FRMCS adaptor strictly necessary
+       5.4.3.2 S4 a)                                                                                         No
+                                Not testable for subcase which demands OBU only equipped with
+       5.4.3.2 S4 b)             FRMCS. Only testable with Radio Network type = FRMCS and
+                                       ETCS OB equipped with both FRMCS and GSM-R.                           Yes
+
+
+                                                 Version 4.0.0                                      PAGE 10 OF 62
+                                         ERA ERTMS UNIT
+                               SCOPE OF THE TEST SPECIFICATIONS
+
+
+
+SUBSET-026 requirement                                      Justification                                      Partially
+                                                                                                               testable
+                                                 FRMCS adaptor strictly necessary
+      5.4.3.2 S4 c)                                                                                               No
+                                           See remarks for parts a) and b) of requirement
+       5.4.3.2 A42                                                                                                Yes
+                                 Not testable for subcase which demands OBU only equipped with
+      5.4.3.2 A42 a)               FRMCS. Only testable with Radio Network type = FRMCS and
+                                         ETCS OB equipped with both FRMCS and GSM-R.                              Yes
+                                 For the subcase where only GSM-R failed, FRMCS adaptor strictly
+      5.4.3.2 A42 b)                                          necessary                                           Yes
+                                      Testing limited to mission with only GSM-R radio system:
+        5.4.3.2 D9                          otherwise FRMCS adaptor strictly necessary                            Yes
+ 5.4.3.3 - Following D2:         The status of "Level" implies that it comes from NP, in which case
+stored level is "invalid" or      the "RBC contact information" is also TBR and cannot be valid.
+        "unknown"                                                                                                 No
+                                                   STM National Trip procedure
+      5.6.2.2 D030                          Requirement to be tested with SUBSET-074                              No
+                                                   STM National Trip procedure
+      5.6.2.2 A030                          Requirement to be tested with SUBSET-074                              No
+                                               Override function activated by STM
+         5.8.3.7.1                          Requirement to be tested with SUBSET-074                              No
+                                              See remarks for part a) of requirement
+        5.10.2.4.1                                                                                                Yes
+                                            See remarks for part a) and b) of requirement
+      5.10.2.4.1 a)                                                                                               Yes
+                                 Not possible for ETCS OB to detect that FRMCS OB is in working
+     5.10.2.4.1 a) a)                                        condition                                            No
+                                 Not possible for ETCS OB to detect that FRMCS OB is in working
+     5.10.2.4.1 a) b)                                        condition                                            No
+                                               See remarks for part a) of requirement
+       5.10.3.15.2                                                                                                Yes
+                                           See remarks for parts a) and b) of requirement
+      5.10.3.15.2 a)                                                                                              Yes
+                                                 FRMCS adaptor strictly necessary
+    5.10.3.15.2 a) a)                                                                                             No
+                                                 FRMCS adaptor strictly necessary
+    5.10.3.15.2 a) b)                                                                                             No
+                                  This requirement replaces the requirement 3.6.1.3.4 which is not
+         6.6.2.1.2                    an ETCS on-board requirement according to chapter 9 of
+                                                              SUBSET-026                                          No
+                                      This requirement makes the requirement 4.4.7.1.6 b) not
+         6.6.2.2.3                 applicable and this requirement is considered as Not testable in
+                                                                 this table                                       No
+                                    This requirement only removes the possible selection of SM in
+                                 5.4.3.2 S10. It is not testable as anyway the conditions for enabling
+         6.6.2.3.1                the SM buttons cannot be met while operating X=1 in Level 2 (no
+                                   communication session with a supervising RBC certified with a
+                                                  system version X.Y > 2.2 can exist).                            No
+                                    This requirement only removes the possible selection of SM in
+                                      5.4.3.2 S20 via 5.4.5.3 k). It is not testable as anyway the
+                                     conditions for enabling the SM buttons cannot be met while
+         6.6.2.3.2                   operating X=1 in Level 2 (no communication session with a
+                                    supervising RBC certified with a system version X.Y > 2.2 can
+                                                                   exist).                                        No
+
+
+                                                   Version 4.0.0                                         PAGE 11 OF 62
+                                      ERA ERTMS UNIT
+                           SCOPE OF THE TEST SPECIFICATIONS
+
+
+
+ SUBSET-026 requirement                                Justification                                     Partially
+                                                                                                         testable
+                               This requirement only removes the possible selection of SM in
+                                5.11.2.2 S140. It is not testable as anyway the conditions for
+           6.6.2.3.6           enabling the SM buttons cannot be met while operating X=1 in
+                                 Level 2 (no communication session with a supervising RBC
+                                     certified with a system version X.Y > 2.2 can exist).                  No
+                                 Removal of section 5.21 related to Supervised Manoeuvre
+                             procedure: this procedure cannot be initated while operating X=1 in
+           6.6.2.3.7             Level 2 (no communication session with a supervising RBC
+                                     certified with a system version X.Y > 2.2 can exist).                  No
+                                This requirement refers to the requirement 6.6.2.1.2 and this
+           6.6.4.1.1               requirement is considered as Not testable in this table                  No
+                                This requirement refers to the requirement 6.6.2.2.3 and this
+           6.6.4.2.1               requirement is considered as Not testable in this table                  No
+                                  Not testable for the same reason as for 6.6.2.3.1,2, 6 &7
+           6.6.4.3.1                                                                                        No
+                                Data used by applications outside the ERTMS/ETCS system
+           8.4.1.5.1                                                                                        No
+                                Data used by applications outside the ERTMS/ETCS system
+          8.4.4.4.2 c)                                                                                      No
+                              Packet 4 in a message 157 is considered as not testable (possible
+          8.4.4.4.3 a)                       test scenario seems highly unlikely).                          No
+                               Not testable: Packet 44 (Data used by applications outside the
+          8.4.4.4.3 e)                              ERTMS/ETCS system)                                      No
+
