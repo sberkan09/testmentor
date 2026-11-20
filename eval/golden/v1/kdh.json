@@ -7867,11 +7867,57 @@
    "method_rationale": "Rehber denetim yöntem önerileri: Gözden Geçirme, Mülakat, Sızma Testi.",
    "difficulty": "Orta",
    "note": "",
-   "reference_preconditions": "Portalda veri girişi yapılan formlara (başvuru adımları, profil) ve API uçlarına erişebilen bir vatandaş ya da şirket temsilcisi hesabı; istemci tarafı doğrulamayı atlamak için araya giren vekil sunucu.",
-   "reference_checks": [],
-   "support_passages": [],
+   "reference_preconditions": "Portalda veri girişi yapılan formlara (başvuru adımları, profil) ve API uçlarına erişebilen bir vatandaş ya da şirket temsilcisi hesabı; istemci tarafı doğrulamayı atlamak için araya giren vekil sunucu ya da JavaScript'i kapatılmış tarayıcı.",
+   "reference_checks": [
+    {
+     "action": "İstemci tarafı doğrulama atlanarak (istek araya girilip değiştirilerek) bir form alanına geçersiz değer sunucuya gönderilir.",
+     "expected": "Sunucu geçersiz değeri reddeder; istek kabul edilmez.",
+     "channel_note": "Araya giren vekil, JavaScript kapalı tarayıcı ya da doğrudan API çağrısıyla yapılabilir; reddin ardından kaydın oluşmadığı da kontrol edilebilir.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.10.1",
+      "text": "Uygulamada kullanılan mevcut bir girdi doğrulama\nmekanizması var mı?"
+     },
+     "passages": [
+      "KDH-094-P1",
+      "KDH-094-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Portalın kabul ettiği her veri tipindeki alanlara, istemci tarafı doğrulama atlanarak o tipe uymayan değer gönderilir.",
+     "expected": "Her veri tipi için geçersiz değer sunucu tarafında reddedilir.",
+     "channel_note": "Örnek tipler: serbest metin (uzunluk/karakter), sayı ve kimlik numaraları (ör. 10 haneli vergi numarasına 9 hane), tarih, seçim listesi dışı değer, API JSON alanlarında yanlış tip.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.10.1",
+      "text": "Girdi doğrulama mekanizması her veri tipi için kullanılıyor\nmu?"
+     },
+     "passages": [
+      "KDH-094-P1",
+      "KDH-094-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-094-P1",
+     "doc": "SGB-REHBER-1.1",
+     "section": "3.2.10.1",
+     "text": "Uygulama sunucu tarafında, kabul edilen her bir veri tipi\niçin girdi doğrulama denetimi yapmalıdır."
+    },
+    {
+     "id": "KDH-094-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§10.2",
+     "text": "Doğrulama sunucu tarafında yapılır (Rehber 3.2.10.1)."
+    }
+   ],
    "needs_documents": false,
-   "reference_note": "Denetim yok: denetim tablosu penceresinde 3.2.10.1 satırı yalnızca tedbir numarası, adı ('Sunucu Tarafında Girdi Doğrulama Denetiminin Yapılması') ve yöntem önerilerinden (Mülakat, Gözden Geçirme, Sızma Testi) oluşuyor; tedbir numarasından önce ya da sonra bu tedbire ait bir denetim sorusu yok (büyük olasılıkla çıkarım kesintisi). Tedbir adı prosedür maddesi sayılmadı, yerine kendi denetimimiz yazılmadı (kural 3). uncovered: istemci tarafı doğrulama atlanarak gönderilen geçersiz verinin sunucu tarafında reddedilmesi; bunun kabul edilen her veri tipi (metin, sayı, tarih, seçim listesi, dosya üst verisi) için yapılması."
+   "reference_note": "Yeniden üretilen pencerede 3.2.10.1'e içerik olarak ait 2 soru var (girdi doğrulama mekanizması var mı; her veri tipi için kullanılıyor mu); ikisi de Sızma Testi ile davranış olarak gözlenebildiğinden denetim oldu. Düşürülen (kural 2): 'Uygulamanın hata ile karşılaşması durumunda takip edeceği adımlar/faaliyetler tasarım dokümanında tanımlanmış mı?' (belge sorusu; 3.2.10.1'e mi 3.2.10.2'ye mi ait olduğu belirsiz, hiçbir denetimi değiştirmez). Penceredeki diğer sorular 3.2.10.2-3.2.10.6'ya ait (iz kaydı, program çalıştırma, gizli alanlar, CSRF, parametrik sorgu; kapsam dışı). Mülakat ve Gözden Geçirme yöntemleri denetim değil. VBP belgeleri kabul edilen veri tiplerinin listesini vermez; bu yüzden tip başına ayrı denetim yazılmadı, örnekler channel_note'ta. uncovered: yok."
   },
   {
    "id": "KDH-095",
@@ -8097,11 +8143,48 @@
    "method_rationale": "Rehber denetim yöntem önerileri: Gözden Geçirme, Güvenlik Denetimi, Mülakat, Sızma Testi.",
    "difficulty": "Orta",
    "note": "Kaynak metinde 3.2.10.13 ve 3.2.10.14 satırları karışık; numara tasarım belgesindeki atıfla tutarlı seçildi.",
-   "reference_preconditions": "Portalın uygulama sunucusuna istek gönderebilecek bir araç (araya giren vekil ya da yük aracı).",
-   "reference_checks": [],
-   "support_passages": [],
+   "reference_preconditions": "Portalın uygulama sunucusuna (form ve API uçları) istek gönderebilen ve istek gövdesinin boyutunu ayarlayabilen bir araç (araya giren vekil ya da betik); gerekirse oturum açmış bir vatandaş ya da şirket temsilcisi hesabı.",
+   "reference_checks": [
+    {
+     "action": "Portala, olağan bir isteğin çok üzerinde (öngörülmeyen) büyüklükte gövdeye sahip bir istek gönderilir.",
+     "expected": "Aşırı büyük istek reddedilir.",
+     "channel_note": "Ret WAF'ta ya da uygulamada olabilir (ör. HTTP 413); hem form gönderimi hem API ucu denenebilir; aşırı büyük üst bilgi ya da sorgu dizgisi de aynı şekilde denenebilir.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.10.14",
+      "text": "Uygulamaya gelen isteklerin ve yüklenecek dosyaların üst\nsınır büyüklükleri belirlenmiş midir?\nBu sınırlar uygulama tarafından kontrol edilmekte midir?"
+     },
+     "passages": [
+      "KDH-097-P1",
+      "KDH-097-P2",
+      "KDH-097-P3"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-097-P1",
+     "doc": "SGB-REHBER-1.1",
+     "section": "3.2.10.14",
+     "text": "Uygulama sunucusuna gelen isteklerin öngörülmeyen bir\nsayıda ya da büyüklükte olup olmadığı kontrol\nedilebilmelidir."
+    },
+    {
+     "id": "KDH-097-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§3.1",
+     "text": "| DMZ | Web uygulama güvenlik duvarı, yük dengeleyici | TLS sonlandırma, HSTS, ön hız sınırlama, istek boyutu denetimi |"
+    },
+    {
+     "id": "KDH-097-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§9",
+     "text": "İstek boyutu WAF'ta da sınırlanır (Rehber 3.2.10.14)."
+    }
+   ],
    "needs_documents": false,
-   "reference_note": "Denetim yok. Denetim tablosu penceresinde 3.2.10.14 satırı yalnızca tedbir adı ('İsteklerin Öngörülmeyen Büyüklükte Olup Olmadığının Kontrol Edilebilmesi') ve yöntem önerilerini (Gözden Geçirme, Sızma Testi) içerir; denetim sorusu yok, kendi denetimimizi koymadık (kural 3). Kural 10: VBP-YTB-001 genel istek boyutu sınırını tanımlamaz (yalnızca dosya boyutu ve WAF'ta 'istek boyutu denetimi'); sayı için §14 API hız sınırı var. uncovered: öngörülmeyen büyüklükte isteklerin denetlenmesi; öngörülmeyen sayıda isteklerin denetlenmesi."
+   "reference_note": "Yeniden üretilen pencerede 3.2.10.14'e içerik olarak ait 2 soru var ('isteklerin ve yüklenecek dosyaların üst sınır büyüklükleri belirlenmiş midir?' ve 'Bu sınırlar uygulama tarafından kontrol edilmekte midir?'); birlikte tek boyut denetimi oldu. Düşürülen (kural 3): sorunun dosya boyutu yarısı; gereksinim dosyalardan değil isteklerden söz eder (dosya sınırları 3.2.10.13/VBP §9 kapsamında). Penceredeki diğer sorular: ilk iki girdi doğrulama sorusu 3.2.10.12'den taşma, 'Bk. Denetim No: 3.2.4.5' 3.2.10.13'e, kalanlar 3.2.10.15-3.2.10.17'ye ait (kapsam dışı). Kural 10: VBP-YTB-001 sayısal bir genel istek boyutu sınırı tanımlamaz (yalnızca WAF'ta 'istek boyutu denetimi'), bu yüzden beklenen sonuç sınır değeri içermez; Rehber tablosundaki tedbir adı yalnızca 'Büyüklükte' derken tanım 'sayıda ya da büyüklükte' der. uncovered: öngörülmeyen sayıda isteklerin denetlenmesi (3.2.10.14 sorularından hiçbiri istek sayısını kapsamaz)."
   },
   {
    "id": "KDH-098",
@@ -8128,11 +8211,118 @@
    "method_rationale": "Rehber denetim yöntem önerileri: Gözden Geçirme, Mülakat, Sızma Testi.",
    "difficulty": "Orta",
    "note": "\"Anlık 30\" tasarımdaki kısa süreli tepe (burst) sınırıdır.",
-   "reference_preconditions": "Oturum açmış bir şirket temsilcisi ya da vatandaş hesabı, oturumsuz istemci ve belge yüklenebilen bir taslak başvuru; istek hızını ayarlayabilen bir yük aracı.",
-   "reference_checks": [],
-   "support_passages": [],
+   "reference_preconditions": "Oturum açmış bir vatandaş ya da şirket temsilcisi hesabı, oturumsuz bir istemci (tek IP adresinden) ve belge yüklenebilen en az dört taslak başvuru ile küçük test dosyaları; istek hızını ve eşzamanlılığını ayarlayabilen bir yük aracı.",
+   "reference_checks": [
+    {
+     "action": "Oturum açmış bir kullanıcı, anlık tepe sınırını aşmayacak biçimde yayarak bir dakika içinde 120'den fazla web servisi/API isteği gönderir.",
+     "expected": "Dakikadaki 120 isteği aşan çağrılar yanıtlanmaz ya da engellenir.",
+     "channel_note": "Engelleme biçimi örneği: HTTP 429.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.11.8",
+      "text": "Web servisi mevcut kaynaklarının kasıtlı olarak\ntüketilmesini engellemek için ne gibi önlemler alınıyor?"
+     },
+     "passages": [
+      "KDH-098-P1",
+      "KDH-098-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Oturum açmış bir kullanıcı, aynı anda (anlık) 30'dan fazla istek gönderir.",
+     "expected": "Anlık 30 isteği aşan çağrılar yanıtlanmaz ya da engellenir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.11.8",
+      "text": "Web servisi mevcut kaynaklarının kasıtlı olarak\ntüketilmesini engellemek için ne gibi önlemler alınıyor?"
+     },
+     "passages": [
+      "KDH-098-P1",
+      "KDH-098-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Oturumsuz bir istemci, tek IP adresinden kimlik doğrulama dışındaki uçlara bir dakika içinde 60'tan fazla istek gönderir.",
+     "expected": "IP başına dakikadaki 60 isteği aşan çağrılar yanıtlanmaz ya da engellenir.",
+     "channel_note": "",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.11.8",
+      "text": "Web servisi mevcut kaynaklarının kasıtlı olarak\ntüketilmesini engellemek için ne gibi önlemler alınıyor?"
+     },
+     "passages": [
+      "KDH-098-P1",
+      "KDH-098-P2"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Tek IP adresinden kimlik doğrulama uç noktalarına bir dakika içinde 20'den fazla istek gönderilir.",
+     "expected": "IP başına dakikadaki 20 isteği aşan çağrılar yanıtlanmaz ya da engellenir.",
+     "channel_note": "Parola sıfırlama ucu IP başına saatte 10 ile ayrıca sınırlıdır ve başarısız girişler bot doğrulama sorgusunu tetikleyebilir; bu sınırlara takılmayan bir kimlik doğrulama ucu seçilir.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.11.8",
+      "text": "Web servisi mevcut kaynaklarının kasıtlı olarak\ntüketilmesini engellemek için ne gibi önlemler alınıyor?"
+     },
+     "passages": [
+      "KDH-098-P1",
+      "KDH-098-P2",
+      "KDH-098-P4"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    },
+    {
+     "action": "Bir kullanıcı bir saat içinde 60'tan fazla dosya yüklemeye çalışır.",
+     "expected": "Saatteki 60 dosyayı aşan yüklemeler engellenir.",
+     "channel_note": "Yüklemeler başvuru başına 20 dosya/50 MB sınırına takılmamak için birden çok taslak başvuruya küçük dosyalarla dağıtılır.",
+     "basis": {
+      "doc": "SGB-REHBER-1.1",
+      "ref": "3.2.11.8",
+      "text": "Web servisi mevcut kaynaklarının kasıtlı olarak\ntüketilmesini engellemek için ne gibi önlemler alınıyor?"
+     },
+     "passages": [
+      "KDH-098-P1",
+      "KDH-098-P3"
+     ],
+     "needs_documents": false,
+     "not_in_corpus": false
+    }
+   ],
+   "support_passages": [
+    {
+     "id": "KDH-098-P1",
+     "doc": "SGB-REHBER-1.1",
+     "section": "3.2.11.8",
+     "text": "Kullanıcıların belirli bir süre içinde yapabilecekleri çağrı\nsayısı ve maksimum kaynak kullanımı her bir kullanıcı için\nbelirlenebilmelidir. Sınır aşımında çağrılara cevap\nverilmemeli veya çağrılar engellenmelidir."
+    },
+    {
+     "id": "KDH-098-P2",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| API hız sınırı | Oturumlu 120 istek/dk (anlık 30); anonim 60 istek/dk/IP; kimlik doğrulama uçları 20 istek/dk/IP | Rehber 3.2.11.8; ASVS V2.4.1 | Tepe kapasitesini korumak |"
+    },
+    {
+     "id": "KDH-098-P3",
+     "doc": "VBP-YTB-001",
+     "section": "§14",
+     "text": "| Dosya yükleme hız sınırı | Kullanıcı başına saatte 60 dosya | ASVS V2.4.1; Rehber 3.2.11.8 | Tarama kaynakları |"
+    },
+    {
+     "id": "KDH-098-P4",
+     "doc": "VBP-YTB-001",
+     "section": "§4.7",
+     "text": "Parola sıfırlama hesap başına saatte 3, IP başına saatte 10 ile; kimlik doğrulama uç noktaları IP başına dakikada 20 istekle sınırlıdır."
+    }
+   ],
    "needs_documents": false,
-   "reference_note": "Denetim yok: denetim tablosu penceresinde 3.2.11.8 satırı yalnızca tedbir numarası, adı ('Web Servisi Çağrı Sayısının ve Kaynak Kullanımının Sınırlandırılması') ve yöntem önerilerinden (Mülakat, Gözden Geçirme, Sızma Testi) oluşuyor; tedbir numarasından önce ya da sonra bu tedbire ait bir denetim sorusu yok (3.2.11.7 satırı da sorusuz; büyük olasılıkla çıkarım kesintisi). Tedbir adı prosedür maddesi sayılmadı, yerine kendi denetimimiz yazılmadı (kural 3). uncovered: oturumlu kullanıcı için dakikada 120 istek ve anlık 30 sınırı; oturumsuz istemci için IP başına dakikada 60; kimlik doğrulama uç noktalarında IP başına dakikada 20; kullanıcı başına saatte 60 dosya yükleme; sınır aşımında çağrıların yanıtlanmaması ya da engellenmesi."
+   "reference_note": "Yeniden üretilen pencerede 3.2.11.8'e içerik olarak ait 1 soru var ('Web servisi mevcut kaynaklarının kasıtlı olarak tüketilmesini engellemek için ne gibi önlemler alınıyor?'); açık uçlu ama önlemler Sızma Testi ile gözlenebildiğinden gereksinimin belirttiği her sınır için ayrı denetim yazıldı (5 denetim, hepsi aynı soruya dayanır). Penceredeki diğer sorular: 3.2.11.6 (web servislerinin doğrulanması), 3.2.11.7 (kararlılık, 2 soru), 3.2.11.9 (çağrı kayıtları, 2 soru), 3.2.11.10 (kritik altyapı iletişimi); kapsam dışı. Mülakat ve Gözden Geçirme yöntemleri denetim değil. Tüm sınır değerleri gereksinimde verildiğinden belge gerekmez; VBP-YTB-001 §14 ile tutarlı. Kural 10: ne gereksinim ne §14 'anlık 30' sınırının zaman penceresini tanımlar, bu yüzden o denetimin kesin sınırı belirsizdir; tedbirdeki 'maksimum kaynak kullanımı' gereksinimde yok. uncovered: yok."
   },
   {
    "id": "KDH-099",

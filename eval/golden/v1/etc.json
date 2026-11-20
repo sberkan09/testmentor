@@ -2790,7 +2790,7 @@
     ]
    },
    "stratum": "core",
-   "split": "holdout",
+   "split": "dev",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "9990200/TC40"
@@ -3539,7 +3539,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3060600/TC4"
@@ -6881,7 +6881,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3100300/TC1",
@@ -8063,7 +8063,7 @@
     ]
    },
    "stratum": "core",
-   "split": "holdout",
+   "split": "dev",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3120300/TC8"
