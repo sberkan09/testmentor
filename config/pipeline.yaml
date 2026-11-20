@@ -31,13 +31,13 @@ classification:             # D3: sınıflandırmada düşünme kapalı
   max_tokens: 4096
 
 generation:                 # D7: öbek başına tek çağrı
-  thinking: false           # D3 iki hali de ölçer
-  temperature: 0.7
+  thinking: false           # D3 (paket 1): açık 4,8 kat yavaş, check_recall artmadı
+  temperature: 0.0          # D3 (paket 1): 0 / 0,3 / 0,7 arasında ölçülebilir fark yok; daha kararlı olan
   max_tokens: 8192
   repair: true              # kapsanmayan gereksinimler için ek çağrı
 
 concurrency: 16             # D5: 16–32 dizi
-prefix_warmup: true         # D12: bekletmek (çalışma varsayımı)
+prefix_warmup: false        # D12 (paket 1): bekletmenin ölçülebilir faydası yok; daha basit olan
 examples_file: config/prompts/examples-generation.yaml
 
 thresholds:                 # karar kuralı adım 1 (paket-1-olcum.md)

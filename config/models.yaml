@@ -4,9 +4,9 @@ models:
   qwen3.8-27b:
     repo_id: Qwen/Qwen3.8-27B-FP8      # Qwen'in resmî FP8 sürümü; gated değil
     served_name: qwen3.8-27b
-    precision: fp8
-    context_length: 32768
-    max_num_seqs: 32
+    precision: fp8            # D4 (paket 1): BF16 ile aynı kalite, 1,8 kat hızlı
+    context_length: 32768     # D5 (paket 1): 16k'nın hız faydası yok
+    max_num_seqs: 64          # D5 (paket 1): 64 eşzamanlı istekte kuyruk yok (32'de ilk token 35 sn)
     approx_size_gb: 30
     engine_args:
       vllm: ["--reasoning-parser", "qwen3", "--language-model-only"]

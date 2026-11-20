@@ -68,11 +68,13 @@ Oturum özetlenirken şunlar korunur: üzerinde çalışılan paket ve bitti öl
 
 ## Komutlar
 
-Ayrıntı ve servis adresleri: `docs/altyapi.md`. Paket 1 `make eval` hedefini ekler.
+Ayrıntı ve servis adresleri: `docs/altyapi.md`. Deney raporları: `docs/deneyler/`.
 
 - `make test`: birim testleri (model çağrısı yok). `make lint`: ruff.
 - `make up` / `make down`: Runpod GPU pod'unu aç ve hazır olana kadar bekle / sil ve 404 ile doğrula. Motor ve model: `ENGINE=sglang MODEL=gemma-4-31b make up`.
 - `make smoke`: açık pod'a 16 eşzamanlı, şemaya bağlı istek ve önek cache ölçümü.
+- `make eval EXP=d2-qwen`: deney koş (`config/experiments/`), çıktı `results/<koşu>/`. `make judge RUN=results/<koşu>`: hakem (katman 2, `AF_ANTHROPIC_API_KEY`). `python -m eval.summarize`: `docs/deneyler/` raporları.
+- `make reconfigure MODEL=... OVERRIDE="max_num_seqs=64"`: açık pod'da model ya da sunucu ayarını pod'u silmeden değiştir. Uzun bir sıralı işin son adımı her zaman `make down` olur.
 - `make volume`, `make download`, `make download-down`: network volume ve ağırlık indirme (ücretli).
 - `make balance`, `make status`: bakiye, kayıtlı kaynaklar.
 - `make compose`: `infra/compose.yaml` dosyasını `config/` altından yeniden üret. `make local-up`: yerelde ya da üretimde compose.
