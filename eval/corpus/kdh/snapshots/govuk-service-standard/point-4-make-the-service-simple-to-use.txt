@@ -1,0 +1,103 @@
+Service Standard
+
+4. Make the service simple to use
+
+Build a service that’s simple, intuitive and comprehensible. And test it with users to make sure it works for them.
+
+Give feedback about this page
+
+Contents
+
+Why it's important
+
+What it means
+
+Related guidance
+
+Service standard points
+
+Why it’s important
+
+People expect services to just work, and government services should be no exception.
+
+It costs government time and money to deal with mistakes that happen when services do not work well. And making things more complicated than they need to be undermines trust in government.
+
+What it means
+
+Service teams should:
+
+make sure the service helps the user to do the thing they need to do as simply as possible - so that people succeed first time, with the minimum of help
+
+test for usability frequently with actual and potential users, using appropriate research techniques
+
+test all the parts of the service that the user interacts with - online parts and offline parts (like letters)
+
+design the service to work online with a range of devices that reflects users’ behaviour
+
+Services should also provide users with a consistent experience from start to finish. For GOV.UK services, this means:
+
+being consistent with the design of GOV.UK
+
+following the GOV.UK style guide for all text, online and offline
+
+Related guidance
+
+Designing good government services: an introduction
+
+User research
+
+Designing for different browsers and devices
+
+Making your service look like GOV.UK
+
+GOV.UK style guide
+
+Service standard points
+
+1. Understand users and their needs
+
+2. Solve a whole problem for users
+
+3. Provide a joined up experience across all channels
+
+4. Make the service simple to use
+
+5. Make sure everyone can use the service
+
+6. Have a multidisciplinary team
+
+7. Use agile ways of working
+
+8. Iterate and improve frequently
+
+9. Create a secure service which protects users’ privacy
+
+10. Define what success looks like and publish performance data
+
+11. Choose the right tools and technology
+
+12. Make new source code open
+
+13. Use and contribute to open standards, common components and patterns
+
+14. Operate a reliable service
+
+Updates to this page
+
+Published:
+
+8 May 2019
+
+Last updated:
+
+30 May 2022
+
+Show all updates
+
+30 May 2022
+
+Added links to related guidance and other standard points. There is no change to the content of the standard point itself.
+
+8 May 2019
+
+Guidance first published

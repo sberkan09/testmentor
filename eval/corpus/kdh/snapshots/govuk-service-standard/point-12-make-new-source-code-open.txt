@@ -1,0 +1,87 @@
+Service Standard
+
+12. Make new source code open
+
+Make all new source code open and reusable, and publish it under appropriate licences. Or if this is not possible, provide a convincing explanation of why this cannot be done for specific subsets of the source code.
+
+Give feedback about this page
+
+Contents
+
+Why it's important
+
+What it means
+
+Related guidance
+
+Service standard points
+
+Why it’s important
+
+Public services are built with public money. So unless there’s a good reason not to do so, the code they’re based on should be made available for people to reuse and build on.
+
+Open source code can be reused by developers working in government, avoiding duplication of work and reducing costs for government as a whole. And publishing source code under an open licence means that you’re less likely to get locked in to working with a single supplier.
+
+What it means
+
+Service teams should:
+
+write code in the open from the start, and publish it in an open repository - minus any sensitive information, like secret keys and credentials
+
+keep ownership of the intellectual property of new source code that’s created as part of the service, and make it available for reuse under an open licence
+
+There are a few cases when you should not publish code in the open. For example, code that relates to a sensitive government policy that has not been announced yet.
+
+Related guidance
+
+When code should be open or closed
+
+Service standard points
+
+1. Understand users and their needs
+
+2. Solve a whole problem for users
+
+3. Provide a joined up experience across all channels
+
+4. Make the service simple to use
+
+5. Make sure everyone can use the service
+
+6. Have a multidisciplinary team
+
+7. Use agile ways of working
+
+8. Iterate and improve frequently
+
+9. Create a secure service which protects users’ privacy
+
+10. Define what success looks like and publish performance data
+
+11. Choose the right tools and technology
+
+12. Make new source code open
+
+13. Use and contribute to open standards, common components and patterns
+
+14. Operate a reliable service
+
+Updates to this page
+
+Published:
+
+8 May 2019
+
+Last updated:
+
+30 May 2022
+
+Show all updates
+
+30 May 2022
+
+Added links to related guidance and other standard points. There is no change to the content of the standard point itself.
+
+8 May 2019
+
+Guidance first published

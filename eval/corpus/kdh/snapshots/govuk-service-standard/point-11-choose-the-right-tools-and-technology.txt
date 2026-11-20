@@ -1,0 +1,105 @@
+Service Standard
+
+11. Choose the right tools and technology
+
+Choose tools and technology that let you create a high quality service in a cost effective way. Minimise the cost of changing direction in future.
+
+Give feedback about this page
+
+Contents
+
+Why it's important
+
+What it means
+
+Related guidance
+
+Service standard points
+
+Why it’s important
+
+When you make a decision about technology, you’re making a significant investment. The choices you make will have a huge impact on your ability to create, iterate and operate the service in a sustainable way.
+
+What it means
+
+When considering technical architecture, choice of programming languages, development toolchain and other technology choices, service teams should:
+
+use appropriate tools and technologies to create and operate a good service in a cost effective way - for example, by automating things where possible
+
+be able to show that they’ve made good decisions about what technology to build and what to buy, including use of common platforms where appropriate
+
+understand how the technology they use works, including emerging technologies and artificial intelligence (AI)
+
+understand total cost of ownership of the technology and preserve the ability to make different choices in future - for example, reducing the chances of getting locked into contracts for specific tools and suppliers by using open standards
+
+have an effective approach to managing any legacy technology the service integrates with or depends on
+
+consider how the technology will impact user experience and inclusion - for example, avoid situations where your technology choices might reduce the reliability of information given to users or decisions made about them
+
+Related guidance
+
+Choosing technology
+
+Using common platforms
+
+Working with open standards
+
+Moving away from legacy systems
+
+Service standard points
+
+1. Understand users and their needs
+
+2. Solve a whole problem for users
+
+3. Provide a joined up experience across all channels
+
+4. Make the service simple to use
+
+5. Make sure everyone can use the service
+
+6. Have a multidisciplinary team
+
+7. Use agile ways of working
+
+8. Iterate and improve frequently
+
+9. Create a secure service which protects users’ privacy
+
+10. Define what success looks like and publish performance data
+
+11. Choose the right tools and technology
+
+12. Make new source code open
+
+13. Use and contribute to open standards, common components and patterns
+
+14. Operate a reliable service
+
+Updates to this page
+
+Published:
+
+8 May 2019
+
+Last updated:
+
+29 January 2026
+
+Show all updates
+
+29 January 2026
+
+Updated to be clearer that understanding technologies includes understanding AI technologies. Service teams are also now required to assess the impact of technologies on user experience, inclusion, and the reliability of information and decisions.
+
+3 September 2024
+
+Added a reference to considering use of common platforms, where appropriate
+
+30 May 2022
+
+Added links to related guidance and other standard points. There is no change to the content of the standard point itself.
+
+8 May 2019
+
+Guidance first published

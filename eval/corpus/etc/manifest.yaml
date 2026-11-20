@@ -1,0 +1,296 @@
+# ERTMS/ETCS araç üstü birimi: belge derlemi (paket 1b, aşama 3). Şema: eval/corpus/manifest.py
+# python -m eval.corpus fetch --project etc   (isteğe bağlılar için --all)
+project: ETC
+downloads:
+  s026:
+    url: https://www.era.europa.eu/system/files/2023-09/index004_-_SUBSET-026_v400.zip
+    sha256: a0af5130807a31b2211d425a661726ceaa2c40c8b2a3c515cd3416b8f3ec4a0d
+    bytes: 10455876
+  s023:
+    url: https://www.era.europa.eu/system/files/2023-09/index003_-_SUBSET-023_v400.pdf
+  s027:
+    url: https://www.era.europa.eu/system/files/2023-09/index005_-_SUBSET-027_v400.pdf
+    optional: true
+  dmi:
+    url: https://www.era.europa.eu/system/files/2023-12/index006_-_ERA_ERTMS_015560_v400.zip
+    optional: true
+  s036:
+    url: https://www.era.europa.eu/system/files/2023-09/index009_-_SUBSET-036_v400.pdf
+  s037_1:
+    url: https://www.era.europa.eu/system/files/2023-09/index010a_-_SUBSET-037-1_v400.pdf
+  s041:
+    url: https://www.era.europa.eu/system/files/2023-09/index014_-_SUBSET-041_v400.pdf
+  s091:
+    url: https://www.era.europa.eu/system/files/2023-09/index027_-_SUBSET-091_v400.pdf
+  s076_5_2:
+    url: https://www.era.europa.eu/sites/default/files/2026-04/index037b_subset-076-5-2%20v4.0.0.zip
+    sha256: 67902d538172e73bc2be625c961a53ba01a84da3d8d6c0ec50eff968a5993047
+    bytes: 198657938
+  s076_7:
+    url: https://www.era.europa.eu/sites/default/files/2026-04/index037d_subset-076-7%20v4.0.0.pdf
+    sha256: fce5996c670b7f0ea1eb50dd6d3d2803031e68409e76b2483f9238bde61f3a11
+    bytes: 667669
+documents:
+- id: SUBSET-026-1
+  title: 'System Requirements Specification, Chapter 1: Introduction'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-1 v400.pdf
+  extract: &id001
+    method: pdftotext
+    args:
+    - -layout
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-026-2
+  title: 'System Requirements Specification, Chapter 2: Basic System Description'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-2 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-026-3
+  title: 'System Requirements Specification, Chapter 3: Principles'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-3 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: Hareket yetkisi, konum ve hat tanımı (§3.6–3.8) altın setin ana bölümü.
+- id: SUBSET-026-4
+  title: 'System Requirements Specification, Chapter 4: Modes and Transitions'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-4 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-026-5
+  title: 'System Requirements Specification, Chapter 5: Procedures'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-5 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-026-6
+  title: 'System Requirements Specification, Chapter 6: Management of Older System Versions'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-6 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-026-7
+  title: 'System Requirements Specification, Chapter 7: ERTMS/ETCS language (variables and packets)'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-7 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: Paket listesi §7.4; ETC-905 denetimi Q_MARQSTREASON (§7.5.1.118.3) burada.
+- id: SUBSET-026-8
+  title: 'System Requirements Specification, Chapter 8: Messages'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-8 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: Mesaj listesi; denetim kaybı analizinde eksik parça olarak işaretlendi (destek parçası seçimi).
+- id: SUBSET-026-9
+  title: 'System Requirements Specification, Chapter 9: Glossary of system version history'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s026
+  member: SUBSET-026-9 v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-023
+  title: Glossary of Terms and Abbreviations
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s023
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-027
+  title: FIS Juridical Recording
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s027
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: İsteğe bağlı. Resmî beklenen sonuçların JRU kayıtları buna dayanır; denetimler davranış çekirdeğine indirilirse
+    gerekmez (audit_ertms.md).
+- id: ERA-ERTMS-015560
+  title: ETCS Driver Machine Interface
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: dmi
+  member: ERA_ERTMS_015560_v400.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: İsteğe bağlı; aynı gerekçe (sürücü ekranı gözlem kanalı).
+- id: SUBSET-036
+  title: FFFIS for Eurobalise
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s036
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: 'İlgisiz ama gerçekçi içerik: araç üstü birimin balis arayüzü.'
+- id: SUBSET-037-1
+  title: 'EuroRadio FIS Part 1: Communication layer and coordination function'
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s037_1
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-041
+  title: Performance Requirements for Interoperability
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s041
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-091
+  title: Safety Requirements for the Technical Interoperability of ETCS
+  publisher: ERA
+  version: 4.0.0
+  kind: specification
+  role: corpus
+  language: en
+  download: s091
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+- id: SUBSET-076-5-2
+  title: Test cases related to features (SV30)
+  publisher: ERA
+  version: 4.0.0
+  kind: test_procedure
+  role: reference
+  language: en
+  download: s076_5_2
+  member: subset-076-5-2_v400/subset-076-5-2_v400_SV30/*.pdf
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: 'Cevap anahtarı: resmî test vakaları, ''Based on Requirements'' atıfları. Test yazarına verilmez. Zip SV21
+    klasörünü de içerir; aşama 1 SV30 ile çalıştı.'
+- id: SUBSET-076-7
+  title: Scope of the test specifications
+  publisher: ERA
+  version: 4.0.0
+  kind: test_procedure
+  role: reference
+  language: en
+  download: s076_7
+  extract: *id001
+  license: 'Belirsiz: ERA yayımlıyor, yeniden kullanım izni yok'
+  license_evidence: 'Kapak ve üst bilgi: ''ERA * UNISIG * EEIG ERTMS USERS GROUP''; belgede lisans ya da yeniden
+    kullanım izni yok (aşama 0 ve 3 incelemesi)'
+  repo_text: private_only
+  notes: 'Tablo 3: test edilemez gereksinimler; doğrulama yöntemi etiketlerinin kaynağı.'
+excluded:
+  CCS TSI (Regulation (EU) 2023/1695): EUR-Lex bot korumasıyla yanıt veriyor (202, içerik yok); Ek A'daki zorunlu
+    belge listesi ERA dizin sayfasında aynen yer alıyor ve buradaki belgeler o listeden alındı.
+  SUBSET-076-6-3: Test dizileri 13 zip; madde değil test vakası gösteriyor (aşama 1). Aşama 5 kullanırsa eklenir.
+  EN 16494, ETSI GSM-R belgeleri: CENELEC standardı ücretli; GSM-R belgeleri araç üstü ETCS kapsamı dışında.
