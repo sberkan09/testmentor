@@ -114,3 +114,13 @@ Ek testler: yöntem elle değişti (1 çağrı); kart değişti (tüm model çı
 
 - Tam yeniden hesap büyük projede yavaş kalırsa ters dizinle artımlı yayılıma geçilir; testler aynı kalır.
 - Bağlam ile bağımlılık ayrımı yanlış çizilirse ya elle düzenleme gereksiz çağrı doğurur ya da cache eski sabitlerle üretilmiş seti döner; iki yön de testle bağlanır.
+
+## Arayüz adımında netleşenler (adım 3, 20 Kasım 2026)
+
+- `NodeRef(kind, key)` proje kimliği taşımaz: `ProjectState` tek projedir, depo çağrılarının her biri `project_id` alır.
+- Kaynak düğüm tiplerine `PROJECT_CARD` (anahtar `card`) ve `KB_INDEX` (anahtar `index`) eklendi; kart ve indeks sürümü de birer düğümdür ve bağımlılık olarak görünür. Öbek üyeliği (`CLUSTER`) kaynak düğümdür.
+- Test durumu düğüm anahtarı `<öbek>:<test kimliği>`; test durumunun üstü kendi setidir.
+- Bir düğümü aşağısı, içerik hash'iyle görür. Embedding bayt düzeyinde kararlı olmadığı için beklenen `input_hash`'iyle görünür (`identity_by_input`). Bayat üst düğüm eski içeriğiyle katılır: alt düğüm yalnızca görebildiği bir girdi değiştiyse bayattır, değilse `to_verify` listesine girer.
+- `Invalidation` alanları değişiklikten önceki duruma görelidir: `llm_calls`, değişiklikten sonra çağrı gerektiren ve önce gerektirmeyen düğüm sayısıdır. Sabitlemeyi kaldırmak bir çağrı ekler; geri alma sıfıra indirir.
+- Üretim ipucu (`Hint`: `full`, `incremental`, `merge` ve kaynak setler) `Invalidation.hints` içinde orkestratöre gider. Birleştirilen öbeklerin eski setleri depo geçmişinden okunur.
+- Depo arayüzü: `get_node`, `put_node(expected_version)`, `remove_node`, `history`, `load`, `append_event`, `events`, ve çıktı cache'i için `get` / `put` (`OutputCache`).
