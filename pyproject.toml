@@ -20,8 +20,24 @@ dev = [
     "ruff>=0.8",
 ]
 
+# D6 (paket 3): alternative embedding models computed on CPU in the dev container. Not part of
+# the default environment (`uv sync` does not install it; `uv run --group d6 ...` does).
+d6 = [
+    "sentence-transformers>=3.0",
+    "torch>=2.4",
+]
+
 [tool.uv]
 package = false
+default-groups = ["dev"]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

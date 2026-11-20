@@ -22,7 +22,7 @@ priorities: [Yüksek, Orta, Düşük]
 clustering:                 # D6: BGE-M3, agglomerative (çalışma varsayımı)
   method: agglomerative
   linkage: average
-  distance_threshold: 0.35  # kosinüs uzaklığı; D6 ayarlar
+  distance_threshold: 0.30  # kosinüs uzaklığı; D6 (paket 3): 0,35 → 0,30 (docs/deneyler/D6.md)
   max_cluster_size: 25      # kesim sınırı (arayüzdeki öbekler); üretim birimi generation.max_unit_size
 
 classification:             # D3: sınıflandırmada düşünme kapalı

@@ -14,7 +14,7 @@ from core.nodes import NodeKind, ProjectCardContent, ref
 from core.schemas import ClusterLabel
 from tests.core.helpers import produce_all
 from tests.fake_openai import FakeReply, FakeServer
-from tests.stages.helpers import CARD_METHODS, CARD_TEXT, ROOT, SETTINGS, project
+from tests.stages.helpers import CARD_METHODS, CARD_TEXT, CFG, ROOT, SETTINGS, project
 
 
 def test_every_stage_has_a_producer():
@@ -63,7 +63,7 @@ def test_load_stage_settings_matches_config():
     assert s.max_unit_size == 25 and s.method_batch_size == 25
     assert s.llm[NodeKind.TEST_SET] == LLMParams(temperature=0.0, thinking=False, max_tokens=8192)
     assert s.llm[NodeKind.CLUSTER_LABEL].max_tokens == 512
-    assert s.clustering.distance_threshold == 0.35
+    assert s.clustering.distance_threshold == CFG["clustering"]["distance_threshold"]
 
 
 def test_stage_configs_carry_prompt_versions_and_params():
@@ -76,7 +76,7 @@ def test_stage_configs_carry_prompt_versions_and_params():
     assert t.prompt_version == prompt_version(NodeKind.TEST_SET, SETTINGS)
     assert t.model == "qwen3.8-27b" and t.params["max_tokens"] == 8192
     assert cfgs[NodeKind.EMBEDDING].prompt_version == "BAAI/bge-m3"
-    assert cfgs[NodeKind.CLUSTERING].params["distance_threshold"] == 0.35
+    assert cfgs[NodeKind.CLUSTERING].params["distance_threshold"] == 0.30
     ex = dict(SETTINGS.examples, output={"test_cases": []})
     other = stage_configs(
         SETTINGS.model_copy(update={"examples": ex}),
