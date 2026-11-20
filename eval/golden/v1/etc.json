@@ -121,7 +121,7 @@
     ]
    },
    "stratum": "non_testable",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "claude",
    "reference_candidates": [
     "SUBSET-076-7 Table 3 3.5.3.7.1"
@@ -259,7 +259,7 @@
     ]
    },
    "stratum": "non_testable",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3050400/TC1",
@@ -340,7 +340,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3050500/TC2"
@@ -494,7 +494,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3050700/TC9",
@@ -929,7 +929,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3060400/TC8",
@@ -956,7 +956,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "9990200/TC40"
@@ -1453,7 +1453,7 @@
     ]
    },
    "stratum": "control",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3080200/TC1",
@@ -1927,7 +1927,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3080500/TC11",
@@ -2211,7 +2211,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3090300/TC10",
@@ -2695,7 +2695,7 @@
     ]
    },
    "stratum": "core",
-   "split": "dev",
+   "split": "holdout",
    "reference_origin": "official_tagged",
    "reference_candidates": [
     "3120300/TC8"
