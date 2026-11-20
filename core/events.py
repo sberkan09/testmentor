@@ -83,6 +83,7 @@ class RequirementTextChanged(BaseModel):
 class TestCaseEdited(BaseModel):
     """Writes a pinned, edited version of one test case."""
 
+    __test__ = False  # not a pytest class
     model_config = _FROZEN
     type: Literal["test_case_edited"] = "test_case_edited"
     case: str
@@ -138,6 +139,15 @@ class NodeUnpinned(BaseModel):
     node: NodeRef
 
 
+class NodeKept(BaseModel):
+    """ "Benimkini koru" on the diff screen: a pinned node that went stale keeps its content and
+    gets a new version stamped with the current expected hash."""
+
+    model_config = _FROZEN
+    type: Literal["node_kept"] = "node_kept"
+    node: NodeRef
+
+
 Event = Annotated[
     RequirementMoved
     | ClusterCreated
@@ -152,7 +162,8 @@ Event = Annotated[
     | ProjectCardChanged
     | StageConfigChanged
     | NodePinned
-    | NodeUnpinned,
+    | NodeUnpinned
+    | NodeKept,
     Field(discriminator="type"),
 ]
 

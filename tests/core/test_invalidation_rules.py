@@ -2,8 +2,11 @@
 cache, cancelling running work, empty clusters, context vs dependency."""
 
 from core.events import (
+    ClusterDeleted,
     ClusterRenamed,
+    ClustersMerged,
     MethodEdited,
+    NodeKept,
     NodePinned,
     NodeUnpinned,
     RequirementMoved,
@@ -11,12 +14,13 @@ from core.events import (
     TestCaseEdited,
 )
 from core.graph import cache_key, expected_hash
-from core.invalidation import analyze, apply, mark_running, settle
-from core.nodes import Origin, Status
+from core.invalidation import analyze, apply, mark_failed, mark_running, settle
+from core.nodes import NodeKind, Origin, Status, ref
 from tests.core.helpers import (
     CL,
     LABEL,
     METHOD,
+    MX,
     RET,
     SET,
     TC,
@@ -185,3 +189,107 @@ def produce_all_but(state, skip):
         for r in ready:
             state = settle(state, r, fake_result(state, r)).state
     raise AssertionError("did not converge")
+
+
+def test_editing_stale_label_makes_it_fresh(project):
+    """An edit is stamped with the current expected hash: no permanent warning."""
+    state, _ = project
+    state, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    assert analyze(state).llm_calls == 4
+    state, inv = apply(state, ClusterRenamed(cluster="B", name="Denetim izi"))
+
+    node = state.node(LABEL("B"))
+    assert node.status == Status.FRESH and node.pinned
+    assert inv.pinned_warnings == frozenset()
+    a = analyze(state)
+    assert LABEL("B") not in a.stale
+    assert a.llm_calls == 3
+
+
+def test_editing_stale_method_makes_it_fresh(project):
+    state, _ = project
+    state, _ = apply(
+        state, RequirementTextChanged(requirement="R1", text="Sistem, girişi 5 denemede kilitler.")
+    )
+    state, _ = apply(state, MethodEdited(requirement="R1", methods=("Test", "Analiz")))
+
+    assert state.node(METHOD("R1")).status == Status.FRESH
+    a = analyze(state)
+    assert METHOD("R1") not in a.stale
+    assert a.llm_calls == 2  # test set, label
+
+
+def test_keep_mine_clears_warning(project):
+    """ "Benimkini koru": content unchanged, new version, fresh."""
+    state, _ = project
+    state, _ = apply(state, ClusterRenamed(cluster="B", name="Denetim izi"))
+    state, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    before = state.node(LABEL("B"))
+    state, inv = apply(state, NodeKept(node=LABEL("B")))
+
+    after = state.node(LABEL("B"))
+    assert after.status == Status.FRESH
+    assert after.content == before.content
+    assert after.version == before.version + 1
+    assert analyze(state).pinned_warnings == frozenset()
+    assert inv.llm_calls == 0
+
+
+def test_pinned_case_carried_on_merge(project):
+    state, cache = project
+    edited = case("R1", title="Elle yazılmış kilitleme testi")
+    state, _ = apply(state, TestCaseEdited(case=TC("A", "R1").key, content=edited))
+    state, inv = apply(state, ClustersMerged(sources=("A", "B"), new_cluster="D"))
+
+    assert inv.carried == {TC("A", "R1"): TC("D", "R1")}
+    assert TC("A", "R1") in inv.removed
+    node = state.node(TC("D", "R1"))
+    assert node.content == edited and node.pinned and node.origin == Origin.EDITED
+    state = produce_all(state, cache)
+    assert state.node(SET("D")).content.case_keys[0] == TC("D", "R1").key
+    assert state.node(TC("D", "R1")).content == edited
+
+
+def test_pinned_case_carried_on_delete(project):
+    state, _ = project
+    edited = case("R2", title="Elle yazılmış sıfırlama testi")
+    state, _ = apply(state, TestCaseEdited(case=TC("A", "R2").key, content=edited))
+    state, inv = apply(state, ClusterDeleted(cluster="A", destinations={"R1": "B", "R2": "C"}))
+
+    assert inv.carried == {TC("A", "R2"): TC("C", "R2")}
+    assert state.node(TC("C", "R2")).content == edited
+
+
+def test_pinned_case_carried_on_last_member_move_with_key_collision(project):
+    state, cache = project
+    edited = case("R1", title="Elle yazılmış kilitleme testi")
+    state, _ = apply(state, TestCaseEdited(case=TC("A", "R1").key, content=edited))
+    state, _ = apply(state, RequirementMoved(requirement="R1", to_cluster="B"))
+    state = produce_all(state, cache)  # B now has its own generated B:TC-R1
+    assert state.get(TC("B", "R1")) is not None
+    state, inv = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+
+    new = ref(NodeKind.TEST_CASE, "B:A.TC-R1")
+    assert inv.carried == {TC("A", "R1"): new}
+    assert state.node(new).content == edited and state.node(new).pinned
+
+
+def test_failed_node_blocks_and_recovers(project):
+    state, _ = project
+    state, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    state = produce_all_but(state, SET("A"))
+    state = mark_failed(state, SET("A"))
+
+    a = analyze(state)
+    assert state.node(SET("A")).status == Status.FAILED
+    assert a.failed == {SET("A")}
+    assert SET("A") not in a.stale and SET("A") not in a.ready
+    assert {TC("A", "R1"), MX("R1")} <= a.to_verify
+    assert a.llm_calls == 0
+
+    retried = mark_running(state, SET("A"))
+    assert retried.node(SET("A")).status == Status.RUNNING
+
+    state, _ = apply(state, RequirementMoved(requirement="R3", to_cluster="A"))
+    assert state.node(SET("A")).status == Status.STALE
+    assert SET("A") in analyze(state).stale

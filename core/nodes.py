@@ -167,6 +167,7 @@ class RetrievalContent(BaseModel):
 
 
 class TestSetContent(BaseModel):
+    __test__ = False  # not a pytest class
     model_config = _FROZEN
     kind: Literal["test_set"] = "test_set"
     case_keys: tuple[str, ...] = ()
@@ -176,6 +177,7 @@ class TestCaseContent(BaseModel):
     """Same fields as the generation schema (`core.schemas.case_set_model`); labels are plain
     strings here because the label lists come from project configuration."""
 
+    __test__ = False  # not a pytest class
     model_config = _FROZEN
     kind: Literal["test_case"] = "test_case"
     id: str = Field(min_length=1)

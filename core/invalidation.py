@@ -11,6 +11,16 @@ Rules (docs/tasarim.md, Veri modeli kuralları):
   `llm_calls`, and does not block its dependents (the user's pinned value is authoritative).
 - A running node whose expected hash changes becomes stale and is listed in `cancel`; a result
   produced for an old hash is not written to the node (`settle` rejects it).
+- Status changes are not versions; only content changes are (production, edit, carrying a
+  pinned case, keep). An edit stamps the node with its current expected hash, so editing a
+  stale node makes it fresh; `NodeKept` does the same without changing content.
+- A failed node is not queued, blocks its dependents like a stale one, and becomes stale again
+  when its inputs change. `mark_running` also accepts a failed node (retry).
+- Pinned test cases of a removed set are carried to the set of the cluster that now holds the
+  first requirement they cover, re-keyed `<cluster>:<case id>` (`<cluster>:<old cluster>.<case
+  id>` on collision), still pinned; listed in `carried`.
+- `stale` and `llm_calls` count only nodes in status stale; running and failed nodes are
+  reported separately.
 - With an output cache, stale nodes whose `cache_key` hits are settled from the cache, in
   topological order until nothing more hits; they are listed in `cache_hits`.
 """
@@ -50,6 +60,7 @@ class Analysis(BaseModel):
     ready: tuple[NodeRef, ...]
     """Stale, unpinned, not running, every upstream fresh or pinned; topological order."""
     pinned_warnings: frozenset[NodeRef]
+    failed: frozenset[NodeRef]
     llm_calls: int
     """Stale, unpinned nodes of stages that call the model."""
 
@@ -65,6 +76,8 @@ class Invalidation(BaseModel):
     to_verify: frozenset[NodeRef] = frozenset()
     cancel: frozenset[NodeRef] = frozenset()
     removed: frozenset[NodeRef] = frozenset()
+    carried: dict[NodeRef, NodeRef] = Field(default_factory=dict)
+    """Pinned test cases of removed sets: old ref → new ref."""
     pinned_warnings: frozenset[NodeRef] = frozenset()
     cache_hits: frozenset[NodeRef] = frozenset()
     llm_calls: int = 0
@@ -90,13 +103,19 @@ def apply(
     state: ProjectState, event: Event, *, cache: OutputCache | None = None
 ) -> tuple[ProjectState, Invalidation]:
     """Apply one event: update source nodes or write an edited version (version + 1,
-    `origin=edited`, `pinned=True`), create placeholders for new derived nodes, remove nodes of
-    deleted clusters, recompute staleness, resolve cache hits."""
+    `origin=edited`, `pinned=True`, `input_hash` = current expected hash), create placeholders
+    for new derived nodes, remove nodes of deleted clusters and carry their pinned cases,
+    recompute staleness, resolve cache hits."""
     raise NotImplementedError
 
 
 def mark_running(state: ProjectState, ref: NodeRef) -> ProjectState:
     """The orchestrator started producing `ref` for its current expected hash."""
+    raise NotImplementedError
+
+
+def mark_failed(state: ProjectState, ref: NodeRef) -> ProjectState:
+    """Production of `ref` failed (schema invalid after the retry, or an error)."""
     raise NotImplementedError
 
 

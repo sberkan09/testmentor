@@ -3,7 +3,7 @@
 import pytest
 
 from core.events import ClusterRenamed, RequirementMoved
-from core.nodes import ClusterLabelContent, Node, NodeKind, ProducedBy, Result, ref
+from core.nodes import ClusterLabelContent, Node, NodeKind, ProducedBy, Result, Status, ref
 from core.store import InMemoryStore, VersionConflict
 
 STORES = [pytest.param(InMemoryStore, id="memory")]
@@ -46,6 +46,25 @@ def test_history_survives_removal(store):
     assert [n.content.name for n in store.history("P", LBL)] == ["v1", "v2"]
     with pytest.raises(VersionConflict):
         store.remove_node("P", LBL, expected_version=2)
+
+
+def test_status_is_not_a_version(store):
+    store.put_node("P", label("Ad", 1), expected_version=0)
+    store.set_status("P", LBL, Status.STALE)
+    node = store.get_node("P", LBL)
+    assert node.status == Status.STALE
+    assert node.version == 1
+    assert len(store.history("P", LBL)) == 1
+
+
+def test_recreate_after_removal_starts_at_one(store):
+    store.put_node("P", label("v1", 1), expected_version=0)
+    store.remove_node("P", LBL, expected_version=1)
+    with pytest.raises(VersionConflict):
+        store.put_node("P", label("yanlış", 2), expected_version=1)
+    store.put_node("P", label("yeniden", 1), expected_version=0)
+    store.put_node("P", label("yeniden 2", 2), expected_version=1)
+    assert [n.content.name for n in store.history("P", LBL)] == ["v1", "yeniden", "yeniden 2"]
 
 
 def test_projects_are_isolated(store):

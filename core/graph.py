@@ -9,6 +9,9 @@ Hashes:
   or the expected `input_hash` for stages declared `identity_by_input`. Stale upstream nodes
   contribute their current (old) content, so a node is stale only when an input it can already
   see changed; otherwise it waits in `to_verify` (early cutoff, `core.invalidation`).
+  A test case's identity also covers its key, so a matrix row notices an identical case that
+  moved to another cluster. Other identities do not include keys, so that a set's hash is not
+  tied to its cluster id (a merged cluster with old members still hits the cache).
 - `expected_hash(state, ref)` = `core.hashing.input_hash` over the identities of the node's
   dependencies, with the stage config's prompt version, model and parameters.
 - `cache_key(state, ref)` = hash of the expected hash and the stage context.

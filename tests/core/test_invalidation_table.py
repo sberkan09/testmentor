@@ -48,6 +48,7 @@ def test_fixture_is_fresh(project):
 def test_move_requirement(project):
     """Gereksinim A'dan B'ye taşındı → A ve B'nin setleri ve adları; 2 artımlı test, 2 ad."""
     state, _ = project
+    version = state.node(SET("A")).version
     state, inv = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
 
     assert inv.stale == {LABEL("A"), LABEL("B"), RET("A"), RET("B"), SET("A"), SET("B")}
@@ -63,6 +64,7 @@ def test_move_requirement(project):
     assert state.members("A") == ("R1",)
     assert state.members("B") == ("R2", "R3", "R4")
     assert state.node(SET("A")).status == Status.STALE
+    assert state.node(SET("A")).version == version  # a status change is not a version
     assert state.node(CL("B")).content.pinned_members == ("R2",)
 
 
@@ -234,3 +236,5 @@ def test_every_row_converges(project):
     state = produce_all(state, cache)
     a = analyze(state)
     assert a.stale == frozenset() and a.to_verify == frozenset()
+    # The matrix row sees the identical case that moved from A to B under its new key.
+    assert state.node(MX("R2")).content.test_case_keys == (TC("B", "R2").key,)

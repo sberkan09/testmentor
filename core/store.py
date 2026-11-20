@@ -6,8 +6,11 @@ Every call carries `project_id`; nothing crosses projects.
 
 - Node versions are never deleted: an edit or a regeneration writes version + 1, undo switches
   versions, `remove` writes a tombstone and keeps the history.
-- `put` is compare-and-set on `version`: a writer holding an old version gets `VersionConflict`
-  and the current node, instead of the last writer silently winning.
+- `put_node` is compare-and-set on `version`: a writer holding an old version gets
+  `VersionConflict` and the current node, instead of the last writer silently winning.
+- A version is a content change. Status changes go through `set_status`, which writes no version
+  and no history entry. After removal the current version is 0 again: a recreated node starts at
+  version 1 and its versions are appended to the same history.
 """
 
 from __future__ import annotations
@@ -15,7 +18,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from core.events import Event, EventRecord
-from core.nodes import Node, NodeRef, Result
+from core.nodes import Node, NodeRef, Result, Status
 
 
 class VersionConflict(Exception):
@@ -47,6 +50,10 @@ class NodeStore(OutputCache, Protocol):
         ...
 
     def remove_node(self, project_id: str, ref: NodeRef, *, expected_version: int) -> None: ...
+
+    def set_status(self, project_id: str, ref: NodeRef, status: Status) -> None:
+        """Update the current version's status in place; no version, no history entry."""
+        ...
 
     def history(self, project_id: str, ref: NodeRef) -> list[Node]:
         """Every stored version, oldest first; kept after removal."""
@@ -82,6 +89,9 @@ class InMemoryStore:
         raise NotImplementedError
 
     def remove_node(self, project_id: str, ref: NodeRef, *, expected_version: int) -> None:
+        raise NotImplementedError
+
+    def set_status(self, project_id: str, ref: NodeRef, status: Status) -> None:
         raise NotImplementedError
 
     def history(self, project_id: str, ref: NodeRef) -> list[Node]:
