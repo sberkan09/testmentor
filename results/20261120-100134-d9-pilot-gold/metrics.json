@@ -215,5 +215,42 @@
       }
     }
   ],
-  "throughput": null
+  "throughput": null,
+  "judge": {
+    "by_project": {
+      "ETC": 0.5,
+      "KDH": 0.5545
+    },
+    "by_split": {
+      "dev": 0.534,
+      "holdout": 0.5306
+    },
+    "by_stratum": {
+      "control": 0.5238,
+      "core": 0.5343,
+      "non_testable": 0.5455
+    },
+    "checks_needing_documents": 0.4881,
+    "checks_not_needing_documents": 0.5556,
+    "check_recall": 0.5337,
+    "by_language": {
+      "en": 0.5512,
+      "tr": 0.5027
+    },
+    "traps": 1.0,
+    "invented_per_requirement": 1.527,
+    "boundary_ok_rate": 0.2591,
+    "ambiguity_flagged_rate": 0.4227,
+    "unscored": 0,
+    "by_repeat": {
+      "0": 0.5337
+    },
+    "rubric_version": "r1",
+    "model": "claude-sonnet-5-5",
+    "stats": {
+      "cached": 1,
+      "called": 219,
+      "refused": 0
+    }
+  }
 }
