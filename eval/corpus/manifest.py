@@ -71,10 +71,29 @@ class Extract(Strict):
 
 
 class ReferencePart(Strict):
-    """A part of a mixed document that belongs to the answer key."""
+    """A part of a mixed document that belongs to the answer key, and how to strip it.
 
-    marker: str  # how to find it in the extracted text (heading or table title)
+    regex_block: every block from a line matching `start` up to (not including) the next line
+    matching `end` (or the end of the text) is removed; `expect` is the number of blocks, so a
+    layout change fails loudly instead of leaking. oscal_parts: OSCAL catalog JSON, every part
+    whose name is in `names` is removed at any depth.
+    """
+
+    marker: str  # human-readable: how the part is recognised
     note: str
+    strip: Literal["regex_block", "oscal_parts"]
+    start: str = ""
+    end: str = ""
+    names: tuple[str, ...] = ()
+    expect: int | None = None
+
+    @model_validator(mode="after")
+    def _complete(self) -> ReferencePart:
+        if self.strip == "regex_block" and not (self.start and self.end and self.expect):
+            raise ValueError("regex_block needs start, end and expect")
+        if self.strip == "oscal_parts" and not self.names:
+            raise ValueError("oscal_parts needs names")
+        return self
 
 
 class Document(Strict):

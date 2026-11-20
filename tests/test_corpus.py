@@ -278,3 +278,71 @@ def test_path_glob_documents(tmp_path):
     assert (tmp_path / "cache/xx/text/R/a.txt").read_text() == "A"
     with pytest.raises(ValidationError):  # external copy without origin
         Manifest.model_validate({"project": "XX", "documents": [DOC | {"id": "R", "path": "x"}]})
+
+
+def test_mixed_documents_get_a_stripped_writer_view(tmp_path):
+    text = (
+        "1.1. Group A\nMeasure A1: lock after 5 attempts.\nDenetim Maddeleri\nIs it locked?\n"
+        "1.2. Group B\nMeasure B1.\nDenetim Maddeleri\nIs B done?\nKAYNAKÇA\nrefs\n"
+    )
+    (tmp_path / "doc.txt").write_text(text)
+    part = {
+        "marker": "audit table",
+        "note": "answer key",
+        "strip": "regex_block",
+        "start": "^Denetim Maddeleri$",
+        "end": r"^(\d+\.){2}\s|^KAYNAKÇA",
+        "expect": 2,
+    }
+    doc = DOC | {
+        "id": "R",
+        "path": "doc.txt",
+        "role": "mixed",
+        "origin": "x",
+        "reference_parts": [part],
+    }
+    m = Manifest.model_validate({"project": "XX", "documents": [doc]})
+    with make_client(httpx.MockTransport(lambda r: httpx.Response(500))) as c:
+        _, index, _ = fetch_manifest(m, c, root=tmp_path, repo_root=tmp_path)
+    view = (tmp_path / "cache/xx/text/R.writer.txt").read_text()
+    assert "?" not in view and "Measure A1" in view and "Measure B1" in view and "refs" in view
+    assert (tmp_path / "cache/xx/writer_visible.txt").read_text().split() == ["text/R.writer.txt"]
+    # a layout change that breaks the block count fails instead of leaking the answer key
+    bad = Manifest.model_validate(
+        {"project": "XX", "documents": [doc | {"reference_parts": [part | {"expect": 3}]}]}
+    )
+    with make_client(httpx.MockTransport(lambda r: httpx.Response(500))) as c:
+        with pytest.raises(CorpusError):
+            fetch_manifest(bad, c, root=tmp_path, repo_root=tmp_path)
+
+
+def test_oscal_parts_are_stripped_at_any_depth():
+    from eval.corpus.fetch import strip_oscal_parts
+
+    cat = {
+        "catalog": {
+            "groups": [
+                {
+                    "controls": [
+                        {
+                            "id": "ac-7",
+                            "parts": [
+                                {
+                                    "name": "statement",
+                                    "prose": "Enforce a limit",
+                                    "parts": [{"name": "item"}],
+                                },
+                                {
+                                    "name": "assessment-objective",
+                                    "parts": [{"name": "assessment-objective"}],
+                                },
+                                {"name": "assessment-method", "prose": "TEST"},
+                            ],
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    out, n = strip_oscal_parts(json.dumps(cat), ("assessment-objective", "assessment-method"))
+    assert n == 2 and "assessment" not in out and "Enforce a limit" in out and '"item"' in out

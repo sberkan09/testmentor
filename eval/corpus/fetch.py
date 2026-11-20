@@ -4,6 +4,7 @@ Layout under `eval/corpus/cache/<project>/` (not in git):
     raw/<download key><ext>       downloaded bytes, checked against the manifest SHA-256
     text/<doc id>.txt             extracted text of a single-file document
     text/<doc id>/<member>.txt    one file per zip member for member globs
+    text/<doc id>.writer.txt      mixed documents: the text with reference parts stripped
     index.json                    doc id → role, text files, their SHA-256 and length
     writer_visible.txt            the only text files a test writer may be given (see below)
 """
@@ -27,7 +28,7 @@ from xml.etree import ElementTree
 
 import httpx
 
-from eval.corpus.manifest import CORPUS_DIR, Document, Download, Manifest
+from eval.corpus.manifest import CORPUS_DIR, Document, Download, Manifest, ReferencePart, Role
 
 REPO_ROOT = CORPUS_DIR.parent.parent
 USER_AGENT = "corpus-fetch/1.0"
@@ -252,6 +253,58 @@ def extract_text(data: bytes, method: str, args: tuple[str, ...] = ()) -> str:
     raise CorpusError(f"unknown extraction method {method}")
 
 
+# Answer-key stripping ----------------------------------------------------------------------------
+
+
+def strip_regex_blocks(text: str, part: ReferencePart) -> tuple[str, int]:
+    start, end = re.compile(part.start), re.compile(part.end)
+    out, blocks, inside = [], 0, False
+    for line in text.splitlines(keepends=True):
+        if inside and end.search(line):
+            inside = False
+        if not inside and start.search(line):
+            inside, blocks = True, blocks + 1
+        if not inside:
+            out.append(line)
+    return "".join(out), blocks
+
+
+def strip_oscal_parts(text: str, names: tuple[str, ...]) -> tuple[str, int]:
+    removed = 0
+
+    def walk(node):
+        nonlocal removed
+        if isinstance(node, dict):
+            if isinstance(node.get("parts"), list):
+                keep = [p for p in node["parts"] if p.get("name") not in names]
+                removed += len(node["parts"]) - len(keep)
+                node["parts"] = keep
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    data = json.loads(text)
+    walk(data)
+    return json.dumps(data, ensure_ascii=False, indent=1) + "\n", removed
+
+
+def writer_view(doc: Document, text: str) -> str:
+    for part in doc.reference_parts:
+        if part.strip == "regex_block":
+            text, n = strip_regex_blocks(text, part)
+            if n != part.expect:
+                raise CorpusError(
+                    f"{doc.id}: {n} blocks match {part.marker!r}, expected {part.expect}"
+                )
+        else:
+            text, n = strip_oscal_parts(text, part.names)
+            if n == 0:
+                raise CorpusError(f"{doc.id}: no OSCAL parts named {part.names}")
+    return text
+
+
 # Documents ---------------------------------------------------------------------------------------
 
 
@@ -290,14 +343,19 @@ def build_document(
         )
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
-        entries.append(
-            {
-                "file": str(out.relative_to(text_dir.parent)),
-                "member": name if not single else None,
-                "sha256": hashlib.sha256(text.encode()).hexdigest(),
-                "chars": len(text),
-            }
-        )
+        entry = {
+            "file": str(out.relative_to(text_dir.parent)),
+            "member": name if not single else None,
+            "sha256": hashlib.sha256(text.encode()).hexdigest(),
+            "chars": len(text),
+        }
+        if doc.role == Role.mixed:
+            view = writer_view(doc, text)
+            wout = out.with_name(out.stem + ".writer.txt")
+            wout.write_text(view, encoding="utf-8")
+            entry["writer_file"] = str(wout.relative_to(text_dir.parent))
+            entry["writer_chars"] = len(view)
+        entries.append(entry)
     return entries, notes
 
 
@@ -339,10 +397,16 @@ def fetch_manifest(
 
 
 def writer_visible(index: dict[str, dict]) -> list[str]:
-    """Text files the test writer may see: `corpus` documents only. `reference` documents are the
-    answer key and never visible; `mixed` documents are withheld whole until paket 7 strips their
-    reference parts (a marker finds where an answer-key table starts, not where it ends)."""
-    return sorted(e["file"] for v in index.values() if v["role"] == "corpus" for e in v["texts"])
+    """Text files the test writer may see: `corpus` documents, and the stripped view of `mixed`
+    documents. `reference` documents are the answer key and never visible."""
+    files = []
+    for v in index.values():
+        for e in v["texts"]:
+            if v["role"] == "corpus":
+                files.append(e["file"])
+            elif v["role"] == "mixed" and e.get("writer_file"):
+                files.append(e["writer_file"])
+    return sorted(files)
 
 
 def verify_manifest(manifest: Manifest, root: Path = CORPUS_DIR) -> dict[str, str]:

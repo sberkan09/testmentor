@@ -125,8 +125,13 @@ documents:
   license_evidence: usnistgov/oscal-content deposu; ABD federal hükümet eseri
   repo_text: 'yes'
   reference_parts:
-  - marker: parts[name=assessment-objective], parts[name=assessment-method]
-    note: 800-53A değerlendirme hedefleri ve yöntemleri; test yazarına verilen metinden çıkarılır.
+  - marker: 'OSCAL parts: assessment-objective, assessment-method, assessment-objects'
+    note: 800-53A değerlendirme hedefleri, yöntemleri ve nesneleri; test yazarına verilen görünümden çıkarılır.
+    strip: oscal_parts
+    names:
+    - assessment-objective
+    - assessment-method
+    - assessment-objects
   notes: usnistgov/oscal-content@f0de6d8d8c05 (main, 20 Kasım 2026). Katalog 5.2.0; değerlendirme bölümleri 800-53A
     ile aynı kaynaktır.
 - id: NIST-SP-800-53Ar5
@@ -204,9 +209,13 @@ documents:
   license_evidence: 'Künye: ''Creative Commons Atıf 4.0 Uluslararası lisansı ile lisanslanmıştır'''
   repo_text: 'yes'
   reference_parts:
-  - marker: Denetim Maddeleri
-    note: Tedbir grubu başına 63 tablo (yöntem ve denetim sorusu). Cevap anahtarıdır; test yazarına verilen metinden
-      çıkarılır.
+  - marker: '''Denetim Maddeleri'' tablosu, sonraki grup ya da bölüm başlığına kadar'
+    note: Tedbir grubu başına 62 tablo (tedbir no, yöntem önerileri, soru önerileri). Cevap anahtarıdır; test yazarına
+      verilen görünümden çıkarılır. Giriş bölümündeki tanım satırı tablo değildir.
+    strip: regex_block
+    start: ^Denetim Maddeleri\s*$
+    end: ^(\d+\.){2,3}\s+\S|^\d+\.\s+[A-ZÇĞİÖŞÜ]|^KAYNAKÇA
+    expect: 62
   notes: '-layout kullanılmaz: denetim sorularını yanlış tedbire atıyor (aşama 2a).'
 - id: SGB-DENETIM-1.1
   title: Bilgi ve İletişim Güvenliği Denetim Rehberi
