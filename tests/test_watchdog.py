@@ -120,3 +120,21 @@ def test_watchdog_cannot_be_disabled(monkeypatch):
     monkeypatch.setattr(rp, "load_infra", lambda: real() | {"watchdog": {"enabled": False}})
     with pytest.raises(SystemExit):
         rp.watchdog_deadline(2)
+
+
+def test_batch_skips_restart_when_configuration_unchanged(monkeypatch, tmp_path):
+    import json as _json
+
+    import eval.batch as b
+
+    monkeypatch.setattr(b, "ROOT", tmp_path)
+    (tmp_path / "infra").mkdir()
+    state = tmp_path / "infra" / ".runpod-state.json"
+    state.write_text(_json.dumps({"pod": {"engine": "vllm", "model": "q", "overrides": {}}}))
+    calls = []
+    b.run_batch(
+        {"steps": [{"experiment": "a"}, {"experiment": "b", "overrides": {"x": 1}}]},
+        runner=lambda c: calls.append(c) or 0,
+    )
+    flat = [" ".join(c) for c in calls]
+    assert sum("reconfigure" in c for c in flat) == 1 and not any(" up " in c for c in flat)

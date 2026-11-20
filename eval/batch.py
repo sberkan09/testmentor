@@ -11,6 +11,7 @@ session does not leave the pod running; the pod's own watchdog is the second lin
 from __future__ import annotations
 
 import argparse
+import json
 import signal
 import subprocess
 import sys
@@ -38,22 +39,35 @@ def overrides_args(step: dict[str, Any]) -> list[str]:
     return out
 
 
+def same_server(pod: dict[str, Any], step: dict[str, Any]) -> bool:
+    return (
+        (step.get("engine") or pod.get("engine")) == pod.get("engine")
+        and (step.get("model") or pod.get("model")) == pod.get("model")
+        and (step.get("overrides") or {}) == (pod.get("overrides") or {})
+    )
+
+
 def run_batch(batch: dict[str, Any], runner=sh) -> dict[str, str]:
     results: dict[str, str] = {}
     state = ROOT / "infra" / ".runpod-state.json"
+    opened = False
     try:
-        for i, step in enumerate(batch["steps"]):
+        for step in batch["steps"]:
             exp = step["experiment"]
-            if i == 0 and not (state.exists() and '"pod"' in state.read_text()):
+            pod = (json.loads(state.read_text()).get("pod") if state.exists() else None) or None
+            if pod is None and not opened:
                 cmd = PY + [
                     "scripts/runpod.py",
                     "up",
                     "--max-hours",
                     str(batch.get("max_hours", 4)),
                 ]
+                opened = True
+            elif pod is not None and same_server(pod, step):
+                cmd = None  # already serving this configuration: no restart
             else:
                 cmd = PY + ["scripts/runpod.py", "reconfigure"]
-            if runner(cmd + overrides_args(step)) != 0:
+            if cmd is not None and runner(cmd + overrides_args(step)) != 0:
                 results[exp] = "pod açılamadı/yapılandırılamadı"
                 continue
             if runner(PY + ["scripts/runpod.py", "wait", "--timeout", "900"]) != 0:

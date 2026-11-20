@@ -154,6 +154,23 @@ async def throughput(client: LLMClient, cfg: dict[str, Any], spec: dict[str, Any
                     ),
                 )
             )
+    # Warm-up, not counted: the first load level after an engine restart measured about half
+    # the throughput of later levels (CUDA graphs and autotune caches still cold).
+    warm = int(spec.get("warmup_requests", 8))
+    if warm:
+        await asyncio.gather(
+            *(
+                client.chat(
+                    prompts[i % len(prompts)],
+                    schema=model,
+                    max_tokens=256,
+                    temperature=stage["temperature"],
+                    thinking=stage["thinking"],
+                )
+                for i in range(warm)
+            ),
+            return_exceptions=True,
+        )
     levels = []
     for c in spec["concurrency"]:
         n = max(int(spec.get("min_requests", 4)), int(spec.get("requests_per_level", 2 * c)), c)
