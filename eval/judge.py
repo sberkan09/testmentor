@@ -42,6 +42,19 @@ as an assumption where a value had to be chosen (ambiguity_flagged).
 Do not grade style."""
 
 
+RUBRIC_R2_ADDENDUM = """
+Reference checks may come from official test procedures. Such a check can name one concrete
+scenario (a specific message, packet, field value or display symbol) and one observation channel
+(for example recorder entries, display symbols or interface messages). Count it as matched when a
+generated step tests the same behaviour under the same distinguishing condition (for example:
+information whose validity direction is opposite to the train orientation is ignored) and states
+an equivalent observable outcome, even if it uses another equivalent message or observes the
+outcome through another channel. Do not count it when the generated tests miss the distinguishing
+condition or the outcome."""
+
+RUBRICS = {"r1": RUBRIC, "r2": RUBRIC + RUBRIC_R2_ADDENDUM}
+
+
 class CheckVerdict(BaseModel):
     model_config = ConfigDict(extra="forbid")
     no: int

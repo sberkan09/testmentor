@@ -1,0 +1,305 @@
+{
+  "with_docs": {
+    "ETC-901": {
+      "checks": 3,
+      "matched": 3,
+      "invented": 2,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Linking checked: linked balise group contained in linking information becomes the position reference, step 1 (BG1 linked, in linking info, report refers to BG1)"
+        },
+        {
+          "no": 2,
+          "matched": true,
+          "evidence": "Linking checked: balise group not contained in linking information or marked unlinked is not LRBG compliant, step 2 (Scenario B: unlinked BG2, report still uses BG1)"
+        },
+        {
+          "no": 3,
+          "matched": true,
+          "evidence": "Linking checked: balise group not contained in linking information or marked unlinked is not LRBG compliant, step 1 (Scenario A: linked BG2 not in linking info, report still uses BG1)"
+        }
+      ]
+    },
+    "ETC-902": {
+      "checks": 3,
+      "matched": 2,
+      "invented": 3,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Radio information is filtered by Q_DIR relative to the LRBG orientation, step 2: opposite-direction radio message is ignored. The JRU recording is not verified, but the distinguishing condition and the train's non-reaction are covered."
+        },
+        {
+          "no": 2,
+          "matched": true,
+          "evidence": "Radio information is filtered by Q_DIR relative to the LRBG orientation, step 1: radio message with matching direction is taken into account. No JRU or DMI specifics are given, but the behaviour is equivalent."
+        }
+      ]
+    },
+    "ETC-903": {
+      "checks": 3,
+      "matched": 1,
+      "invented": 2,
+      "evidence": [
+        {
+          "no": 3,
+          "matched": true,
+          "evidence": "Linking information released from the transition buffer is applied before SOLR determination, step 2: after release the SOLR is the last received group referenced or announced in the released linking information, possibly a former LRBG rather than the last passed one."
+        }
+      ]
+    },
+    "ETC-904": {
+      "checks": 2,
+      "matched": 0,
+      "invented": 2,
+      "evidence": []
+    },
+    "ETC-905": {
+      "checks": 4,
+      "matched": 1,
+      "invented": 2,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "MA request triggered when the train front passes the location a defined time before the perturbation location, steps 2-3: the MA request is sent with bit xxx1x set."
+        }
+      ]
+    },
+    "KDH-901": {
+      "checks": 5,
+      "matched": 3,
+      "invented": 2,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Single-factor passwords require at least 15 characters, step 1 (14-character password rejected); also the multi-factor test, step 1"
+        },
+        {
+          "no": 2,
+          "matched": true,
+          "evidence": "Password length counts each Unicode code point as one character, step 1 (password with multi-byte characters accepted)"
+        },
+        {
+          "no": 5,
+          "matched": true,
+          "evidence": "Full password is requested and the entire submitted password is verified, steps 3 and 4 (altered last character and truncated 64-character password fail)"
+        }
+      ]
+    },
+    "KDH-902": {
+      "checks": 4,
+      "matched": 4,
+      "invented": 1,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Authenticator is disabled after the configured limit (at most 100) of consecutive failures, steps 1-3: repeated failed attempts lead to the authenticator being disabled and further attempts refused, so the number of attempts is limited."
+        },
+        {
+          "no": 2,
+          "matched": true,
+          "evidence": "Authenticator is disabled after the configured limit (at most 100) of consecutive failures, step 2: after the 100th failure the authenticator is disabled and step 3 refuses the valid password. The reference's 101 failures are covered by the limit of 100 with no 101st attempt evaluated."
+        },
+        {
+          "no": 3,
+          "matched": true,
+          "evidence": "All authenticators involved in excessive attempts are disabled, steps 1-2: both authenticators are disabled and authentication is refused for both."
+        },
+        {
+          "no": 4,
+          "matched": true,
+          "evidence": "Disabled authenticator is usable again only after rebinding, steps 1-3: authentication is refused before rebinding and succeeds only after rebinding per §4.1."
+        }
+      ]
+    },
+    "KDH-903": {
+      "checks": 2,
+      "matched": 2,
+      "invented": 1,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Every portal page declares its default human language, step 1: html element has a non-empty lang attribute on each page"
+        },
+        {
+          "no": 2,
+          "matched": true,
+          "evidence": "Declared language tag has a known primary language subtag, steps 1-2: primary subtag extracted and verified against the IANA registry"
+        }
+      ]
+    },
+    "KDH-904": {
+      "checks": 6,
+      "matched": 5,
+      "invented": 3,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Oturum kapatma tüm kimlik doğrulamalı sayfalardan erişilebilir ve oturumu geçersiz kılar, adım 2-3"
+        },
+        {
+          "no": 2,
+          "matched": true,
+          "evidence": "Oturum sürelerinin güncellenmesi yetkilendirmeye tabidir, adım 1"
+        },
+        {
+          "no": 3,
+          "matched": true,
+          "evidence": "Oturum etkinlik olmadığında ve geçerlilik süresi dolduğunda sonlanır, adım 3 (8 saatlik azami geçerlilik süresi yapılandırılmış ve uygulanıyor)"
+        },
+        {
+          "no": 4,
+          "matched": true,
+          "evidence": "Oturum etkinlik olmadığında ve geçerlilik süresi dolduğunda sonlanır, adım 2"
+        },
+        {
+          "no": 6,
+          "matched": true,
+          "evidence": "Oturum kapatma tüm kimlik doğrulamalı sayfalardan erişilebilir ve oturumu geçersiz kılar, adım 4"
+        }
+      ]
+    },
+    "KDH-905": {
+      "checks": 6,
+      "matched": 6,
+      "invented": 0,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Test 1 assumptions: limit of 3 consecutive invalid attempts defined in SSP; used in steps 1-2"
+        },
+        {
+          "no": 2,
+          "matched": true,
+          "evidence": "Test 1 assumptions: within 15 minutes time period defined; Test 2 uses the time period"
+        },
+        {
+          "no": 3,
+          "matched": true,
+          "evidence": "Test 1 assumptions: action selected is lock the account for 30 minutes; Test 3 assumptions list selectable actions"
+        },
+        {
+          "no": 4,
+          "matched": true,
+          "evidence": "Test 1 assumptions: lock duration 30 minutes defined; Test 3 assumptions: 5 s fixed delay"
+        },
+        {
+          "no": 5,
+          "matched": true,
+          "evidence": "Test 1 steps 1-2: 3 invalid attempts rejected with no lock, 4th within 15 minutes triggers the limit; Test 2 step 1-2"
+        },
+        {
+          "no": 6,
+          "matched": true,
+          "evidence": "Test 1 steps 2-4: account locked automatically when exceeded, logon refused, then succeeds after 30 minutes; Test 3 steps 1-3 other actions"
+        }
+      ]
+    }
+  },
+  "without_docs": {
+    "ETC-901": {
+      "checks": 3,
+      "matched": 0,
+      "invented": 0,
+      "evidence": []
+    },
+    "ETC-902": {
+      "checks": 3,
+      "matched": 0,
+      "invented": 0,
+      "evidence": []
+    },
+    "ETC-903": {
+      "checks": 3,
+      "matched": 0,
+      "invented": 0,
+      "evidence": []
+    },
+    "ETC-904": {
+      "checks": 2,
+      "matched": 0,
+      "invented": 0,
+      "evidence": []
+    },
+    "ETC-905": {
+      "checks": 4,
+      "matched": 0,
+      "invented": 0,
+      "evidence": []
+    },
+    "KDH-901": {
+      "checks": 5,
+      "matched": 1,
+      "invented": 0,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Minimum length enforced for single-factor passwords, step 1 (and multi-factor test step 1)"
+        }
+      ]
+    },
+    "KDH-902": {
+      "checks": 4,
+      "matched": 1,
+      "invented": 0,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Authenticator is disabled when the consecutive failed attempt limit is reached, steps 1-2: repeated failures lead to rate limiting being applied"
+        }
+      ]
+    },
+    "KDH-903": {
+      "checks": 2,
+      "matched": 1,
+      "invented": 1,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Every portal page declares its default human language, step 1: lang attribute is present and not empty on html element"
+        }
+      ]
+    },
+    "KDH-904": {
+      "checks": 6,
+      "matched": 1,
+      "invented": 0,
+      "evidence": [
+        {
+          "no": 1,
+          "matched": true,
+          "evidence": "Kullanıcı oturumu kapattığında oturum sonlanır, adım 1-2"
+        }
+      ]
+    },
+    "KDH-905": {
+      "checks": 6,
+      "matched": 2,
+      "invented": 1,
+      "evidence": [
+        {
+          "no": 5,
+          "matched": true,
+          "evidence": "Organization-defined action is taken when the invalid logon limit is exceeded, step 1 (N consecutive invalid attempts rejected, limit enforced); step 2 confirms limit exceeded"
+        },
+        {
+          "no": 6,
+          "matched": true,
+          "evidence": "Organization-defined action is taken when the invalid logon limit is exceeded, steps 2-3 (account automatically locked, logon refused)"
+        }
+      ]
+    }
+  }
+}

@@ -30,6 +30,8 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
+# Archived one-off probe scripts (paket 1b stage 1), kept as evidence, not maintained code.
+extend-exclude = ["eval/corpus/*/probe"]
 target-version = "py312"
 
 [tool.ruff.lint]
