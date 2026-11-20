@@ -37,7 +37,6 @@ from tests.stages.helpers import (
     many_reqs,
     project,
     requirement_rows,
-    sequence,
     smart_reply,
 )
 
@@ -187,16 +186,26 @@ async def test_still_uncovered_after_repair_is_written_not_failed():
     assert out.state.node(MX("R2")).content.covered is False
 
 
+def bad_once_for_a():
+    done: list[int] = []
+
+    def handle(r):
+        if not done and {i for i, _ in requirement_rows(r)} == {"R1", "R2"}:
+            done.append(1)
+            return '{"test_cases": []}'  # min_length=1 violated
+        return smart_reply(r)
+
+    return handle
+
+
 async def test_schema_error_is_retried_once():
-    bad = lambda r: '{"test_cases": []}'  # noqa: E731  (min_length=1 violated)
-    complete = ScriptedComplete(sequence(bad))
+    complete = ScriptedComplete(bad_once_for_a())
     out = await drive(project(), complete)
-    retry = complete.of(NodeKind.TEST_SET)[1]
+    first, retry = request_for(complete, {"R1", "R2"}), request_for(complete, {"R1", "R2"}, 1)
     assert SCHEMA_RETRY_INSTRUCTION in retry.messages[1]["content"]
-    assert retry.messages[1]["content"].startswith(
-        complete.of(NodeKind.TEST_SET)[0].messages[1]["content"]
-    )
+    assert retry.messages[1]["content"].startswith(first.messages[1]["content"] + "\n\n")
     assert not out.failed()
+    assert out.stats(SET("A"))["calls"] == 2
 
 
 async def test_second_schema_error_fails_the_node():
@@ -270,6 +279,7 @@ async def test_pinned_cases_go_to_the_tail_and_cannot_be_updated():
     assert content.index(PINNED_HEADER) < content.index(INCREMENTAL_INSTRUCTION)
     assert "Düzeltilmiş" in content
     assert out.stats(SET("A"))["pinned_update_attempts"] == 1
+    assert out.stats(SET("A"))["calls"] == 1  # the pinned case covers R1: no repair
     assert out.state.node(ref(NodeKind.TEST_CASE, key)).content.title == "Düzeltilmiş"
 
 

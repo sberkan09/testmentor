@@ -273,9 +273,15 @@ async def drive(
 def cases_of(
     state: ProjectState, cluster: str, *, pinned: bool | None = None
 ) -> list[TestCaseContent]:
+    """The set's cases in `TestSetContent.case_keys` order (pinned first, then generated), not
+    key order (`TC-10` sorts before `TC-2`)."""
+    from core.nodes import TestSetContent, ref
+
+    content = state.node(ref(NodeKind.TEST_SET, cluster)).content
+    keys = content.case_keys if isinstance(content, TestSetContent) else ()
     out = []
-    for r in state.test_cases(cluster):
-        node = state.node(r)
+    for k in keys:
+        node = state.node(ref(NodeKind.TEST_CASE, k))
         if pinned is None or node.pinned == pinned:
             assert isinstance(node.content, TestCaseContent)
             out.append(node.content)

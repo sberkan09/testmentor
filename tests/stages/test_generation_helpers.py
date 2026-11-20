@@ -103,6 +103,7 @@ def test_choose_mode():
     state, _ = apply(state, RequirementTextChanged(requirement="R1", text="Değişti."))
     assert choose_mode(state, "A", Hint(mode="incremental"), {}) == "incremental"
     assert choose_mode(state, "A", None, {}) == "incremental"  # the basis decides, not the hint
+    assert choose_mode(state, "A", None, {}, max_unit_size=1) == "full"  # larger than a unit
 
 
 def test_card_change_forces_full_even_with_incremental_hint():

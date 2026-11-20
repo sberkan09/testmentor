@@ -51,8 +51,11 @@ def context(state: ProjectState, key: str) -> Any:
 async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
     """See `core.stages.test_generation` for the helpers and docs/tasarim.md (Test durumu
     üretimi) for the rules. Per cluster:
-    1. Mode by `choose_mode`. Members not in `need` get no tests; with no `need` the set is
-       produced without a call (empty, only pinned cases).
+    1. Mode by `choose_mode(..., max_unit_size=settings.max_unit_size)`. Members not in
+       `need` get no tests. Pinned cases count as coverage: a requirement they cover needs no
+       generated case and causes no repair. With nothing left to cover and a full mode the set
+       is produced without a call (only pinned cases).
+       Existing cases are read in `TestSetContent.case_keys` order, not key order.
     2. Prompt: `generation_messages` (layers 1–5, byte-identical to paket 1) plus, in this order
        after layer 5: `pinned_section`; for incremental `incremental_section`; for merge
        `merge_section`. Schema: case set / `incremental_model` / `MergeDecision`.
@@ -63,9 +66,12 @@ async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
        fail the node (no silent "(none)").
        Incremental: `prune_removed` first; when the delta is only removals the call still
        happens (design call count; D8 measures pruning without a call).
-    3. `filter_covers` against `need`; one repair call (`repair_section` with the uncovered
-       ids, schema case set, same prefix and tails) when `settings.repair` and something is
-       uncovered; repaired cases are filtered and appended with `next_ids`.
+    3. `filter_covers` against `need`; one repair call when `settings.repair` and something is
+       uncovered (pinned and generated cases together). The repair prompt is the same in every
+       mode: layers 1–5, `pinned_section`, `repair_section(uncovered)`; schema case set (no
+       incremental or merge section, so the prompt names one output shape). For a split
+       cluster the repair is one call over the uncovered requirements' layer 5 only. Repaired
+       cases are filtered and appended with `next_ids`.
     4. Schema error on any call: one retry with `schema_retry_section(error)` appended; a
        second error fails the node (no partial set is written).
     5. Result: `TestSetContent()` with `cases` = the complete unpinned set; produced_by mode

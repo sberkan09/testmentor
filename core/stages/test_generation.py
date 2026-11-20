@@ -92,13 +92,17 @@ def choose_mode(
     cluster: str,
     hint: Hint | None,
     sources: Mapping[NodeRef, Sequence[TestCaseContent]],
+    *,
+    max_unit_size: int | None = None,
 ) -> Mode:
     """- `merge` when the hint is merge and every hint source is in `sources`;
-    - `incremental` when the set has content, a readable basis, and the basis' config, card and
-      passages equal `basis_of(state, cluster)` (members may differ);
-    - `full` otherwise (no content, no basis, card / config / passages changed, merge without
-      sources). The hint's `incremental` alone never decides: paket 2 gives it to every stale
-      set with content, whatever the cause."""
+    - otherwise `incremental` when the set has content, a readable basis, the basis' config,
+      card and passages equal `basis_of(state, cluster)` (members may differ), and the cluster
+      has at most `max_unit_size` members (None: no limit);
+    - `full` in every other case (no content, no basis, card / config / passages changed, a
+      cluster larger than one unit). A merge hint without its sources falls through to these
+      rules. The hint's `incremental` alone never decides: paket 2 gives it to every stale set
+      with content, whatever the cause."""
     raise NotImplementedError("paket 3 adım 4")
 
 
@@ -161,10 +165,11 @@ def apply_incremental(
     update: Sequence[TestCaseContent],
     pinned_ids: Iterable[str],
 ) -> tuple[list[TestCaseContent], int]:
-    """The complete unpinned set after an incremental reply. Existing cases keep their order,
-    id and content unless updated; an update replaces the case with that id in place (an update
-    whose id is unknown is treated as an add); an update or add aimed at a pinned id is ignored
-    and counted; adds get `next_ids` after every existing and pinned id and go to the end.
+    """The complete unpinned set after an incremental reply. Existing cases (in set order) keep
+    their order, id and content unless updated; an update replaces the case with that id in
+    place; an update whose id is pinned is ignored and counted; an update whose id is unknown is
+    treated as an add. Adds never keep the model's id: they get `next_ids` after every existing
+    and pinned id, in reply order (adds first, then unknown-id updates), and go to the end.
     Returns the cases and the number of ignored pinned updates."""
     raise NotImplementedError("paket 3 adım 4")
 
