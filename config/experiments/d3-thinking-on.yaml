@@ -1,0 +1,7 @@
+name: d3-thinking-on
+question: "D3 Düşünme modu: test üretiminde düşünme açık (sınıflandırmada kapalı kalır)."
+variable: generation.thinking=true
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+pipeline:
+  generation: {thinking: true, max_tokens: 16384}
+quality: true

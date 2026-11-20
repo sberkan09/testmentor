@@ -154,6 +154,7 @@ Test kalitesi üç katmanda ölçülür; ucuz olan her koşuda, pahalı olan yal
 | 3. Uzman | kör ikili karşılaştırma, 1–5 puan | test mühendisi, 10 öbeklik örneklem | yalnızca en iyi iki aday için ve hakemi ayarlarken |
 
 - Hakem, sentetik altın sette Claude Sonnet'tir: adaylardan bağımsızdır ve veri hassas değildir. Gerçek proje verisi sete girdiğinde hakem yerel modele ya da uzmana geçer.
+- Hakem çağrıları `LLMClient` üzerinden değil, resmî Anthropic SDK'sıyla `services/judge_client.py` içinden yapılır; yerel modeller için konan "yalnızca OpenAI uyumlu API" kuralı hakemi kapsamaz. Model `claude-sonnet-5-5`'tir. Bu model sıcaklık parametresini kabul etmez; tekrarlanabilirliği hakem çıktılarının girdi hash'iyle cache'lenmesi sağlar (paket 1'de eklendi).
 - Hakemin ana ölçütü denetim yakalama oranıdır: referanstaki denetimlerin yüzde kaçı üretilen testlerde var. Üslup puanlanmaz.
 - Referansı da hakemi de Claude yazdığı için Claude'a benzeyen çıktılar kayırılabilir. D0 deneyi hakem puanını uzman puanıyla karşılaştırır; uyum düşükse rubrik düzeltilir.
 - Karar kuralı: aday önce katman 1 eşiklerini geçer (şema %99, onarım sonrası kapsama %100, adım yapısı %100). Geçenler denetim yakalama oranına göre sıralanır, eşitlikte hızlı olan öne geçer. İlk iki adayı uzman karşılaştırır.
@@ -167,25 +168,26 @@ Varsayılan BGE-M3'tür: çok dillidir, tek modelden hem yoğun hem seyrek vekt�
 
 Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerinde denenir ve kazanan seçilir. Son sütun, ölçüm gelene kadar geliştirmenin dayandığı varsayımdır.
 
-| No | Soru | Denenenler | Ölçüt | Çalışma varsayımı |
-| --- | --- | --- | --- | --- |
-| D0 | Otomatik hakem puanı uzman puanıyla uyuşuyor mu | hakem modelin puanı ile test mühendisinin puanı, 10 öbeklik örneklemde | sıra uyumu ve puan farkı | hakem güvenilir sayılır |
-| D1 | Sunum motoru | vLLM, SGLang | 1, 8, 16 ve 32 eşzamanlı istekte token/sn, ilk token süresi, hata oranı, şema geçerliliği | vLLM |
-| D2 | Model | Qwen3.8-27B, Gemma 4 31B, gpt-oss-120b | denetim yakalama oranı, kapsama, yöntem doğruluğu; Türkçe ve İngilizce ayrı raporlanır | Qwen3.8-27B |
-| D3 | Düşünme modu ve örnekleme | düşünme açık ve kapalı; sıcaklık 0 ile 0,7 arası | kalite farkı ve süre | sınıflandırmada kapalı |
-| D4 | Ağırlık hassasiyeti | 16 bit, FP8, 4 bit | kalite kaybı ve eşzamanlılık kazancı | FP8 |
-| D5 | Eşzamanlılık ve bağlam | dizi sınırı 8 ile 64 arası; bağlam 8, 16, 32 bin token | toplam token/sn ve öncelikli işin ilk token süresi | 16–32 dizi |
-| D6 | Embedding ve kümeleme | BGE-M3 ve iki alternatif; agglomerative ve HDBSCAN | uzmanın elle öbeklemesiyle uyum, kullanıcının yapmak zorunda kaldığı taşıma sayısı | BGE-M3, agglomerative |
-| D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; öbek sınırı 10, 25, 50 | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 |
-| D8 | Yeniden üretim biçimi | artımlı ve baştan | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı |
-| D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok |
-| D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek |
-| D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 |
-| D12 | Önek ısıtma | paralel çağrıları ilk çağrı öneki işleyene kadar bekletmek ve bekletmemek | ilk üretimin toplam süresi ve önek cache isabet oranı | bekletmek |
+| No | Soru | Denenenler | Ölçüt | Çalışma varsayımı | Sonuç (paket 1, 19 Kasım 2026) |
+| --- | --- | --- | --- | --- | --- |
+| D0 | Otomatik hakem puanı uzman puanıyla uyuşuyor mu | hakem modelin puanı ile test mühendisinin puanı, 10 öbeklik örneklemde | sıra uyumu ve puan farkı | hakem güvenilir sayılır | Koşulmadı: test mühendisi yok. Hakemle devam edildi; hakem puanı uzmanla doğrulanmadı. |
+| D1 | Sunum motoru | vLLM, SGLang | 1, 8, 16 ve 32 eşzamanlı istekte token/sn, ilk token süresi, hata oranı, şema geçerliliği | vLLM | **vLLM.** 32 eşzamanlı istekte 777 token/sn (SGLang 698), ikisinde de hata 0 ve şema %100. SGLang hibrit modelde kısa ortak öneki cache'lemiyor. [D1](deneyler/D1.md) |
+| D2 | Model | Qwen3.8-27B, Gemma 4 31B, gpt-oss-120b | denetim yakalama oranı, kapsama, yöntem doğruluğu; Türkçe ve İngilizce ayrı raporlanır | Qwen3.8-27B | **Qwen3.8-27B (uzman karşılaştırmasına kadar).** Güncel ayarlarla 3'er tekrar: check_recall Qwen ort. 0,454 (0,44–0,47), gpt-oss ort. 0,416 (0,36–0,46), Gemma 0,40. gpt-oss 1,8 kat hızlı ama iki kat uydurma içerik yazıyor. Fark kesin değil; ilk iki aday uzman karşılaştırmasına gider. [D2](deneyler/D2.md) |
+| D3 | Düşünme modu ve örnekleme | düşünme açık ve kapalı; sıcaklık 0 ile 0,7 arası | kalite farkı ve süre | sınıflandırmada kapalı | **Düşünme kapalı, sıcaklık 0.** Düşünme açık 4,8 kat yavaş, recall 0,43. Sıcaklıklar arasında ölçülebilir fark yok (0,48 / 0,45 / 0,42–0,48). [D3](deneyler/D3.md) |
+| D4 | Ağırlık hassasiyeti | 16 bit, FP8, 4 bit (resmî 4 bit depo olmadığı için BF16'dan çalışma anında nicemleme) | kalite kaybı ve eşzamanlılık kazancı | FP8 | **FP8.** BF16 ile recall farkı yok (0,44), FP8 1,8 kat hızlı. 4 bit (çalışma anında MXFP4) bu modelde yüklenemedi. [D4](deneyler/D4.md) |
+| D5 | Eşzamanlılık ve bağlam | dizi sınırı 8 ile 64 arası; bağlam 8, 16, 32 bin token | toplam token/sn ve öncelikli işin ilk token süresi | 16–32 dizi | **64 dizi, 32 bin bağlam.** Dizi sınırı 32'de 64 istek kuyruğa giriyor (ilk token 35,8 sn); 16'da 64 istekte 3 hata (kuyrukta ~100 sn bekleyen bağlantılar koptu). 64 dizi 64 istekte 1.183 token/sn, ilk token 1,2 sn. 16 bin bağlamın hız faydası yok. [D5](deneyler/D5.md) |
+| D6 | Embedding ve kümeleme | BGE-M3 ve iki alternatif; agglomerative ve HDBSCAN | uzmanın elle öbeklemesiyle uyum, kullanıcının yapmak zorunda kaldığı taşıma sayısı | BGE-M3, agglomerative | bu paketin kapsamı dışında |
+| D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; öbek sınırı 10, 25, 50 | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | bu paketin kapsamı dışında |
+| D8 | Yeniden üretim biçimi | artımlı ve baştan | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | bu paketin kapsamı dışında |
+| D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | bu paketin kapsamı dışında |
+| D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | bu paketin kapsamı dışında |
+| D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 | bu paketin kapsamı dışında |
+| D12 | Önek ısıtma | paralel çağrıları ilk çağrı öneki işleyene kadar bekletmek ve bekletmemek | ilk üretimin toplam süresi ve önek cache isabet oranı | bekletmek | **Bekletmemek.** Önek isabeti aynı (%54), süre biraz kısa, recall farkı gürültü içinde. [D12](deneyler/D12.md) |
 
 Kurallar:
 
 - Her deney `eval/` koşucusunda tek komutla tekrar edilebilir ve sonucu bu tabloya Sonuç sütunu olarak işlenir.
+- Paket 1 deneylerinde (D1–D5, D12) test üretimi referans öbek ve referans doğrulama yöntemleriyle beslenir. Böylece üretim kalitesi öbekleme ve sınıflandırma hatalarından ayrılır. Öbekleme uyumu (ARI, D6) ve yöntem doğruluğu aynı koşuda ayrı ölçütler olarak raporlanır. Uçtan uca ölçüm için `generation_inputs: predicted` ayarı vardır.
 - Bir deneyde tek değişken değişir; diğerleri çalışma varsayımında kalır.
 - Ölçülebilir fark yoksa daha basit olan seçenek kalır.
 - Sıra: D1, D2, sonra D3–D5 ve D12. D0 test mühendisi hazır olduğunda koşulur. D6–D10 ilgili aşama yazıldığında, D11 arayüz kullanılır hale geldiğinde koşulur.

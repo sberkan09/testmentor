@@ -1,0 +1,6 @@
+name: d1-sglang
+question: "D1 Sunum motoru: SGLang. 1, 8, 16, 32 eşzamanlı istekte hız, ilk token süresi, hata, şema."
+variable: engine=sglang
+server: {engine: sglang, model: qwen3.8-27b, overrides: {}}
+throughput: {concurrency: [1, 8, 16, 32], min_requests: 4}
+quality: true

@@ -10,7 +10,7 @@ services:
     - /bin/sh
     - -c
     command:
-    - exec python3 -m sglang.launch_server --model-path Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 30000 --context-length 32768 --max-running-requests 32 --mem-fraction-static 0.8 --enable-cache-report --grammar-backend xgrammar --api-key "$$LLM_API_KEY" --reasoning-parser qwen3
+    - exec python3 -m sglang.launch_server --model-path Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 30000 --context-length 32768 --max-running-requests 64 --mem-fraction-static 0.8 --enable-cache-report --grammar-backend xgrammar --api-key "$$LLM_API_KEY" --reasoning-parser qwen3
     environment:
       LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY .env dosyasında tanımlı olmalı}
       HF_HOME: /models/hf
@@ -47,7 +47,7 @@ services:
     - /bin/sh
     - -c
     command:
-    - exec vllm serve Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 8000 --max-model-len 32768 --max-num-seqs 32 --gpu-memory-utilization 0.8 --enable-prefix-caching --enable-prompt-tokens-details --api-key "$$LLM_API_KEY" --reasoning-parser qwen3
+    - exec vllm serve Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 8000 --max-model-len 32768 --max-num-seqs 64 --gpu-memory-utilization 0.8 --enable-prefix-caching --enable-prompt-tokens-details --api-key "$$LLM_API_KEY" --reasoning-parser qwen3 --language-model-only
     environment:
       LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY .env dosyasında tanımlı olmalı}
       HF_HOME: /models/hf

@@ -1,0 +1,6 @@
+name: d2-qwen
+question: "D2 Model: Qwen3.8-27B (FP8). Aynı ayarla iki koşu (tekrarlanabilirlik)."
+variable: model=qwen3.8-27b
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+quality: true
+repeat: 2

@@ -1,0 +1,17 @@
+# Paket 1 deneyleri tek pod'da. Son adımdan sonra pod her durumda silinir (eval/batch.py).
+max_hours: 3
+steps:
+  - {experiment: d1-vllm}
+  - {experiment: d2-qwen}
+  - {experiment: d3-temp-0}
+  - {experiment: d3-temp-03}
+  - {experiment: d3-thinking-on}
+  - {experiment: d12-no-warmup}
+  - {experiment: d5-seqs32}
+  - {experiment: d5-seqs16, overrides: {max_num_seqs: 16}}
+  - {experiment: d5-seqs64, overrides: {max_num_seqs: 64}}
+  - {experiment: d5-ctx16k, overrides: {context_length: 16384}}
+  - {experiment: d4-bf16, model: qwen3.8-27b-bf16}
+  - {experiment: d2-gemma, model: gemma-4-31b}
+  - {experiment: d2-gpt-oss, model: gpt-oss-120b}
+  - {experiment: d1-sglang, engine: sglang, model: qwen3.8-27b}

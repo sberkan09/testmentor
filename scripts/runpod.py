@@ -111,7 +111,41 @@ class Runpod:
         return self.req("GET", "/pods").json()["pods"]
 
 
-def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) -> dict[str, Any]:
+def watchdog_deadline(hours: float) -> int:
+    """Absolute self-delete time for a new pod. Pods are never opened without one."""
+    wd = load_infra()["watchdog"]
+    if not wd.get("enabled"):
+        raise SystemExit(
+            "watchdog kapalı: bekçisiz pod açılmaz (config/infra.yaml watchdog.enabled)"
+        )
+    if not 0 < float(hours) <= 24:
+        raise SystemExit(f"en uzun ömür 0–24 saat olmalı, verilen {hours}")
+    return int(time.time() + float(hours) * 3600)
+
+
+def parse_overrides(items: list[str] | None) -> dict[str, Any]:
+    """`key=value` pairs from the command line; numbers become int/float."""
+    out: dict[str, Any] = {}
+    for item in items or []:
+        key, _, value = item.partition("=")
+        if key == "extra_args":
+            out[key] = value.split()
+            continue
+        try:
+            out[key] = int(value)
+        except ValueError:
+            out[key] = float(value)
+    return out
+
+
+def pod_body(
+    engine_key: str,
+    model_key: str,
+    volume_id: str,
+    download: bool,
+    overrides: dict[str, Any] | None = None,
+    deadline: int | None = None,
+) -> dict[str, Any]:
     cfg = load_infra()["runpod"]
     engine = load_engines()[engine_key]
     emb = load_embedding_server()
@@ -121,9 +155,12 @@ def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) ->
         ports.append(f"{emb['port']}/http")
     if cfg.get("postgres_mode") == "in_gpu_pod" and cfg.get("postgres_expose_tcp"):
         ports.append(f"{pg_port}/tcp")
+    if not deadline:
+        raise ValueError("pod needs a watchdog deadline (epoch seconds)")
     env = {
         "LLM_API_KEY": ensure_env_secret("LLM_API_KEY"),
         "POSTGRES_PASSWORD": ensure_env_secret("POSTGRES_PASSWORD"),
+        "WATCHDOG_DEADLINE": str(int(deadline)),
     }
     if download:
         env["HF_TOKEN"] = cfg["hf_token_secret"]  # Runpod substitutes the secret at boot
@@ -139,7 +176,11 @@ def pod_body(engine_key: str, model_key: str, volume_id: str, download: bool) ->
         "mounts": {"network": [{"volumeId": volume_id, "path": cfg["volume"]["mount_path"]}]},
         "ports": ports,
         "env": env,
-        "entrypoint": ["bash", "-c", render_pod_script(engine_key, model_key, download=download)],
+        "entrypoint": [
+            "bash",
+            "-c",
+            render_pod_script(engine_key, model_key, download=download, overrides=overrides),
+        ],
     }
 
 
@@ -154,7 +195,12 @@ def download_body(volume_id: str, clean: list[str] | None = None) -> dict[str, A
         "cpu": {"id": d["cpu_flavor"], "vcpuCount": d["vcpu"]},
         "disk": d["container_disk_gb"],
         "mounts": {"network": [{"volumeId": volume_id, "path": cfg["volume"]["mount_path"]}]},
-        "env": {"HF_TOKEN": cfg["hf_token_secret"]},
+        "env": {
+            "HF_TOKEN": cfg["hf_token_secret"],
+            "WATCHDOG_DEADLINE": str(
+                watchdog_deadline(load_infra()["watchdog"]["download_max_hours"])
+            ),
+        },
         "entrypoint": ["bash", "-c", render_download_script(clean=clean)],
     }
 
@@ -251,7 +297,16 @@ def cmd_up(rp: Runpod, args: argparse.Namespace) -> int:
     vol = rp.find_volume()
     if vol is None:
         raise SystemExit("network volume yok; önce `make volume`")
-    body = pod_body(engine_key, model_key, vol["id"], args.download)
+    overrides = parse_overrides(args.override)
+    max_hours = args.max_hours or load_infra()["watchdog"]["max_hours"]
+    deadline = watchdog_deadline(max_hours)
+    body = pod_body(engine_key, model_key, vol["id"], args.download, overrides, deadline)
+    until = time.strftime("%H:%M UTC", time.gmtime(deadline))
+    idle_min = load_infra()["watchdog"]["idle_minutes"]
+    print(
+        f"bekçi: GPU {idle_min} dk boşta kalırsa ya da {max_hours} saat dolunca "
+        f"({until}) pod kendini siler"
+    )
     print(
         f"pod oluşturuluyor: {body['name']} {body['gpu']['id']} {body['dataCenterIds']} "
         f"{rp.cfg['gpu_hourly_usd']} USD/saat"
@@ -271,6 +326,9 @@ def cmd_up(rp: Runpod, args: argparse.Namespace) -> int:
         "llm_port": engine.port,
         "embedding_port": load_embedding_server()["port"],
         "download": args.download,
+        "overrides": overrides,
+        "started_monotonic": time.time(),
+        "watchdog_deadline": deadline,
     }
     write_state(state)
     print(f"pod: {pod['id']} durum={pod.get('status')} ücret={pod.get('cost')} USD/saat")
@@ -289,16 +347,32 @@ def cmd_wait(rp: Runpod, args: argparse.Namespace) -> int:
         raise SystemExit("kayıtlı pod yok")
     key = ensure_env_secret("LLM_API_KEY")
     url = proxy_url(pod["id"], pod["llm_port"]) + "/v1/models"
-    started = pod["created_monotonic_hint"]
+    started = pod.get("started_monotonic", pod["created_monotonic_hint"])
     deadline = time.time() + args.timeout
     with httpx.Client(timeout=15, headers={"Authorization": f"Bearer {key}"}) as http:
+        if pod.get("awaiting_restart"):
+            # After a reconfigure the old server may still answer for a moment; wait until it
+            # goes down so that "ready" means the new configuration.
+            down_deadline = time.time() + 180
+            while time.time() < down_deadline:
+                try:
+                    if http.get(url).status_code != 200:
+                        break
+                except httpx.HTTPError:
+                    break
+                time.sleep(3)
+            else:
+                print("uyarı: eski sunucu 180 sn içinde kapanmadı")
+            state = read_state()
+            state["pod"].pop("awaiting_restart", None)
+            write_state(state)
         while time.time() < deadline:
             try:
                 r = http.get(url)
                 if r.status_code == 200:
                     took = time.time() - started
                     served = r.json()["data"][0]["id"]
-                    print(f"hazır: pod oluşturulduktan {took:.0f} sn sonra; {served}")
+                    print(f"hazır: başlatmadan {took:.0f} sn sonra; {served}")
                     state = read_state()
                     state["pod"]["ready_after_s"] = round(took)
                     write_state(state)
@@ -308,6 +382,66 @@ def cmd_wait(rp: Runpod, args: argparse.Namespace) -> int:
             time.sleep(10)
     print("zaman aşımı: servis hazır olmadı")
     return 1
+
+
+def cmd_reconfigure(rp: Runpod, args: argparse.Namespace) -> int:
+    """Change model, engine or server settings of the running pod without deleting it: the
+    entrypoint (and image, ports) are patched, the container restarts on the same machine,
+    so the image is not pulled again."""
+    state = read_state()
+    pod = state.get("pod")
+    if not pod:
+        raise SystemExit("kayıtlı pod yok; önce `make up`")
+    engine_key = args.engine or pod["engine"]
+    model_key = args.model or pod["model"]
+    overrides = parse_overrides(args.override)
+    vol = rp.find_volume()
+    deadline = pod.get("watchdog_deadline") or watchdog_deadline(
+        load_infra()["watchdog"]["max_hours"]
+    )
+    body = pod_body(engine_key, model_key, vol["id"], args.download, overrides, deadline)
+    patch = {k: body[k] for k in ("image", "ports", "env", "entrypoint")}
+    r = rp.http.patch(f"/pods/{pod['id']}", json=patch)
+    if r.status_code >= 400:
+        raise SystemExit(f"PATCH başarısız: HTTP {r.status_code} {r.text[:800]}")
+    engine = load_engines()[engine_key]
+    pod |= {
+        "engine": engine_key,
+        "model": model_key,
+        "overrides": overrides,
+        "llm_port": engine.port,
+        "started_monotonic": time.time(),
+        "reconfigured_at": now(),
+        "awaiting_restart": True,
+        "watchdog_deadline": deadline,
+    }
+    pod.setdefault("reconfigurations", []).append(
+        {"at": now(), "engine": engine_key, "model": model_key, "overrides": overrides}
+    )
+    state["pod"] = pod
+    write_state(state)
+    print(f"yeniden yapılandırıldı: {pod['id']} → {engine_key}/{model_key} {overrides}")
+    return 0
+
+
+def cmd_extend(rp: Runpod, args: argparse.Namespace) -> int:
+    """Move the self-delete deadline of the running pod (no restart: writes the pod's
+    /tmp/watchdog_deadline through the exec API; the next reconfigure carries it in env)."""
+    state = read_state()
+    pod = state.get("pod")
+    if not pod:
+        raise SystemExit("kayıtlı pod yok")
+    deadline = int(max(pod.get("watchdog_deadline") or 0, time.time()) + float(args.hours) * 3600)
+    if deadline - time.time() > 24 * 3600:
+        raise SystemExit("son tarih şu andan en fazla 24 saat sonra olabilir")
+    cmd = ["sh", "-c", f"echo {deadline} > /tmp/watchdog_deadline && cat /tmp/watchdog_deadline"]
+    r = rp.http.post(f"/pods/{pod['id']}/exec", json={"command": cmd, "timeoutSeconds": 20})
+    if r.status_code >= 400 or str(deadline) not in r.text:
+        raise SystemExit(f"uzatma başarısız: HTTP {r.status_code} {r.text[:300]}")
+    pod["watchdog_deadline"] = deadline
+    write_state(state)
+    print(f"yeni son tarih: {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(deadline))}")
+    return 0
 
 
 def cmd_status(rp: Runpod, _: argparse.Namespace) -> int:
@@ -367,6 +501,15 @@ def main() -> int:
     up.add_argument("--engine")
     up.add_argument("--model")
     up.add_argument("--download", action="store_true", help="ağırlıkları volume'a indir")
+    up.add_argument("--override", action="append", help="sunucu ayarı, ör. max_num_seqs=64")
+    up.add_argument("--max-hours", type=float, help="bekçinin en uzun ömrü (saat)")
+    ex = sub.add_parser("extend")
+    ex.add_argument("--hours", type=float, required=True)
+    rc = sub.add_parser("reconfigure")
+    rc.add_argument("--engine")
+    rc.add_argument("--model")
+    rc.add_argument("--download", action="store_true")
+    rc.add_argument("--override", action="append")
     w = sub.add_parser("wait")
     w.add_argument("--timeout", type=float, default=1800)
     sub.add_parser("status")
@@ -383,6 +526,8 @@ def main() -> int:
         "wait": cmd_wait,
         "status": cmd_status,
         "down": cmd_down,
+        "reconfigure": cmd_reconfigure,
+        "extend": cmd_extend,
         "download": cmd_download,
         "download-down": cmd_download_down,
     }[args.cmd](rp, args)

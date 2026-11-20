@@ -1,0 +1,6 @@
+name: d1-vllm
+question: "D1 Sunum motoru: vLLM. 1, 8, 16, 32 eşzamanlı istekte hız, ilk token süresi, hata, şema."
+variable: engine=vllm
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+throughput: {concurrency: [1, 8, 16, 32], min_requests: 4}
+quality: true

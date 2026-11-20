@@ -1,0 +1,6 @@
+name: d2-qwen-r3
+question: "D2 tekrar: Qwen3.8-27B, güncel ayarlarla 3 koşu (gürültüyü ölçmek ve gpt-oss ile aynı koşullarda karşılaştırmak için)."
+variable: model=qwen3.8-27b
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+quality: true
+repeat: 3

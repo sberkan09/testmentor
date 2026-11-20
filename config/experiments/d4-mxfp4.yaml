@@ -1,0 +1,6 @@
+name: d4-mxfp4
+question: "D4 Ağırlık hassasiyeti: 4 bit (BF16'dan çalışma anında MXFP4, Marlin). Varsayım FP8."
+variable: precision=mxfp4-online
+server: {engine: vllm, model: qwen3.8-27b-mxfp4, overrides: {}}
+throughput: {concurrency: [16, 32], min_requests: 4}
+quality: true

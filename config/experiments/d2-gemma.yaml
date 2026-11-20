@@ -1,0 +1,5 @@
+name: d2-gemma
+question: "D2 Model: Gemma 4 31B (BF16)."
+variable: model=gemma-4-31b
+server: {engine: vllm, model: gemma-4-31b, overrides: {}}
+quality: true

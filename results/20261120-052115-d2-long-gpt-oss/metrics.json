@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "run_id": "20261120-052115-d2-long-gpt-oss",
+    "experiment": {
+      "name": "d2-long-gpt-oss",
+      "question": "D2 uzun bağlam: gpt-oss-120b, istek başına ~12 bin token getirilmiş parça, 8 ve 16 eşzamanlı istekte hız ve ilk token.",
+      "variable": "model=gpt-oss-120b, passage_tokens=12000",
+      "server": {
+        "engine": "vllm",
+        "model": "gpt-oss-120b",
+        "overrides": {}
+      },
+      "throughput": {
+        "concurrency": [
+          8,
+          16
+        ],
+        "min_requests": 4,
+        "passage_tokens": 12000
+      },
+      "quality": false
+    },
+    "config_file": "config/experiments/d2-long-gpt-oss.yaml",
+    "pipeline_config": {
+      "prompt_version": "p1",
+      "generation_inputs": "reference",
+      "methods": [
+        {
+          "name": "Test",
+          "criterion": "Davranış sistem çalıştırılarak ve girdi verilerek gözlenebiliyorsa."
+        },
+        {
+          "name": "Analiz",
+          "criterion": "Doğrulama hesap, model, benzetim ya da istatistik gerektiriyorsa."
+        },
+        {
+          "name": "İnceleme",
+          "criterion": "Belge, kod, yapılandırma ya da fiziksel ürün gözle denetlenerek doğrulanıyorsa."
+        },
+        {
+          "name": "Gösterim",
+          "criterion": "İşlev ölçüm yapılmadan, çalıştırılıp gözlemlenerek gösteriliyorsa."
+        }
+      ],
+      "test_method": "Test",
+      "test_types": [
+        "Normal",
+        "Sınır",
+        "Hata"
+      ],
+      "priorities": [
+        "Yüksek",
+        "Orta",
+        "Düşük"
+      ],
+      "clustering": {
+        "method": "agglomerative",
+        "linkage": "average",
+        "distance_threshold": 0.35,
+        "max_cluster_size": 25
+      },
+      "classification": {
+        "batch_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 4096
+      },
+      "generation": {
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 8192,
+        "repair": true
+      },
+      "concurrency": 16,
+      "prefix_warmup": false,
+      "examples_file": "config/prompts/examples-generation.yaml",
+      "thresholds": {
+        "schema_valid_rate": 0.99,
+        "coverage_rate": 1.0,
+        "step_structure_rate": 1.0,
+        "no_test_violations": 0
+      }
+    },
+    "template_version": "t2",
+    "golden_version": "v0.1",
+    "server": {
+      "pod": "ib4b8vwnicumxq",
+      "engine": "vllm",
+      "model": "gpt-oss-120b",
+      "overrides": {}
+    },
+    "model_spec": {
+      "repo_id": "openai/gpt-oss-120b",
+      "served_name": "gpt-oss-120b",
+      "precision": "mxfp4",
+      "context_length": 32768,
+      "max_num_seqs": 16,
+      "engine_args": {
+        "vllm": [
+          "--kv-cache-dtype",
+          "fp8"
+        ],
+        "sglang": [
+          "--reasoning-parser",
+          "gpt-oss"
+        ]
+      },
+      "thinking_on": {
+        "reasoning_effort": "medium"
+      },
+      "thinking_off": {
+        "reasoning_effort": "low"
+      },
+      "gated": false,
+      "gpu_memory_utilization": null,
+      "download_ignore": [
+        "original/*",
+        "metal/*"
+      ],
+      "approx_size_gb": 65.0,
+      "notes": "vLLM tarifi RTX 50 serisi (sm_120) desteğini \"sürüyor\" diye anıyor; yükleme riski var. --kv-cache-dtype fp8 tarifin attention-sinks önerisidir."
+    },
+    "started_at": "2026-11-20T05:21:15Z",
+    "served_model": "gpt-oss-120b",
+    "engine_settings": {
+      "engine": "vllm",
+      "model": "gpt-oss-120b",
+      "base_url": "https://ib4b8vwnicumxq-8000.proxy.runpod.net/v1",
+      "served_model_name": "gpt-oss-120b",
+      "api_key_env": "LLM_API_KEY",
+      "request_timeout_s": 900.0,
+      "connect_timeout_s": 15.0,
+      "default_max_tokens": 4096,
+      "default_temperature": null,
+      "extra_body": {},
+      "thinking_on": {
+        "reasoning_effort": "medium"
+      },
+      "thinking_off": {
+        "reasoning_effort": "low"
+      }
+    }
+  },
+  "runs": [],
+  "throughput": [
+    {
+      "concurrency": 8,
+      "requests": 16,
+      "errors": 0,
+      "error_samples": [],
+      "schema_valid_rate": 1.0,
+      "wall_s": 55.54,
+      "output_tokens_per_s": 430.8,
+      "ttft_p50_s": 2.756,
+      "ttft_p95_s": 5.912,
+      "finish_length": 0
+    },
+    {
+      "concurrency": 16,
+      "requests": 32,
+      "errors": 0,
+      "error_samples": [],
+      "schema_valid_rate": 1.0,
+      "wall_s": 64.04,
+      "output_tokens_per_s": 707.7,
+      "ttft_p50_s": 1.099,
+      "ttft_p95_s": 1.269,
+      "finish_length": 0
+    }
+  ]
+}
