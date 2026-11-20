@@ -129,7 +129,7 @@ Ek testler: yöntem elle değişti (1 çağrı); kart değişti (tüm model çı
 
 ## Uygulama adımı sonuçları (adım 4, 20 Kasım 2026)
 
-- `tests/core`: 67 test geçiyor (bayatlama tablosunun 10 satırı, kurallar, graf, hash, depo sözleşmesi). Tüm takım: 157 test. `make lint` yalnızca main'den gelen `eval/golden/v1/tools/rubric_holdout.py:42` B023 hatasıyla düşüyor; bu dalın dosyalarında hata yok.
+- `tests/core`: 67 test geçiyor (bayatlama tablosunun 10 satırı, kurallar, graf, hash, depo sözleşmesi). Tüm takım: 157 test. `make lint` temiz (main'den gelen B023 hatası ayrı commit'le düzeltildi).
 - Ölçek (`uv run python scripts/core_scale.py 2000`; 2.000 gereksinim, 100 öbek, üretimden sonra 10.403 düğüm; sahte üretici, model çağrısı yok). Süreler koşudan koşuya ±%50 oynuyor:
 
 | İş | Süre |
