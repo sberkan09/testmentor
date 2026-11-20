@@ -155,3 +155,20 @@ Kullanıcı kararı (20 Kasım 2026): referans girdilerle eşikler ve gerileme y
 - Artımlı kuyruk uzun setlerde bağlamı şişirebilir; özet biçimi (başlık ve kapsama) ve D8 ölçümü bunun içindir.
 - D6'nın referansı uzman değil, belge bölümüdür; eşik bu vekile aşırı uyabilir. Birini dışarıda bırakma raporlanır, karar "ölçülebilir fark yoksa basit olan" kuralıyla verilir.
 - Hakem gürültüsü (±0,05) D7 ve D8'deki küçük farkları gizleyebilir; aralıklar raporlanır, fark yoksa çalışma varsayımı kalır.
+
+## Arayüz adımında netleşenler (adım 3, 20 Kasım 2026)
+
+- `core/llm.py`: `LLMParams`, `LLMRequest`, `LLMReply`, `LLMUsage`, `Complete`. `core/settings.py`: `StageSettings`, `ClusteringSettings` (`core/` dosya okumaz; `services/settings.load_stage_settings` kurar). `StageSettings` `core/stages/` altında değil: `core.prompts` onu içe aktarıyor, aşama paketi de `core.prompts`'u; döngü olmasın diye ayrı modülde.
+- `core/stages/base.py`: `ProduceContext`, `ProduceOutcome` (`results`, `failed`, `stats`), `Producer`, `Embed` / `Retrieve` / `PassageSource` protokolleri; `StageSpec.produce` ve `StageSpec.batched` (embedding, yöntem, matris). Üretici hata fırlatmaz, başarısız düğümleri `failed` içinde döner (toplu aşamada bir kısmı başarısız olabilir). Planın `ProductionFailed` istisnası bu yüzden yok.
+- Her aşama modülünde `produce` imzası ve davranışını tanımlayan docstring; test seti yardımcıları `core/stages/test_generation.py` (dayanak, kip seçimi, değişiklik, süzme, bölme, kimlik, budama, artımlı ve birleştirme uygulaması). Öbekleme: `cut`, `initial_membership`, `recut` (`core/stages/clustering.py`). HDBSCAN'de gürültü noktası tek üyeli öbek olur.
+- Baştan üretimde (bölünmüş öbek dahil) testler parça sırasıyla birleşir ve `TC-1…` diye yeniden numaralanır; planın "parça öneki" yerine bu. Baştanda kimlik zaten kararlı değil; artımlı kip kimlikleri korur.
+- Birleştirmede `sources` yalnızca sabit olmayan testleri taşır (sabitleri çekirdek yeni sete taşıdı, sabit bölümünde görünürler). Birleştirme sonrası kapsanmayan gereksinim onarılır.
+- Yayınlanan sözleşmeler şimdiden yazıldı: `core/schemas.py` içinde `test_case_model`, `incremental_model`, `MergeDecision`, `ClusterLabel` (`case_set_model`'in JSON şeması paket 1'dekiyle aynı, doğrulandı); `core/prompts.py` içinde sürüm tablosu (`SHARED_VERSION = s1`, `STAGE_VERSIONS`), öbek adı, sabit testler, artımlı, birleştirme ve şema düzeltme metinleri. `ProjectCardContent.methods` (`MethodDef`), `ProjectCardChanged.methods` (None listeyi korur; çekirdekte uygulandı), `new_project(methods=...)`. `config/pipeline.yaml`: `cluster_label` parametreleri, `generation.max_unit_size: 25`.
+- Testler `tests/stages/` (68 test): sahte `Complete` (`ScriptedComplete`, `smart_reply`) ve test içi dalga sürücüsü (`drive`). Bugün 4'ü geçiyor, 64'ü `xfail(raises=NotImplementedError, strict=True)`: üretici yazıldıkça XPASS olur ve katı işaret onları hataya çevirir.
+
+## Adım 4 ve sonrası için devir (Sonnet)
+
+- Sıra: `core/prompts.py` stub'ları → `core/stages/test_generation.py` → üreticiler (yöntem, ad, modelsizler, test seti) → `cut` / `initial_membership` / `recut` → `services/settings.py` (`load_stage_settings`, `stage_configs`) ve `services/stage_llm.py`. Her modül bitince ilgili test dosyasından `pytestmark` / `xfail_step4` işaretini kaldır; yeşil olmadan ilerleme.
+- `tests/stages/test_prompts.py::test_rendering_snapshot_matches_version`: ilk koşuda eklenecek hash'i yazdırarak kırılır; `RENDER_HASHES`'e o satırı ekle. Sonradan çizimi değiştirirsen sürümü artır ve yeni satır ekle, eski hash'i değiştirme.
+- Testlerin beklentisi tasarımla çelişirse testi sessizce değiştirme: önce `docs/tasarim.md` (ayrı commit) ya da bu plan, sonra test.
+- Adım 5'te `core/prompts.TEMPLATE_VERSION` ve `config/pipeline.yaml` `prompt_version` kalkar; `eval/run.py` aşama sürümlerini yazar. Ücretli adımlar (7) planın GPU bölümüne ve `runpod-kredi-korumasi` skill'ine bağlıdır.

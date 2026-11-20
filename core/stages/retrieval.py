@@ -7,10 +7,11 @@ from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING
 
 from core.nodes import KB_INDEX_KEY, NodeKind, NodeRef
-from core.stages.base import StageSpec, register
+from core.stages.base import ProduceContext, ProduceOutcome, StageSpec, register
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
+    from core.llm import Complete
 
 INDEX = NodeRef(kind=NodeKind.KB_INDEX, key=KB_INDEX_KEY)
 
@@ -25,6 +26,12 @@ def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
     return (*(NodeRef(kind=NodeKind.REQUIREMENT, key=m) for m in state.members(key)), INDEX)
 
 
+async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
+    """`ctx.retrieve(members)`; `RetrievalContent(passage_ids)` in the returned order,
+    duplicates removed. Missing `ctx.retrieve` gives an empty list (no knowledge base)."""
+    raise NotImplementedError("paket 3 adım 4")
+
+
 SPEC = register(
     StageSpec(
         kind=NodeKind.RETRIEVAL,
@@ -32,5 +39,7 @@ SPEC = register(
         keys=keys,
         dependencies=dependencies,
         identity_by_input=False,
+        produce=produce,
+        batched=False,
     )
 )

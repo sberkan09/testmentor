@@ -112,10 +112,23 @@ class RequirementContent(BaseModel):
     source: str = ""
 
 
+class MethodDef(BaseModel):
+    """One verification method of the project and its criterion (docs/tasarim.md, Proje kartı)."""
+
+    model_config = _FROZEN
+    name: str = Field(min_length=1)
+    criterion: str = ""
+
+
 class ProjectCardContent(BaseModel):
+    """`text`: the card body (system, glossary, rules). `methods`: the project's method list;
+    the rendered card lists them after the text and the method schema's values come from it
+    (paket 3; `core.prompts.render_card`)."""
+
     model_config = _FROZEN
     kind: Literal["project_card"] = "project_card"
     text: str
+    methods: tuple[MethodDef, ...] = ()
 
 
 class KbIndexContent(BaseModel):

@@ -12,10 +12,11 @@ from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Any
 
 from core.nodes import PROJECT_CARD_KEY, NodeKind, NodeRef
-from core.stages.base import StageSpec, register
+from core.stages.base import ProduceContext, ProduceOutcome, StageSpec, register
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
+    from core.llm import Complete
 
 CARD = NodeRef(kind=NodeKind.PROJECT_CARD, key=PROJECT_CARD_KEY)
 
@@ -47,6 +48,36 @@ def context(state: ProjectState, key: str) -> Any:
     return pinned
 
 
+async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
+    """See `core.stages.test_generation` for the helpers and docs/tasarim.md (Test durumu
+    üretimi) for the rules. Per cluster:
+    1. Mode by `choose_mode`. Members not in `need` get no tests; with no `need` the set is
+       produced without a call (empty, only pinned cases).
+    2. Prompt: `generation_messages` (layers 1–5, byte-identical to paket 1) plus, in this order
+       after layer 5: `pinned_section`; for incremental `incremental_section`; for merge
+       `merge_section`. Schema: case set / `incremental_model` / `MergeDecision`.
+       Full mode on more than `settings.max_unit_size` members: `split_units`, one call per
+       part (each part's own layers 5, same tails), concurrently; cases concatenated in part
+       order then `renumber`ed.
+       Layer 4: `ctx.passages(retrieval passage ids)`; passage ids without `ctx.passages`
+       fail the node (no silent "(none)").
+       Incremental: `prune_removed` first; when the delta is only removals the call still
+       happens (design call count; D8 measures pruning without a call).
+    3. `filter_covers` against `need`; one repair call (`repair_section` with the uncovered
+       ids, schema case set, same prefix and tails) when `settings.repair` and something is
+       uncovered; repaired cases are filtered and appended with `next_ids`.
+    4. Schema error on any call: one retry with `schema_retry_section(error)` appended; a
+       second error fails the node (no partial set is written).
+    5. Result: `TestSetContent()` with `cases` = the complete unpinned set; produced_by mode
+       (`full`, `incremental`, `merge`), model, prompt version, params and
+       `params["basis"] = basis_of(...)`. Requirements still uncovered after the repair do not
+       fail the node; they are reported in stats (`uncovered`) and show as uncovered matrix
+       rows.
+    Stats per ref: `mode`, `calls`, `units`, `dropped_ids`, `dropped_cases`, `uncovered`,
+    `covered_before_repair`, `pinned_update_attempts`."""
+    raise NotImplementedError("paket 3 adım 4")
+
+
 SPEC = register(
     StageSpec(
         kind=NodeKind.TEST_SET,
@@ -54,5 +85,7 @@ SPEC = register(
         keys=keys,
         dependencies=dependencies,
         context=context,
+        produce=produce,
+        batched=False,
     )
 )

@@ -34,11 +34,11 @@ def _enum(name: str, values: tuple[str, ...]) -> type[Enum]:
 
 
 @lru_cache(maxsize=32)
-def case_set_model(types: tuple[str, ...], priorities: tuple[str, ...]) -> type[BaseModel]:
-    """`{"test_cases": [...]}`. Every step carries its own expected result."""
+def test_case_model(types: tuple[str, ...], priorities: tuple[str, ...]) -> type[BaseModel]:
+    """One test case. Every step carries its own expected result."""
     test_type = _enum("TestType", types)
     priority = _enum("Priority", priorities)
-    test_case = create_model(
+    return create_model(
         "TestCase",
         __config__=ConfigDict(extra="forbid"),
         id=(str, Field(min_length=1)),
@@ -51,6 +51,12 @@ def case_set_model(types: tuple[str, ...], priorities: tuple[str, ...]) -> type[
         assumptions=(str, ...),
         steps=(list[Step], Field(min_length=1)),
     )
+
+
+@lru_cache(maxsize=32)
+def case_set_model(types: tuple[str, ...], priorities: tuple[str, ...]) -> type[BaseModel]:
+    """`{"test_cases": [...]}`: full generation, repair and each part of a split cluster."""
+    test_case = test_case_model(types, priorities)
     # At least one test: generation is only called for clusters that need tests, and an empty
     # list let the model skip a cluster entirely (paket 1, D2 first runs).
     return create_model(
@@ -58,6 +64,36 @@ def case_set_model(types: tuple[str, ...], priorities: tuple[str, ...]) -> type[
         __config__=ConfigDict(extra="forbid"),
         test_cases=(list[test_case], Field(min_length=1)),  # type: ignore[valid-type]
     )
+
+
+@lru_cache(maxsize=32)
+def incremental_model(types: tuple[str, ...], priorities: tuple[str, ...]) -> type[BaseModel]:
+    """`{"add": [...], "update": [...]}`: incremental generation (paket 3). `update` items carry
+    the id of an existing case and are its complete new version; both lists may be empty."""
+    test_case = test_case_model(types, priorities)
+    return create_model(
+        "TestCaseDelta",
+        __config__=ConfigDict(extra="forbid"),
+        add=(list[test_case], ...),  # type: ignore[valid-type]
+        update=(list[test_case], ...),  # type: ignore[valid-type]
+    )
+
+
+class MergeDecision(BaseModel):
+    """`{"drop": [...]}`: ids of duplicate cases to remove when two sets are merged."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    drop: list[str]
+
+
+class ClusterLabel(BaseModel):
+    """Cluster name (3–6 words) and a one-sentence rationale."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1)
+    rationale: str
 
 
 @lru_cache(maxsize=32)

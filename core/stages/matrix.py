@@ -6,10 +6,11 @@ from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING
 
 from core.nodes import NodeKind, NodeRef
-from core.stages.base import StageSpec, register
+from core.stages.base import ProduceContext, ProduceOutcome, StageSpec, register
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
+    from core.llm import Complete
 
 
 def keys(state: ProjectState) -> Iterable[str]:
@@ -27,6 +28,13 @@ def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
     )
 
 
+async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
+    """Batched, no model call. Per requirement: its METHOD methods (empty if the method
+    has no content), the keys of the test cases covering it (`state.cases_covering`), and
+    `covered` = any case covers it."""
+    raise NotImplementedError("paket 3 adım 4")
+
+
 SPEC = register(
     StageSpec(
         kind=NodeKind.MATRIX_ROW,
@@ -34,5 +42,7 @@ SPEC = register(
         keys=keys,
         dependencies=dependencies,
         identity_by_input=False,
+        produce=produce,
+        batched=True,
     )
 )

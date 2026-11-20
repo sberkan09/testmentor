@@ -18,6 +18,9 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.nodes import NodeKind, StageConfig
+from core.settings import StageSettings
+
 
 class ModelSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -135,3 +138,23 @@ def load_embedding_settings(config_dir: str | Path = "config") -> EmbeddingSetti
     if url := os.environ.get("EMBEDDING_BASE_URL"):
         raw["base_url"] = url
     return EmbeddingSettings.model_validate(raw)
+
+
+def load_stage_settings(config_dir: str | Path = "config") -> StageSettings:
+    """`core.settings.StageSettings` from config/pipeline.yaml (labels, `generation`,
+    `classification`, `cluster_label`, `clustering`, `generation.max_unit_size`) and the examples
+    file it names (paket 3)."""
+    raise NotImplementedError("paket 3 adım 4")
+
+
+def stage_configs(
+    settings: StageSettings,
+    *,
+    model: str,
+    embedding_model_version: str,
+) -> dict[NodeKind, StageConfig]:
+    """One `StageConfig` per registered stage. Model stages: `prompt_version(stage, settings)`,
+    `model`, params = `settings.llm[stage]` as plain JSON. Embedding: version = the embedding model
+    version. Clustering: params = `settings.clustering` as plain JSON. Retrieval and matrix:
+    fixed versions `r1` and `x1` (paket 7 and 4 change them)."""
+    raise NotImplementedError("paket 3 adım 4")
