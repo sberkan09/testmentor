@@ -43,7 +43,7 @@ generation:                 # D7: öbek başına tek çağrı
   max_tokens: 16384         # paket 3: 8192 öbek sınırına (25) yetmiyor (Test üyesi başına ~382 token + 538; uçtan uca v1'de 24 üyeli öbek ~9,7 bin); prompt + bu < 32k bağlam
   repair: true              # kapsanmayan gereksinimler için ek çağrı
   regeneration: incremental # D8: incremental | full (geçerli dayanaklı bayat set nasıl yeniden üretilir)
-  prune_removals: false     # D8: yalnızca üye çıktığında çağrısız budama (false: artımlı çağrı)
+  prune_removals: true      # D8 (paket 3): yalnızca üye çıktığında çağrısız budama; artımlı çağrıyla aynı seti verdi
 
 concurrency: 16             # D5: 16–32 dizi
 prefix_warmup: false        # D12 (paket 1): bekletmenin ölçülebilir faydası yok; daha basit olan

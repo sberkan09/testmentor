@@ -218,3 +218,28 @@ Kullanıcı kararı (20 Kasım 2026): referans girdilerle eşikler ve gerileme y
 - `eval/run.py` kayıtları metriklerden önce yazar (metrik ya da rapor hatası ücretli üretimi kaybettirmez); `main()` sahte modelle düz ve senaryo deneyinde uçtan uca test edildi, yargıç yükleyicisi çıktıyı okuyor (`tests/test_scenarios.py::test_runner_main_writes_outputs_metrics_report`).
 - D8 projeleri sırayla koşar (bir projenin değişiklik aşaması diğerinin tabanıyla örtüşmesin); kollar sabit sırada, maliyet ölçütü önce çıktı token'ı ve çağrı sayısı, süre ikincil.
 - Süreç notu: D7/D8 tasarım satırı değişikliği (`0e54a54`) ilgili kod commit'inden (`547e6af`) sonra geldi; kural tasarımın önce güncellenmesini ister.
+
+## Sonuç (adım 7–8, 20 Kasım 2026)
+
+### Bitti ölçütü
+
+Gerileme koşulunun yorumu: "paket 1 tabanından … aralığının alt sınırı −0,05'in altına düşmez" farkın aralığıdır: aynı gereksinimler üzerinde yeni − paket 1 check_recall farkının gereksinim eşleştirilmiş bootstrap %95 aralığı (4.000 örnek; v0'da üç tekrar gereksinim başına ortalanır). Tek koşunun aralığı v0'da (37 gereksinim) ±0,08 genişliğindedir ve bu ölçütü anlamsızlaştırır.
+
+| madde | koşu | sonuç | durum |
+| --- | --- | --- | --- |
+| 1. Katman 1 eşikleri, referans | `p3-v0-reference` (×3), `p3-v1-reference` | şema 1,0; kapsama 1,0; adım yapısı 1,0; ham ihlal 0 (dört koşunun hepsinde) | ✓ |
+| 2a. Gerileme yok, v0 | v0 referans − `d2-qwen-r3` | 0,461 − 0,454 = +0,007 [−0,024, +0,043] | ✓ |
+| 2b. Gerileme yok, v1 | v1 referans − `d9-pilot-none` | 0,449 − 0,449 = 0,000 [−0,033, +0,033] | ✓ |
+| 2c. Yöntem tam eşleşmesi v0 ≥ 0,75 | `p3-v0-reference` | 0,775 / 0,700 / 0,775, ortalama 0,750 | ✓ (sınırda; yöntem prompt'u paket 1 ile bayt bayt aynı, fark modelin belirsizliği) |
+| 3. Uçtan uca | `p3-v0-predicted`, `p3-v1-predicted` | şema 1,0; adım yapısı 1,0; tahmin edilen yöntemlere göre kapsama 1,0 / 1,0. Raporlanan: referansa göre kapsama 0,70 / 0,90, ham ihlal 0 / 1, check_recall 0,404 / 0,403 | ✓ |
+| 4. Testler | `make test` | 280 geçti; bayatlama tablosu ve paket 2 testleri yeşil | ✓ |
+
+### Açık bulgular
+
+- **KDH-030 dejenerasyonu.** Tek üyeli öbek KDH-030 ("parolanın tamamı kesilmeden doğrulanmalı"): sınır testinde model "uzun parola" girdisini bitirmeden yazıyor (`A1b2C3…`). Bu öbeğin göründüğü beş koşunun üçünde çıktı `max_tokens`'ta kesildi (`d7-cluster` 20.480, `d8-remove` ve `d8-merge` tabanları 16.384), düğüm başarısız oldu ve öbek kapsanmadı. `p3-v1-reference` ve `d8-add` tabanında sorun çıkmadı. Bitti ölçütü 1 bu yüzden tekrarlanan bir koşuda kapsama eşiğini kaçırabilir (`d7-cluster` kapsama 0,996). Önlem adayları (prompt ya da şema sürümü değişir, yeniden ölçüm ister): şemada `test_inputs` uzunluk sınırı, prompt'a "uzun ya da tekrarlı girdiyi tarif et, yazma" kuralı, motor tarafında tekrar cezası. Paket 3'ün kapsamında uygulanmadı.
+- **D7 kararı kullanıcıda** (bkz. `docs/deneyler/D7.md`).
+- D8 birleştirme prompt'u az tekrar ayıklıyor (tekrar oranı %13).
+
+### Maliyet
+
+Runpod: pod 1 0,31 saat ≈ 0,84 USD, pod 2 1,47 saat ≈ 3,96 USD; toplam ≈ 4,80 USD (bütçe 7 USD; bakiye 13,39 → 8,65, volume dahil). Pod kalmadı. Hakem (Anthropic API) yaklaşık 2.400 çağrı, ayrı faturalanır.

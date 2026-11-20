@@ -255,3 +255,13 @@ async def test_runner_main_writes_outputs_metrics_report(tmp_path, monkeypatch):
             tests = [t for t in projects["ETC"]["test_cases"] if rid in t["covers"]]
             raw = next(r for r in golden.projects[0].raw["requirements"] if r["id"] == rid)
             assert judge_prompt(raw, checks[rid], tests)
+            from eval.judge import scenario_requirements
+
+            arms = metrics["runs"][0]["scenario"]["arms"]
+            assert set(load_projects(run_dir, "full")[0]) == {"ETC"}
+            judged, changed = scenario_requirements(golden, arms["incremental"], "add")
+            assert (
+                changed
+                and changed <= judged
+                and changed == set(arms["incremental"]["changed_requirements"])
+            )

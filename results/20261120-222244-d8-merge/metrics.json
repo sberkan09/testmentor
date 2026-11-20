@@ -1,0 +1,2519 @@
+{
+  "meta": {
+    "run_id": "20261120-222244-d8-merge",
+    "experiment": {
+      "name": "d8-merge",
+      "question": "D8 Yeniden üretim, birleştirme: komşu öbek çiftleri birleşir; birleştirme prompt'u (tekrar ayıklama, çalışma varsayımı) ile baştan üretim aynı taban üzerinde karşılaştırılır. Tekrar oranı, kapsama, recall, süre.",
+      "variable": "merge_sources (true | false)",
+      "server": {
+        "engine": "vllm",
+        "model": "qwen3.8-27b",
+        "overrides": {}
+      },
+      "golden": "v1",
+      "scenario": {
+        "kind": "merge",
+        "arms": {
+          "prompt": {
+            "merge_sources": true
+          },
+          "full": {
+            "merge_sources": false
+          }
+        }
+      },
+      "quality": true
+    },
+    "config_file": "config/experiments/d8-merge.yaml",
+    "pipeline_config": {
+      "generation_inputs": "reference",
+      "unit_packing": false,
+      "passages": "none",
+      "methods": [
+        {
+          "name": "Test",
+          "criterion": "Davranış sistem çalıştırılarak ve girdi verilerek gözlenebiliyorsa."
+        },
+        {
+          "name": "Analiz",
+          "criterion": "Doğrulama hesap, model, benzetim ya da istatistik gerektiriyorsa."
+        },
+        {
+          "name": "İnceleme",
+          "criterion": "Belge, kod, yapılandırma ya da fiziksel ürün gözle denetlenerek doğrulanıyorsa."
+        },
+        {
+          "name": "Gösterim",
+          "criterion": "İşlev ölçüm yapılmadan, çalıştırılıp gözlemlenerek gösteriliyorsa."
+        }
+      ],
+      "test_method": "Test",
+      "test_types": [
+        "Normal",
+        "Sınır",
+        "Hata"
+      ],
+      "priorities": [
+        "Yüksek",
+        "Orta",
+        "Düşük"
+      ],
+      "clustering": {
+        "method": "agglomerative",
+        "linkage": "average",
+        "distance_threshold": 0.35,
+        "max_cluster_size": 25
+      },
+      "classification": {
+        "batch_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 4096
+      },
+      "cluster_label": {
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 512
+      },
+      "generation": {
+        "max_unit_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 16384,
+        "repair": true,
+        "regeneration": "incremental",
+        "prune_removals": false
+      },
+      "concurrency": 16,
+      "prefix_warmup": false,
+      "examples_file": "config/prompts/examples-generation.yaml",
+      "thresholds": {
+        "schema_valid_rate": 0.99,
+        "coverage_rate": 1.0,
+        "step_structure_rate": 1.0,
+        "no_test_violations": 0
+      }
+    },
+    "golden_version": "v1",
+    "server": {
+      "pod": "j9flebx3g2ibqh",
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "overrides": {}
+    },
+    "model_spec": {
+      "repo_id": "Qwen/Qwen3.8-27B-FP8",
+      "served_name": "qwen3.8-27b",
+      "precision": "fp8",
+      "context_length": 32768,
+      "max_num_seqs": 64,
+      "engine_args": {
+        "vllm": [
+          "--reasoning-parser",
+          "qwen3",
+          "--language-model-only"
+        ],
+        "sglang": [
+          "--reasoning-parser",
+          "qwen3"
+        ]
+      },
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "gated": false,
+      "gpu_memory_utilization": null,
+      "download_ignore": [],
+      "approx_size_gb": 30.0,
+      "notes": "Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık. Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek."
+    },
+    "started_at": "2026-11-20T22:22:44Z",
+    "served_model": "qwen3.8-27b",
+    "engine_settings": {
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "base_url": "https://j9flebx3g2ibqh-8000.proxy.runpod.net/v1",
+      "served_model_name": "qwen3.8-27b",
+      "api_key_env": "LLM_API_KEY",
+      "request_timeout_s": 900.0,
+      "connect_timeout_s": 15.0,
+      "default_max_tokens": 4096,
+      "default_temperature": null,
+      "extra_body": {},
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    "prompt_versions": {
+      "embedding": "BAAI/bge-m3",
+      "clustering": "c1",
+      "method": "s1.m1+5d9f798bd379",
+      "cluster_label": "s1.l1+7f6b859095cb",
+      "retrieval": "r1",
+      "test_set": "s1.g3+18f7be32bb16",
+      "matrix_row": "x1"
+    }
+  },
+  "runs": [
+    {
+      "all": {
+        "requirements": 229,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": null,
+        "coverage_rate_before_repair": 0.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 486,
+        "method_exact_match": 0.0,
+        "method_jaccard": 0.0,
+        "duplicate_pairs": 46,
+        "duplicate_test_rate": 0.1296,
+        "no_test_violations_raw": 0
+      },
+      "by_language": {
+        "en": {
+          "requirements": 169,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": null,
+          "coverage_rate_before_repair": 0.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 374,
+          "method_exact_match": 0.0,
+          "method_jaccard": 0.0
+        },
+        "tr": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": null,
+          "coverage_rate_before_repair": 0.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 112,
+          "method_exact_match": 0.0,
+          "method_jaccard": 0.0
+        }
+      },
+      "traps": {
+        "requirements": 1,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": null,
+        "coverage_rate_before_repair": 0.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 3,
+        "method_exact_match": 0.0,
+        "method_jaccard": 0.0
+      },
+      "cluster_ari": null,
+      "cluster_ari_by_project": {
+        "ETC": null,
+        "KDH": null
+      },
+      "calls": {
+        "calls": 201,
+        "errors": 0,
+        "schema_valid_rate": 0.995,
+        "schema_valid_rate_generation": 0.9934,
+        "tokens_total": 666476,
+        "prompt_tokens": 399740,
+        "completion_tokens": 266736,
+        "cached_tokens": 187200,
+        "prefix_cache_hit_rate": 0.4683,
+        "wall_s": 947.21,
+        "seconds_per_cluster": null,
+        "tokens_per_second": 281.6
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": true,
+        "step_structure_rate": true,
+        "no_test_violations": true
+      },
+      "scenario": {
+        "kind": "merge",
+        "baseline_calls": 99,
+        "arms": {
+          "prompt": {
+            "units": 49,
+            "change_calls": 50,
+            "change_completion_tokens": 1104,
+            "change_call_s": 247.38,
+            "change_wall_s": 25.91,
+            "errors": {},
+            "rows": [
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m000",
+                "sources": [
+                  "c000",
+                  "c001"
+                ],
+                "requirements": [
+                  "ETC-001",
+                  "ETC-002",
+                  "ETC-003",
+                  "ETC-004",
+                  "ETC-005",
+                  "ETC-006",
+                  "ETC-007",
+                  "ETC-008",
+                  "ETC-009",
+                  "ETC-028",
+                  "ETC-054",
+                  "ETC-067",
+                  "ETC-088",
+                  "ETC-090",
+                  "ETC-094"
+                ],
+                "cases_before": 25,
+                "cases_after": 25,
+                "duplicate_pairs": 2,
+                "duplicate_test_rate": 0.16,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m001",
+                "sources": [
+                  "c002",
+                  "c003"
+                ],
+                "requirements": [
+                  "ETC-010",
+                  "ETC-011",
+                  "ETC-012",
+                  "ETC-013",
+                  "ETC-014"
+                ],
+                "cases_before": 8,
+                "cases_after": 8,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m002",
+                "sources": [
+                  "c004",
+                  "c005"
+                ],
+                "requirements": [
+                  "ETC-015",
+                  "ETC-016",
+                  "ETC-017",
+                  "ETC-018",
+                  "ETC-019",
+                  "ETC-020",
+                  "ETC-021",
+                  "ETC-022"
+                ],
+                "cases_before": 15,
+                "cases_after": 15,
+                "duplicate_pairs": 2,
+                "duplicate_test_rate": 0.2,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m003",
+                "sources": [
+                  "c006",
+                  "c007"
+                ],
+                "requirements": [
+                  "ETC-023",
+                  "ETC-024",
+                  "ETC-025",
+                  "ETC-026"
+                ],
+                "cases_before": 11,
+                "cases_after": 11,
+                "duplicate_pairs": 4,
+                "duplicate_test_rate": 0.7273,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m004",
+                "sources": [
+                  "c008",
+                  "c009"
+                ],
+                "requirements": [
+                  "ETC-027",
+                  "ETC-029",
+                  "ETC-030",
+                  "ETC-031",
+                  "ETC-032",
+                  "ETC-033",
+                  "ETC-034",
+                  "ETC-035",
+                  "ETC-036",
+                  "ETC-037",
+                  "ETC-038",
+                  "ETC-039",
+                  "ETC-040",
+                  "ETC-041"
+                ],
+                "cases_before": 21,
+                "cases_after": 21,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.0952,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m005",
+                "sources": [
+                  "c010",
+                  "c011"
+                ],
+                "requirements": [
+                  "ETC-042",
+                  "ETC-043",
+                  "ETC-044",
+                  "ETC-045",
+                  "ETC-046"
+                ],
+                "cases_before": 22,
+                "cases_after": 22,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.0909,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m006",
+                "sources": [
+                  "c012",
+                  "c013"
+                ],
+                "requirements": [
+                  "ETC-047",
+                  "ETC-048",
+                  "ETC-049",
+                  "ETC-050"
+                ],
+                "cases_before": 11,
+                "cases_after": 11,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m007",
+                "sources": [
+                  "c014",
+                  "c015"
+                ],
+                "requirements": [
+                  "ETC-051",
+                  "ETC-052",
+                  "ETC-053",
+                  "ETC-055",
+                  "ETC-056",
+                  "ETC-057"
+                ],
+                "cases_before": 14,
+                "cases_after": 14,
+                "duplicate_pairs": 3,
+                "duplicate_test_rate": 0.4286,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m008",
+                "sources": [
+                  "c016",
+                  "c017"
+                ],
+                "requirements": [
+                  "ETC-058",
+                  "ETC-059",
+                  "ETC-060",
+                  "ETC-061",
+                  "ETC-062",
+                  "ETC-063",
+                  "ETC-064",
+                  "ETC-065",
+                  "ETC-066",
+                  "ETC-068",
+                  "ETC-069",
+                  "ETC-070",
+                  "ETC-071",
+                  "ETC-072",
+                  "ETC-073"
+                ],
+                "cases_before": 27,
+                "cases_after": 27,
+                "duplicate_pairs": 2,
+                "duplicate_test_rate": 0.1481,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m009",
+                "sources": [
+                  "c018",
+                  "c019"
+                ],
+                "requirements": [
+                  "ETC-074",
+                  "ETC-075"
+                ],
+                "cases_before": 4,
+                "cases_after": 4,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.5,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m010",
+                "sources": [
+                  "c020",
+                  "c021"
+                ],
+                "requirements": [
+                  "ETC-076",
+                  "ETC-077",
+                  "ETC-078",
+                  "ETC-079",
+                  "ETC-080",
+                  "ETC-081",
+                  "ETC-082",
+                  "ETC-083",
+                  "ETC-084"
+                ],
+                "cases_before": 16,
+                "cases_after": 16,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.125,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m011",
+                "sources": [
+                  "c022",
+                  "c023"
+                ],
+                "requirements": [
+                  "ETC-085",
+                  "ETC-086"
+                ],
+                "cases_before": 5,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m012",
+                "sources": [
+                  "c024",
+                  "c025"
+                ],
+                "requirements": [
+                  "ETC-087",
+                  "ETC-089"
+                ],
+                "cases_before": 6,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m013",
+                "sources": [
+                  "c026",
+                  "c027"
+                ],
+                "requirements": [
+                  "ETC-091",
+                  "ETC-092",
+                  "ETC-093",
+                  "ETC-095"
+                ],
+                "cases_before": 12,
+                "cases_after": 12,
+                "duplicate_pairs": 4,
+                "duplicate_test_rate": 0.3333,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m014",
+                "sources": [
+                  "c028",
+                  "c029"
+                ],
+                "requirements": [
+                  "ETC-096",
+                  "ETC-097",
+                  "ETC-098",
+                  "ETC-099",
+                  "ETC-100",
+                  "ETC-101",
+                  "ETC-102",
+                  "ETC-103",
+                  "ETC-104",
+                  "ETC-105",
+                  "ETC-106"
+                ],
+                "cases_before": 17,
+                "cases_after": 17,
+                "duplicate_pairs": 4,
+                "duplicate_test_rate": 0.2941,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "ETC",
+                "cluster": "m015",
+                "sources": [
+                  "c030",
+                  "c031"
+                ],
+                "requirements": [
+                  "ETC-107",
+                  "ETC-108",
+                  "ETC-109"
+                ],
+                "cases_before": 8,
+                "cases_after": 8,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m000",
+                "sources": [
+                  "c000",
+                  "c001"
+                ],
+                "requirements": [
+                  "KDH-001",
+                  "KDH-002"
+                ],
+                "cases_before": 5,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m001",
+                "sources": [
+                  "c002",
+                  "c003"
+                ],
+                "requirements": [
+                  "KDH-003",
+                  "KDH-004"
+                ],
+                "cases_before": 5,
+                "cases_after": 5,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.4,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m002",
+                "sources": [
+                  "c004",
+                  "c005"
+                ],
+                "requirements": [
+                  "KDH-005",
+                  "KDH-006"
+                ],
+                "cases_before": 6,
+                "cases_after": 5,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.4,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m003",
+                "sources": [
+                  "c006",
+                  "c007"
+                ],
+                "requirements": [
+                  "KDH-007",
+                  "KDH-008"
+                ],
+                "cases_before": 5,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m004",
+                "sources": [
+                  "c008",
+                  "c009"
+                ],
+                "requirements": [
+                  "KDH-009",
+                  "KDH-010"
+                ],
+                "cases_before": 6,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m005",
+                "sources": [
+                  "c010",
+                  "c011"
+                ],
+                "requirements": [
+                  "KDH-011",
+                  "KDH-012"
+                ],
+                "cases_before": 5,
+                "cases_after": 5,
+                "duplicate_pairs": 5,
+                "duplicate_test_rate": 0.8,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m006",
+                "sources": [
+                  "c012",
+                  "c013"
+                ],
+                "requirements": [
+                  "KDH-013",
+                  "KDH-014",
+                  "KDH-022",
+                  "KDH-026",
+                  "KDH-037",
+                  "KDH-059",
+                  "KDH-070",
+                  "KDH-077",
+                  "KDH-098",
+                  "KDH-100",
+                  "KDH-101"
+                ],
+                "cases_before": 22,
+                "cases_after": 22,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m007",
+                "sources": [
+                  "c014",
+                  "c015"
+                ],
+                "requirements": [
+                  "KDH-015",
+                  "KDH-016"
+                ],
+                "cases_before": 3,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m008",
+                "sources": [
+                  "c016",
+                  "c017"
+                ],
+                "requirements": [
+                  "KDH-017",
+                  "KDH-018"
+                ],
+                "cases_before": 7,
+                "cases_after": 7,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m009",
+                "sources": [
+                  "c018",
+                  "c019"
+                ],
+                "requirements": [
+                  "KDH-019",
+                  "KDH-020"
+                ],
+                "cases_before": 3,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m010",
+                "sources": [
+                  "c020",
+                  "c021"
+                ],
+                "requirements": [
+                  "KDH-021",
+                  "KDH-023"
+                ],
+                "cases_before": 4,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m011",
+                "sources": [
+                  "c022",
+                  "c023"
+                ],
+                "requirements": [
+                  "KDH-024",
+                  "KDH-025"
+                ],
+                "cases_before": 7,
+                "cases_after": 7,
+                "duplicate_pairs": 11,
+                "duplicate_test_rate": 1.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m012",
+                "sources": [
+                  "c024",
+                  "c025"
+                ],
+                "requirements": [
+                  "KDH-027",
+                  "KDH-028"
+                ],
+                "cases_before": 6,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m013",
+                "sources": [
+                  "c026",
+                  "c027"
+                ],
+                "requirements": [
+                  "KDH-029",
+                  "KDH-030"
+                ],
+                "cases_before": 1,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m014",
+                "sources": [
+                  "c028",
+                  "c029"
+                ],
+                "requirements": [
+                  "KDH-031",
+                  "KDH-032"
+                ],
+                "cases_before": 6,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m015",
+                "sources": [
+                  "c030",
+                  "c031"
+                ],
+                "requirements": [
+                  "KDH-033",
+                  "KDH-034"
+                ],
+                "cases_before": 4,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m016",
+                "sources": [
+                  "c032",
+                  "c033"
+                ],
+                "requirements": [
+                  "KDH-035",
+                  "KDH-036"
+                ],
+                "cases_before": 9,
+                "cases_after": 9,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m017",
+                "sources": [
+                  "c034",
+                  "c035"
+                ],
+                "requirements": [
+                  "KDH-038",
+                  "KDH-039"
+                ],
+                "cases_before": 5,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m018",
+                "sources": [
+                  "c036",
+                  "c037"
+                ],
+                "requirements": [
+                  "KDH-040",
+                  "KDH-041"
+                ],
+                "cases_before": 6,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m019",
+                "sources": [
+                  "c038",
+                  "c039"
+                ],
+                "requirements": [
+                  "KDH-042",
+                  "KDH-043"
+                ],
+                "cases_before": 6,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m020",
+                "sources": [
+                  "c040",
+                  "c041"
+                ],
+                "requirements": [
+                  "KDH-044",
+                  "KDH-045"
+                ],
+                "cases_before": 4,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m021",
+                "sources": [
+                  "c042",
+                  "c043"
+                ],
+                "requirements": [
+                  "KDH-046",
+                  "KDH-047"
+                ],
+                "cases_before": 7,
+                "cases_after": 7,
+                "duplicate_pairs": 2,
+                "duplicate_test_rate": 0.5714,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m022",
+                "sources": [
+                  "c044",
+                  "c045"
+                ],
+                "requirements": [
+                  "KDH-048",
+                  "KDH-049"
+                ],
+                "cases_before": 4,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m023",
+                "sources": [
+                  "c046",
+                  "c047"
+                ],
+                "requirements": [
+                  "KDH-050",
+                  "KDH-051",
+                  "KDH-052"
+                ],
+                "cases_before": 7,
+                "cases_after": 7,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m024",
+                "sources": [
+                  "c048",
+                  "c049"
+                ],
+                "requirements": [
+                  "KDH-053",
+                  "KDH-054",
+                  "KDH-055",
+                  "KDH-056"
+                ],
+                "cases_before": 11,
+                "cases_after": 11,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.1818,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m025",
+                "sources": [
+                  "c050",
+                  "c051"
+                ],
+                "requirements": [
+                  "KDH-057",
+                  "KDH-058",
+                  "KDH-060"
+                ],
+                "cases_before": 8,
+                "cases_after": 8,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m026",
+                "sources": [
+                  "c052",
+                  "c053"
+                ],
+                "requirements": [
+                  "KDH-061",
+                  "KDH-062",
+                  "KDH-063",
+                  "KDH-064",
+                  "KDH-065",
+                  "KDH-066",
+                  "KDH-067",
+                  "KDH-068",
+                  "KDH-069",
+                  "KDH-071",
+                  "KDH-072",
+                  "KDH-073",
+                  "KDH-074",
+                  "KDH-075",
+                  "KDH-076",
+                  "KDH-078",
+                  "KDH-079",
+                  "KDH-080",
+                  "KDH-081",
+                  "KDH-082"
+                ],
+                "cases_before": 25,
+                "cases_after": 25,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m027",
+                "sources": [
+                  "c054",
+                  "c055"
+                ],
+                "requirements": [
+                  "KDH-083",
+                  "KDH-084",
+                  "KDH-085",
+                  "KDH-086",
+                  "KDH-087"
+                ],
+                "cases_before": 14,
+                "cases_after": 14,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m028",
+                "sources": [
+                  "c056",
+                  "c057"
+                ],
+                "requirements": [
+                  "KDH-088",
+                  "KDH-089",
+                  "KDH-090",
+                  "KDH-091",
+                  "KDH-092"
+                ],
+                "cases_before": 9,
+                "cases_after": 9,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m029",
+                "sources": [
+                  "c058",
+                  "c059"
+                ],
+                "requirements": [
+                  "KDH-093",
+                  "KDH-094",
+                  "KDH-095",
+                  "KDH-096",
+                  "KDH-097"
+                ],
+                "cases_before": 11,
+                "cases_after": 11,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m030",
+                "sources": [
+                  "c060",
+                  "c061"
+                ],
+                "requirements": [
+                  "KDH-099",
+                  "KDH-102",
+                  "KDH-103",
+                  "KDH-104",
+                  "KDH-105"
+                ],
+                "cases_before": 10,
+                "cases_after": 10,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m031",
+                "sources": [
+                  "c062",
+                  "c063"
+                ],
+                "requirements": [
+                  "KDH-106",
+                  "KDH-107",
+                  "KDH-108"
+                ],
+                "cases_before": 8,
+                "cases_after": 8,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              },
+              {
+                "arm": "prompt",
+                "project": "KDH",
+                "cluster": "m032",
+                "sources": [
+                  "c064",
+                  "c065"
+                ],
+                "requirements": [
+                  "KDH-109",
+                  "KDH-110",
+                  "KDH-111",
+                  "KDH-112",
+                  "KDH-113",
+                  "KDH-114",
+                  "KDH-115",
+                  "KDH-116",
+                  "KDH-117",
+                  "KDH-118",
+                  "KDH-119",
+                  "KDH-120"
+                ],
+                "cases_before": 23,
+                "cases_after": 23,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "merge"
+              }
+            ],
+            "duplicate_pairs": 46,
+            "duplicate_test_rate": 0.1296,
+            "coverage": 1.0
+          },
+          "full": {
+            "units": 49,
+            "change_calls": 52,
+            "change_completion_tokens": 112411,
+            "change_call_s": 2909.41,
+            "change_wall_s": 202.22,
+            "errors": {},
+            "rows": [
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m000",
+                "sources": [
+                  "c000",
+                  "c001"
+                ],
+                "requirements": [
+                  "ETC-001",
+                  "ETC-002",
+                  "ETC-003",
+                  "ETC-004",
+                  "ETC-005",
+                  "ETC-006",
+                  "ETC-007",
+                  "ETC-008",
+                  "ETC-009",
+                  "ETC-028",
+                  "ETC-054",
+                  "ETC-067",
+                  "ETC-088",
+                  "ETC-090",
+                  "ETC-094"
+                ],
+                "cases_before": 25,
+                "cases_after": 18,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m001",
+                "sources": [
+                  "c002",
+                  "c003"
+                ],
+                "requirements": [
+                  "ETC-010",
+                  "ETC-011",
+                  "ETC-012",
+                  "ETC-013",
+                  "ETC-014"
+                ],
+                "cases_before": 8,
+                "cases_after": 9,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m002",
+                "sources": [
+                  "c004",
+                  "c005"
+                ],
+                "requirements": [
+                  "ETC-015",
+                  "ETC-016",
+                  "ETC-017",
+                  "ETC-018",
+                  "ETC-019",
+                  "ETC-020",
+                  "ETC-021",
+                  "ETC-022"
+                ],
+                "cases_before": 15,
+                "cases_after": 10,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m003",
+                "sources": [
+                  "c006",
+                  "c007"
+                ],
+                "requirements": [
+                  "ETC-023",
+                  "ETC-024",
+                  "ETC-025",
+                  "ETC-026"
+                ],
+                "cases_before": 11,
+                "cases_after": 9,
+                "duplicate_pairs": 2,
+                "duplicate_test_rate": 0.4444,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m004",
+                "sources": [
+                  "c008",
+                  "c009"
+                ],
+                "requirements": [
+                  "ETC-027",
+                  "ETC-029",
+                  "ETC-030",
+                  "ETC-031",
+                  "ETC-032",
+                  "ETC-033",
+                  "ETC-034",
+                  "ETC-035",
+                  "ETC-036",
+                  "ETC-037",
+                  "ETC-038",
+                  "ETC-039",
+                  "ETC-040",
+                  "ETC-041"
+                ],
+                "cases_before": 21,
+                "cases_after": 17,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m005",
+                "sources": [
+                  "c010",
+                  "c011"
+                ],
+                "requirements": [
+                  "ETC-042",
+                  "ETC-043",
+                  "ETC-044",
+                  "ETC-045",
+                  "ETC-046"
+                ],
+                "cases_before": 22,
+                "cases_after": 18,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.1111,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m006",
+                "sources": [
+                  "c012",
+                  "c013"
+                ],
+                "requirements": [
+                  "ETC-047",
+                  "ETC-048",
+                  "ETC-049",
+                  "ETC-050"
+                ],
+                "cases_before": 11,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m007",
+                "sources": [
+                  "c014",
+                  "c015"
+                ],
+                "requirements": [
+                  "ETC-051",
+                  "ETC-052",
+                  "ETC-053",
+                  "ETC-055",
+                  "ETC-056",
+                  "ETC-057"
+                ],
+                "cases_before": 14,
+                "cases_after": 10,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m008",
+                "sources": [
+                  "c016",
+                  "c017"
+                ],
+                "requirements": [
+                  "ETC-058",
+                  "ETC-059",
+                  "ETC-060",
+                  "ETC-061",
+                  "ETC-062",
+                  "ETC-063",
+                  "ETC-064",
+                  "ETC-065",
+                  "ETC-066",
+                  "ETC-068",
+                  "ETC-069",
+                  "ETC-070",
+                  "ETC-071",
+                  "ETC-072",
+                  "ETC-073"
+                ],
+                "cases_before": 27,
+                "cases_after": 27,
+                "duplicate_pairs": 5,
+                "duplicate_test_rate": 0.2593,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m009",
+                "sources": [
+                  "c018",
+                  "c019"
+                ],
+                "requirements": [
+                  "ETC-074",
+                  "ETC-075"
+                ],
+                "cases_before": 4,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m010",
+                "sources": [
+                  "c020",
+                  "c021"
+                ],
+                "requirements": [
+                  "ETC-076",
+                  "ETC-077",
+                  "ETC-078",
+                  "ETC-079",
+                  "ETC-080",
+                  "ETC-081",
+                  "ETC-082",
+                  "ETC-083",
+                  "ETC-084"
+                ],
+                "cases_before": 16,
+                "cases_after": 15,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m011",
+                "sources": [
+                  "c022",
+                  "c023"
+                ],
+                "requirements": [
+                  "ETC-085",
+                  "ETC-086"
+                ],
+                "cases_before": 5,
+                "cases_after": 4,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.5,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m012",
+                "sources": [
+                  "c024",
+                  "c025"
+                ],
+                "requirements": [
+                  "ETC-087",
+                  "ETC-089"
+                ],
+                "cases_before": 6,
+                "cases_after": 5,
+                "duplicate_pairs": 2,
+                "duplicate_test_rate": 0.8,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m013",
+                "sources": [
+                  "c026",
+                  "c027"
+                ],
+                "requirements": [
+                  "ETC-091",
+                  "ETC-092",
+                  "ETC-093",
+                  "ETC-095"
+                ],
+                "cases_before": 12,
+                "cases_after": 10,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m014",
+                "sources": [
+                  "c028",
+                  "c029"
+                ],
+                "requirements": [
+                  "ETC-096",
+                  "ETC-097",
+                  "ETC-098",
+                  "ETC-099",
+                  "ETC-100",
+                  "ETC-101",
+                  "ETC-102",
+                  "ETC-103",
+                  "ETC-104",
+                  "ETC-105",
+                  "ETC-106"
+                ],
+                "cases_before": 17,
+                "cases_after": 17,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.1176,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "ETC",
+                "cluster": "m015",
+                "sources": [
+                  "c030",
+                  "c031"
+                ],
+                "requirements": [
+                  "ETC-107",
+                  "ETC-108",
+                  "ETC-109"
+                ],
+                "cases_before": 8,
+                "cases_after": 7,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.2857,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m000",
+                "sources": [
+                  "c000",
+                  "c001"
+                ],
+                "requirements": [
+                  "KDH-001",
+                  "KDH-002"
+                ],
+                "cases_before": 5,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m001",
+                "sources": [
+                  "c002",
+                  "c003"
+                ],
+                "requirements": [
+                  "KDH-003",
+                  "KDH-004"
+                ],
+                "cases_before": 5,
+                "cases_after": 4,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.5,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m002",
+                "sources": [
+                  "c004",
+                  "c005"
+                ],
+                "requirements": [
+                  "KDH-005",
+                  "KDH-006"
+                ],
+                "cases_before": 6,
+                "cases_after": 4,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.5,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m003",
+                "sources": [
+                  "c006",
+                  "c007"
+                ],
+                "requirements": [
+                  "KDH-007",
+                  "KDH-008"
+                ],
+                "cases_before": 5,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m004",
+                "sources": [
+                  "c008",
+                  "c009"
+                ],
+                "requirements": [
+                  "KDH-009",
+                  "KDH-010"
+                ],
+                "cases_before": 6,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m005",
+                "sources": [
+                  "c010",
+                  "c011"
+                ],
+                "requirements": [
+                  "KDH-011",
+                  "KDH-012"
+                ],
+                "cases_before": 5,
+                "cases_after": 3,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.6667,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m006",
+                "sources": [
+                  "c012",
+                  "c013"
+                ],
+                "requirements": [
+                  "KDH-013",
+                  "KDH-014",
+                  "KDH-022",
+                  "KDH-026",
+                  "KDH-037",
+                  "KDH-059",
+                  "KDH-070",
+                  "KDH-077",
+                  "KDH-098",
+                  "KDH-100",
+                  "KDH-101"
+                ],
+                "cases_before": 22,
+                "cases_after": 22,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m007",
+                "sources": [
+                  "c014",
+                  "c015"
+                ],
+                "requirements": [
+                  "KDH-015",
+                  "KDH-016"
+                ],
+                "cases_before": 3,
+                "cases_after": 2,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m008",
+                "sources": [
+                  "c016",
+                  "c017"
+                ],
+                "requirements": [
+                  "KDH-017",
+                  "KDH-018"
+                ],
+                "cases_before": 7,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m009",
+                "sources": [
+                  "c018",
+                  "c019"
+                ],
+                "requirements": [
+                  "KDH-019",
+                  "KDH-020"
+                ],
+                "cases_before": 3,
+                "cases_after": 2,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m010",
+                "sources": [
+                  "c020",
+                  "c021"
+                ],
+                "requirements": [
+                  "KDH-021",
+                  "KDH-023"
+                ],
+                "cases_before": 4,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m011",
+                "sources": [
+                  "c022",
+                  "c023"
+                ],
+                "requirements": [
+                  "KDH-024",
+                  "KDH-025"
+                ],
+                "cases_before": 7,
+                "cases_after": 4,
+                "duplicate_pairs": 3,
+                "duplicate_test_rate": 0.75,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m012",
+                "sources": [
+                  "c024",
+                  "c025"
+                ],
+                "requirements": [
+                  "KDH-027",
+                  "KDH-028"
+                ],
+                "cases_before": 6,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m013",
+                "sources": [
+                  "c026",
+                  "c027"
+                ],
+                "requirements": [
+                  "KDH-029",
+                  "KDH-030"
+                ],
+                "cases_before": 1,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m014",
+                "sources": [
+                  "c028",
+                  "c029"
+                ],
+                "requirements": [
+                  "KDH-031",
+                  "KDH-032"
+                ],
+                "cases_before": 6,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m015",
+                "sources": [
+                  "c030",
+                  "c031"
+                ],
+                "requirements": [
+                  "KDH-033",
+                  "KDH-034"
+                ],
+                "cases_before": 4,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m016",
+                "sources": [
+                  "c032",
+                  "c033"
+                ],
+                "requirements": [
+                  "KDH-035",
+                  "KDH-036"
+                ],
+                "cases_before": 9,
+                "cases_after": 7,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m017",
+                "sources": [
+                  "c034",
+                  "c035"
+                ],
+                "requirements": [
+                  "KDH-038",
+                  "KDH-039"
+                ],
+                "cases_before": 5,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m018",
+                "sources": [
+                  "c036",
+                  "c037"
+                ],
+                "requirements": [
+                  "KDH-040",
+                  "KDH-041"
+                ],
+                "cases_before": 6,
+                "cases_after": 6,
+                "duplicate_pairs": 3,
+                "duplicate_test_rate": 0.5,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m019",
+                "sources": [
+                  "c038",
+                  "c039"
+                ],
+                "requirements": [
+                  "KDH-042",
+                  "KDH-043"
+                ],
+                "cases_before": 6,
+                "cases_after": 4,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m020",
+                "sources": [
+                  "c040",
+                  "c041"
+                ],
+                "requirements": [
+                  "KDH-044",
+                  "KDH-045"
+                ],
+                "cases_before": 4,
+                "cases_after": 3,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m021",
+                "sources": [
+                  "c042",
+                  "c043"
+                ],
+                "requirements": [
+                  "KDH-046",
+                  "KDH-047"
+                ],
+                "cases_before": 7,
+                "cases_after": 5,
+                "duplicate_pairs": 1,
+                "duplicate_test_rate": 0.4,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m022",
+                "sources": [
+                  "c044",
+                  "c045"
+                ],
+                "requirements": [
+                  "KDH-048",
+                  "KDH-049"
+                ],
+                "cases_before": 4,
+                "cases_after": 2,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m023",
+                "sources": [
+                  "c046",
+                  "c047"
+                ],
+                "requirements": [
+                  "KDH-050",
+                  "KDH-051",
+                  "KDH-052"
+                ],
+                "cases_before": 7,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m024",
+                "sources": [
+                  "c048",
+                  "c049"
+                ],
+                "requirements": [
+                  "KDH-053",
+                  "KDH-054",
+                  "KDH-055",
+                  "KDH-056"
+                ],
+                "cases_before": 11,
+                "cases_after": 12,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m025",
+                "sources": [
+                  "c050",
+                  "c051"
+                ],
+                "requirements": [
+                  "KDH-057",
+                  "KDH-058",
+                  "KDH-060"
+                ],
+                "cases_before": 8,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m026",
+                "sources": [
+                  "c052",
+                  "c053"
+                ],
+                "requirements": [
+                  "KDH-061",
+                  "KDH-062",
+                  "KDH-063",
+                  "KDH-064",
+                  "KDH-065",
+                  "KDH-066",
+                  "KDH-067",
+                  "KDH-068",
+                  "KDH-069",
+                  "KDH-071",
+                  "KDH-072",
+                  "KDH-073",
+                  "KDH-074",
+                  "KDH-075",
+                  "KDH-076",
+                  "KDH-078",
+                  "KDH-079",
+                  "KDH-080",
+                  "KDH-081",
+                  "KDH-082"
+                ],
+                "cases_before": 25,
+                "cases_after": 20,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m027",
+                "sources": [
+                  "c054",
+                  "c055"
+                ],
+                "requirements": [
+                  "KDH-083",
+                  "KDH-084",
+                  "KDH-085",
+                  "KDH-086",
+                  "KDH-087"
+                ],
+                "cases_before": 14,
+                "cases_after": 12,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m028",
+                "sources": [
+                  "c056",
+                  "c057"
+                ],
+                "requirements": [
+                  "KDH-088",
+                  "KDH-089",
+                  "KDH-090",
+                  "KDH-091",
+                  "KDH-092"
+                ],
+                "cases_before": 9,
+                "cases_after": 8,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m029",
+                "sources": [
+                  "c058",
+                  "c059"
+                ],
+                "requirements": [
+                  "KDH-093",
+                  "KDH-094",
+                  "KDH-095",
+                  "KDH-096",
+                  "KDH-097"
+                ],
+                "cases_before": 11,
+                "cases_after": 5,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m030",
+                "sources": [
+                  "c060",
+                  "c061"
+                ],
+                "requirements": [
+                  "KDH-099",
+                  "KDH-102",
+                  "KDH-103",
+                  "KDH-104",
+                  "KDH-105"
+                ],
+                "cases_before": 10,
+                "cases_after": 8,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m031",
+                "sources": [
+                  "c062",
+                  "c063"
+                ],
+                "requirements": [
+                  "KDH-106",
+                  "KDH-107",
+                  "KDH-108"
+                ],
+                "cases_before": 8,
+                "cases_after": 6,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              },
+              {
+                "arm": "full",
+                "project": "KDH",
+                "cluster": "m032",
+                "sources": [
+                  "c064",
+                  "c065"
+                ],
+                "requirements": [
+                  "KDH-109",
+                  "KDH-110",
+                  "KDH-111",
+                  "KDH-112",
+                  "KDH-113",
+                  "KDH-114",
+                  "KDH-115",
+                  "KDH-116",
+                  "KDH-117",
+                  "KDH-118",
+                  "KDH-119",
+                  "KDH-120"
+                ],
+                "cases_before": 23,
+                "cases_after": 30,
+                "duplicate_pairs": 0,
+                "duplicate_test_rate": 0.0,
+                "coverage": 1.0,
+                "mode": "full"
+              }
+            ],
+            "duplicate_pairs": 23,
+            "duplicate_test_rate": 0.0923,
+            "coverage": 1.0
+          }
+        }
+      }
+    }
+  ],
+  "throughput": null,
+  "judge_arms": {
+    "prompt": {
+      "by_project": {
+        "ETC": 0.4545,
+        "KDH": 0.433
+      },
+      "by_split": {
+        "dev": 0.4362,
+        "holdout": 0.4898
+      },
+      "by_stratum": {
+        "control": 0.4762,
+        "core": 0.4442,
+        "non_testable": 0.1818
+      },
+      "checks_needing_documents": 0.25,
+      "checks_not_needing_documents": 0.5328,
+      "check_recall": 0.4412,
+      "by_language": {
+        "en": 0.494,
+        "tr": 0.3476
+      },
+      "traps": 1.0,
+      "invented_per_requirement": 1.355,
+      "boundary_ok_rate": 0.2,
+      "ambiguity_flagged_rate": 0.4636,
+      "unscored": 0,
+      "by_repeat": {
+        "0": 0.4412
+      },
+      "rubric_version": "r1",
+      "model": "claude-sonnet-5-5",
+      "stats": {
+        "cached": 11,
+        "called": 209,
+        "refused": 0
+      }
+    },
+    "full": {
+      "by_project": {
+        "ETC": 0.399,
+        "KDH": 0.4112
+      },
+      "by_split": {
+        "dev": 0.4106,
+        "holdout": 0.3673
+      },
+      "by_stratum": {
+        "control": 0.5476,
+        "core": 0.3948,
+        "non_testable": 0.3636
+      },
+      "checks_needing_documents": 0.2381,
+      "checks_not_needing_documents": 0.4872,
+      "check_recall": 0.4066,
+      "by_language": {
+        "en": 0.4367,
+        "tr": 0.3529
+      },
+      "traps": 1.0,
+      "invented_per_requirement": 1.164,
+      "boundary_ok_rate": 0.1682,
+      "ambiguity_flagged_rate": 0.4364,
+      "unscored": 0,
+      "by_repeat": {
+        "0": 0.4066
+      },
+      "rubric_version": "r1",
+      "model": "claude-sonnet-5-5",
+      "stats": {
+        "cached": 1,
+        "called": 219,
+        "refused": 0
+      }
+    }
+  },
+  "judge": {
+    "by_project": {
+      "ETC": 0.4545,
+      "KDH": 0.433
+    },
+    "by_split": {
+      "dev": 0.4362,
+      "holdout": 0.4898
+    },
+    "by_stratum": {
+      "control": 0.4762,
+      "core": 0.4442,
+      "non_testable": 0.1818
+    },
+    "checks_needing_documents": 0.25,
+    "checks_not_needing_documents": 0.5328,
+    "check_recall": 0.4412,
+    "by_language": {
+      "en": 0.494,
+      "tr": 0.3476
+    },
+    "traps": 1.0,
+    "invented_per_requirement": 1.355,
+    "boundary_ok_rate": 0.2,
+    "ambiguity_flagged_rate": 0.4636,
+    "unscored": 0,
+    "by_repeat": {
+      "0": 0.4412
+    },
+    "rubric_version": "r1",
+    "model": "claude-sonnet-5-5",
+    "stats": {
+      "cached": 11,
+      "called": 209,
+      "refused": 0
+    }
+  }
+}

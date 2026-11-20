@@ -118,17 +118,51 @@ def judge_prompt(
     return "\n".join(lines)
 
 
-def load_projects(run_dir: Path) -> dict[int, dict[str, dict[str, Any]]]:
-    """repeat → project → project record."""
+def load_projects(run_dir: Path, arm: str | None = None) -> dict[int, dict[str, dict[str, Any]]]:
+    """repeat → project → project record; with `arm`, the D8 arm's final sets
+    (`scenario_project` records, eval/scenarios.py)."""
     out: dict[int, dict[str, dict[str, Any]]] = {}
     for line in (run_dir / "outputs.jsonl").read_text(encoding="utf-8").splitlines():
         rec = json.loads(line)
-        if rec.get("type") == "project":
+        if arm is None and rec.get("type") == "project":
+            out.setdefault(rec["repeat"], {})[rec["project"]] = rec
+        elif arm is not None and rec.get("type") == "scenario_project" and rec["arm"] == arm:
             out.setdefault(rec["repeat"], {})[rec["project"]] = rec
     return out
 
 
-async def judge_run(run_dir: Path, client: JudgeClient, golden: Golden) -> dict[str, Any]:
+def scenario_requirements(golden: Golden, arm: dict[str, Any], kind: str) -> tuple[set, set]:
+    """(requirements to judge, changed requirements) of a D8 arm: the members of the clusters
+    the scenario touched. Cluster keys `c<i>` are the golden reference clusters in order
+    (eval/scenarios.py); merge rows list their requirements."""
+    members: dict[tuple[str, str], list[str]] = {}
+    for p in golden.projects:
+        for i, c in enumerate(p.reference_clusters()):
+            members[(p.key, f"c{i:03d}")] = c
+    judged: set[str] = set()
+    changed: set[str] = set()
+    for row in arm["rows"]:
+        if kind == "merge":
+            judged |= set(row["requirements"])
+            continue
+        cluster = set(members[(row["project"], row["cluster"])])
+        if kind == "remove":
+            cluster.discard(row["changed_requirement"])
+        else:
+            changed.add(row["changed_requirement"])
+        judged |= cluster
+    return judged, changed
+
+
+async def judge_run(
+    run_dir: Path,
+    client: JudgeClient,
+    golden: Golden,
+    *,
+    arm: str | None = None,
+    only: set[str] | None = None,
+    changed: set[str] | None = None,
+) -> dict[str, Any]:
     s = client.settings
     cache_dir = ROOT / s.cache_dir
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -186,23 +220,35 @@ async def judge_run(run_dir: Path, client: JudgeClient, golden: Golden) -> dict[
         )
 
     jobs = []
-    for rep, projects in load_projects(run_dir).items():
+    for rep, projects in load_projects(run_dir, arm).items():
         for proj in projects.values():
             for rid in sorted(
-                r for r in checks_by_req if raw_reqs[r]["id"].startswith(proj["project"] + "-")
+                r
+                for r in checks_by_req
+                if raw_reqs[r]["id"].startswith(proj["project"] + "-")
+                and (only is None or r in only)
             ):
                 tests = [t for t in proj["test_cases"] if rid in t["covers"]]
                 jobs.append(one(rep, rid, tests))
     await asyncio.gather(*jobs)
     results.sort(key=lambda r: (r["repeat"], r["requirement"]))
-    with (run_dir / "judge.jsonl").open("w", encoding="utf-8") as fh:
+    name = "judge.jsonl" if arm is None else f"judge-{arm}.jsonl"
+    with (run_dir / name).open("w", encoding="utf-8") as fh:
         for r in results:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")
-    return summarize(results) | {
-        "rubric_version": s.rubric_version,
-        "model": s.model,
-        "stats": stats,
-    }
+    extra = {}
+    if changed:
+        extra["changed_check_recall"] = _recall([r for r in results if r["requirement"] in changed])
+        extra["changed_requirements"] = len(changed)
+    return (
+        summarize(results)
+        | extra
+        | {
+            "rubric_version": s.rubric_version,
+            "model": s.model,
+            "stats": stats,
+        }
+    )
 
 
 def _recall(rows: list[dict[str, Any]]) -> float | None:
@@ -282,7 +328,21 @@ async def main() -> int:
             golden = (
                 load_golden_v1() if metrics["meta"].get("golden_version") == "v1" else load_golden()
             )
-            summary = await judge_run(run_dir, client, golden)
+            scenario = metrics["runs"][0].get("scenario")
+            if scenario:  # D8: every arm's final sets, on the requirements the scenario touched
+                arms = {}
+                for name, arm in scenario["arms"].items():
+                    only, changed = scenario_requirements(golden, arm, scenario["kind"])
+                    arms[name] = await judge_run(
+                        run_dir, client, golden, arm=name, only=only, changed=changed
+                    )
+                    print(
+                        f"  {name}: {arms[name]['check_recall']} {arms[name].get('changed_check_recall')}"
+                    )
+                metrics["judge_arms"] = arms
+                summary = arms[next(iter(arms))]
+            else:
+                summary = await judge_run(run_dir, client, golden)
             metrics["judge"] = summary
             (run_dir / "metrics.json").write_text(
                 json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8"
