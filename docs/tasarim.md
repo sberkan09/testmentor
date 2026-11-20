@@ -64,6 +64,11 @@ Kurallar:
 - Girdisi değişen `running` düğüm `stale` olur ve işi iptal edilir. Eski girdiyle biten sonuç çıktı cache'ine kendi anahtarıyla yazılır, düğüme yazılmaz.
 - Öbek hash'i üyelerin kimlik ve metinlerine bağlıdır, öbeğin adına ya da ekrandaki konumuna değil. Ad değiştirmek testleri bayatlatmaz.
 - Sabitleme düğüm başınadır; test setinde sabitlenen birim tek test durumudur.
+- Elle düzenleme düğümü o anki girdilerine göre taze yapar: yeni sürümün `input_hash`'i güncel beklenen hash'tir. Sabitlenmiş düğüm sonradan bayatlarsa kullanıcı fark ekranında "benimkini koru" der (`node_kept`): içerik aynı kalır, yeni sürüm güncel hash'i alır.
+- Silinen ya da birleştirilen öbeğin sabitlenmiş test durumları kaybolmaz: kapsadığı ilk gereksinimin şimdiki öbeğinin setine taşınır, orada da sabittir ve o setin bağlamına girer.
+- Sürüm içerik değişikliğini sayar (üretim, düzenleme, taşıma, koruma). Durum değişikliği (`fresh`, `stale`, `running`, `failed`) sürüm yazmaz. Silinip yeniden oluşan düğüm 1. sürümden başlar; geçmiş eklemeli tutulur.
+- Üretimi başarısız olan düğüm `failed` olur, kuyruğa kendiliğinden girmez ve aşağısını bekletir. Girdisi değişirse yeniden `stale` olur; kullanıcı yeniden deneyebilir.
+- Matris satırı test durumlarını anahtarlarıyla birlikte görür: aynı içerikli test durumu başka öbeğe geçerse satır bayatlar.
 - Kullanıcı düzenlemesi yeni bir sürüm yazar (`origin=edited`, `pinned=true`). Eski sürümler silinmez, geri alma sürüm değiştirmektir.
 - Her düzenleme olay günlüğüne yazılır (`requirement_moved`, `cluster_created`, `test_case_edited`). Arayüz bu olayları dinler, denetim izi de buradan çıkar.
 
