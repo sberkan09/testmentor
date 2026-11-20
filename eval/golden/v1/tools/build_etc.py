@@ -48,11 +48,17 @@ def main(worded_path: str) -> None:
             methods = ["Test", "Analiz"] if p else ["Analiz"]
             rationale = (
                 f"SUBSET-076-7 Tablo 3'te {'kısmen test edilebilir' if p else 'test edilemez'} olarak listeli; "
-                + ("test edilebilen kısım Test, kalanı Analiz." if p else "doğrulama analizle yapılır.")
+                + (
+                    "test edilebilen kısım Test, kalanı Analiz."
+                    if p
+                    else "doğrulama analizle yapılır."
+                )
             )
         else:
             methods = ["Test"]
-            rationale = "SUBSET-076-7 Tablo 3'te yok ve SUBSET-076-5-2'de resmî test vakası var: Test."
+            rationale = (
+                "SUBSET-076-7 Tablo 3'te yok ve SUBSET-076-5-2'de resmî test vakası var: Test."
+            )
         reqs.append(
             {
                 "id": f"ETC-{n:03d}",
