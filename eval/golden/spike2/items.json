@@ -105,7 +105,7 @@
       "section": "3.6.4.2.2.2"
     },
     "reference_origin": "official",
-    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3060400 TC20 (Based on: 3.6.4.2.2.2; refs2 also lists 3.7.3.1 m)); steps 1→2, 3→4-5, 6→7-9",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3060400 TC20 (Based on: 3.6.4.2.2.2, 3.7.3.1, 3.7.3.1 m)); steps 1→2, 3→4-5, 6→7-9",
     "reference_preconditions": "Starting conditions: ERTMS/ETCS Level L1; ERTMS/ETCS Mode FS / OS / LS / AD; Linking STORED: Linking information about BGx is stored on boad; Radio communication session STORED; Level Transition Order STORED: A level 2 transition order is stored on board. Constraints: -",
     "reference_checks": [
       {
@@ -153,7 +153,7 @@
       "section": "3.7.3.1 a)"
     },
     "reference_origin": "official",
-    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3070300 TC14 (Based on: 3.7.3.1; refs2: 3.7.3.1 a)); steps 1→2, 3/5 (L1/L2 alternatives)→4, 6, 7-8",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3070300 TC14 (Based on: 3.7.3.1, 3.7.3.1 a)); steps 1→2, 3/5 (L1/L2 alternatives)→4, 6, 7-8",
     "reference_preconditions": "Starting conditions: ERTMS/ETCS Mode FS / OS / LS / AD / SM; ERTMS/ETCS Level L1 / L2; Radio communication session ESTABLISHED (Only in L2); Movement Authority STORED; International SSP STORED: Ends beyond the start location of SSP received from BGa or RBC. Interfaces: SAFE CONNECTION SET-UP (RTM) Only in L2; The speed and distance monitoring information is displayed (DMI): Speed and distance information is DISPLAYED, which reflects the currently stored SSP. Constraints: An SSP is stored on-board which ends beyond the start location of SSP received from BGa or RBC.",
     "reference_checks": [
       {
@@ -179,19 +179,19 @@
     ],
     "method_rationale": "Madde SUBSET-076-7 Tablo 3'te yok; SUBSET-076-5-2'de test vakası var: Test.",
     "difficulty": "Kolay",
-    "note": "TC'de adım 3 (L1, balise) ve 5 (L2, telsiz) seçenekli I satırları; danışman önerisiyle tek eyleme birleştirildi, adım 4 ve 6 kendi koşuluyla, 7-8 her iki yol için beklenen sonuçta. Paket 27 = International Static Speed Profile (SUBSET-026-7 §7.4.1.1) destek parçasında yok. needs_documents: paket numarası ve JRU değerleri."
+    "note": "TC'de adım 3 (L1, balise) ve 5 (L2, telsiz) seçenekli I satırları; tek eyleme birleştirildi, adım 4 ve 6 kendi koşuluyla, 7-8 her iki yol için beklenen sonuçta. Paket 27 = International Static Speed Profile (SUBSET-026-7 §7.4.1.1) destek parçasında yok. needs_documents: paket numarası ve JRU değerleri."
   },
   {
     "id": "ETC-905",
     "project": "ETC",
     "language": "en",
-    "text": "Together with any MA request, the on-board equipment shall inform the RBC about the reason(s) applicable at the time the MA request is sent, as specified in SUBSET-026 §3.8.2.1.7.",
+    "text": "The on-board equipment shall send an MA request to the RBC when the triggering criterion defined by the RBC is reached and, together with any MA request, shall inform the RBC about the reason(s) applicable at the time the MA request is sent, as specified in SUBSET-026 §3.8.2.2.2 and §3.8.2.1.7.",
     "source": {
       "doc": "SUBSET-026-3 v4.0.0",
-      "section": "3.8.2.1.7"
+      "section": "3.8.2.1.7, 3.8.2.2.2"
     },
     "reference_origin": "official",
-    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3080200 TC7 (Based on: 3.8.2.1.7); steps 1→2-3, 4→5-6, 7→8-9, 10→11-12",
+    "reference_basis": "SUBSET-076-5-2 v4.0.0 (SV30) Feature 3080200 TC7 (Based on: 3.8.2.1.7, 3.8.2.2.2); steps 1→2-3, 4→5-6, 7→8-9, 10→11-12",
     "reference_preconditions": "Starting conditions: ERTMS/ETCS Mode FS / OS / LS / AD; ERTMS/ETCS Level L2; Radio communication session ESTABLISHED; Movement Authority STORED; Gradient Profile STORED; International SSP STORED; MA Request Parameters STORED: T_TIMEOUTRQST=1023, T_CYCRQST=10, No MA request triggering with regards to this function; Train Position V_TRAIN > 0. Interfaces: SAFE CONNECTION SET-UP (RTM). Constraints: There are an initial MA and a complete track description on-board. The MA request is sent with Q_MARQSTREASON = xxx1x (Time before reaching the perturbation location reached).",
     "reference_checks": [
       {
@@ -243,7 +243,7 @@
     ],
     "method_rationale": "Madde SUBSET-076-7 Tablo 3'te yok; SUBSET-076-5-2'de test vakası var: Test.",
     "difficulty": "Orta",
-    "note": "TC7 yalnız §3.8.2.1.7'ye dayanıyor ama adımları tetikleme (§3.8.2.2.2) ve tekrar (§3.8.2.1.5) davranışını da sınar; gereksinim metni §3.8.2.1.7'de tutuldu, bu yüzden 2. ve 4. denetim cümleden tek başına çıkmaz (destek parçaları P1, P3 bunun için). TC1 (§3.8.2.1.4) iç tutarsızlıklar (T_MAR 1023/255, T_TIMEOUTREQUEST) nedeniyle seçilmedi. 3. denetim (duruşta konum raporu) gereksinimle ilgisiz bir ara adım; TC'de olduğu için tutuldu."
+    "note": "TC7 §3.8.2.1.7 ve §3.8.2.2.2'ye dayanıyor; gereksinim metni ikisini kapsar. Adımlar tekrar davranışını (§3.8.2.1.5, T_CYCRQST) da sınar ve bu madde TC'nin dayanak listesinde yok: 2. ve 4. denetim cümleden tek başına çıkmaz (destek parçası P1 bunun için). TC1 (§3.8.2.1.4, §3.8.2.1.7, §3.8.2.2.2) iç tutarsızlıklar (T_MAR 1023/255, T_TIMEOUTREQUEST) nedeniyle seçilmedi. 3. denetim (duruşta konum raporu) gereksinimle ilgisiz bir ara adım; TC'de olduğu için tutuldu."
   },
   {
     "id": "KDH-901",
@@ -275,7 +275,7 @@
       },
       {
         "action": "PV-7 TEST: Create long passwords and attempt to authenticate with truncated passwords.",
-        "expected": "Verifiers SHALL verify the entire submitted password (e.g., not truncate it). [PV-7 statement; the TEST method states no outcome]"
+        "expected": "Verifiers SHALL verify the entire submitted password (e.g., not truncate it)."
       }
     ],
     "support_passages": [
@@ -351,7 +351,7 @@
     ],
     "method_rationale": "TEST → Test; EXAMINE (abone hesabının incelenmesi) → İnceleme.",
     "difficulty": "Orta",
-    "note": "RL-2 ve RL-3'te TEST ile EXAMINE aynı denetime gruplandı (eylem + gözlem). RL-2..RL-4 kriterleri AAL2/AAL3 işaretli, PV-12 ALL; portalın AAL'si proje belgelerinden gelmeli. '101' sınırı kriterde açık, gereksinim cümlesinde yok. Yeniden kimlik doğrulama (REAUTH-*) yerine bu küme seçildi: REAUTH kriterleri yalnız EXAMINE."
+    "note": "RL-2 ve RL-3'te TEST ile EXAMINE aynı denetime gruplandı (eylem + gözlem). RL-2..RL-4 kriterleri AAL2/AAL3 işaretli, PV-12 ALL; portalın AAL'si proje belgelerinden gelmeli. '101' sınırı kriterde açık, gereksinim cümlesinde yok. Yeniden kimlik doğrulama (REAUTH-*) yerine bu küme seçildi: REAUTH-1, -3, -4, -5 yalnız EXAMINE, REAUTH-2 SB-8.4'e yönlendiriyor; TEST yok."
   },
   {
     "id": "KDH-903",
