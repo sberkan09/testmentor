@@ -8,7 +8,8 @@ stratified by source document (KDH) or stratum (ETC), proportionally with at lea
 group while seats remain. Claude-origin requirements get at most one seat, and only core ones;
 non_testable at most one. Anything touching the stage 2 spike (same clause, same official test
 case, same criterion, ACT rule, Rehber measure or control) is never holdout. Order inside a group
-is the SHA-256 of a fixed seed and the id.
+is the SHA-256 of a fixed seed and the id. Requirements whose stage 5 references kept no check
+are not eligible.
 """
 
 from __future__ import annotations
@@ -59,7 +60,13 @@ def tokens(r: dict) -> set[str]:
 
 
 def choose(reqs: list[dict], n: int, spike: set[str]) -> set[str]:
-    eligible = [r for r in reqs if not tokens(r) & spike]
+    # stage 5: a requirement whose official procedures yielded no in-scope check cannot confirm
+    # the rubric; it is replaced (decided from reference existence, never from judge results)
+    eligible = [
+        r
+        for r in reqs
+        if not tokens(r) & spike and not (r.get("reference_note") and not r.get("reference_checks"))
+    ]
     official = [r for r in eligible if r["reference_origin"] != "claude"]
     claude = sorted(
         (r for r in eligible if r["reference_origin"] == "claude" and r["stratum"] == "core"),
