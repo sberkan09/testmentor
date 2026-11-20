@@ -36,9 +36,10 @@ def etc_tc(tc_id: str) -> str:
     feat, no = tc_id.split("/TC")
     f = next((CACHE / "etc/text/SUBSET-076-5-2").glob(f"*-{feat}_v400_SV30.txt"))
     text = f.read_text(encoding="utf-8")
-    parts = re.split(r"\n(?=Test case \d+\s*\nIDENTIFICATION)", text)
+    # a test case starts at a line "Test case N"; page headers may sit between it and IDENTIFICATION
+    parts = re.split(r"\n(?=Test case \d+\s*\n)", text)
     for p in parts:
-        if re.match(rf"Test case {no}\s*\nIDENTIFICATION", p):
+        if re.match(rf"Test case {no}\s*\n", p) and "IDENTIFICATION" in p[:2000]:
             return p.strip()
     raise KeyError(tc_id)
 
