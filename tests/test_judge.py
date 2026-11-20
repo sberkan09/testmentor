@@ -77,3 +77,10 @@ def test_missing_key_is_reported(tmp_path, monkeypatch):
     monkeypatch.delenv("X_TEST_KEY", raising=False)
     with pytest.raises(JudgeUnavailable):
         JudgeClient(settings(tmp_path))
+
+
+def test_rubric_version_selects_text():
+    from eval.judge import RUBRICS
+
+    assert set(RUBRICS) >= {"r1", "r2"} and RUBRICS["r2"].startswith(RUBRICS["r1"])
+    assert "train" not in RUBRICS["r2"].lower()  # domain-neutral example

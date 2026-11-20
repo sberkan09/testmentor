@@ -27,7 +27,11 @@ from services.judge_client import JudgeClient, JudgeSettings  # noqa: E402
 
 
 async def score(
-    client: JudgeClient, item: dict[str, Any], tests: list[dict[str, Any]], rubric: str
+    client: JudgeClient,
+    item: dict[str, Any],
+    tests: list[dict[str, Any]],
+    rubric: str,
+    salt: int = 0,
 ) -> dict:
     s = client.settings
     text = RUBRICS[rubric]
@@ -37,7 +41,8 @@ async def score(
         inputs=[text, user],
         prompt_version=rubric,
         model=s.model,
-        params={"effort": s.effort},
+        # salt: independent judge samples for noise measurement (repeat > 0 is not a cache hit)
+        params={"effort": s.effort} | ({"repeat": salt} if salt else {}),
     )
     path = ROOT / s.cache_dir / f"{h}.json"
     if path.exists():
@@ -68,6 +73,7 @@ async def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dir", default=str(ROOT / "eval" / "golden" / "spike2"))
     ap.add_argument("--rubric", default="r1", choices=sorted(RUBRICS))
+    ap.add_argument("--repeats", type=int, default=1, help="independent judge samples")
     args = ap.parse_args()
     d = Path(args.dir)
     items = json.loads((d / "items.json").read_text(encoding="utf-8"))
@@ -79,10 +85,15 @@ async def main() -> int:
     results: dict[str, dict[str, Any]] = {}
     try:
         for name, generated in variants.items():
-            scored = await asyncio.gather(
-                *(score(client, it, generated.get(it["id"], []), args.rubric) for it in items)
-            )
-            results[name] = {it["id"]: r for it, r in zip(items, scored, strict=True)}
+            for rep in range(args.repeats):
+                scored = await asyncio.gather(
+                    *(
+                        score(client, it, generated.get(it["id"], []), args.rubric, rep)
+                        for it in items
+                    )
+                )
+                key = name if args.repeats == 1 else f"{name}#{rep}"
+                results[key] = {it["id"]: r for it, r in zip(items, scored, strict=True)}
     finally:
         await client.aclose()
     (d / f"results_{args.rubric}.json").write_text(

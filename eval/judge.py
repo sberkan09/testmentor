@@ -44,13 +44,12 @@ Do not grade style."""
 
 RUBRIC_R2_ADDENDUM = """
 Reference checks may come from official test procedures. Such a check can name one concrete
-scenario (a specific message, packet, field value or display symbol) and one observation channel
-(for example recorder entries, display symbols or interface messages). Count it as matched when a
+scenario (a specific message, field value or screen element) and one observation channel (for
+example log entries, screen indicators or interface messages). Count it as matched when a
 generated step tests the same behaviour under the same distinguishing condition (for example:
-information whose validity direction is opposite to the train orientation is ignored) and states
-an equivalent observable outcome, even if it uses another equivalent message or observes the
-outcome through another channel. Do not count it when the generated tests miss the distinguishing
-condition or the outcome."""
+a request with an expired token is rejected) and states an equivalent observable outcome, even if
+it uses another equivalent input or observes the outcome through another channel. Do not count it
+when the generated tests miss the distinguishing condition or the outcome."""
 
 RUBRICS = {"r1": RUBRIC, "r2": RUBRIC + RUBRIC_R2_ADDENDUM}
 
@@ -122,12 +121,13 @@ async def judge_run(run_dir: Path, client: JudgeClient, golden: Golden) -> dict[
     sem = asyncio.Semaphore(s.concurrency)
     results: list[dict[str, Any]] = []
     stats = {"cached": 0, "called": 0, "refused": 0}
+    rubric_text = RUBRICS[s.rubric_version]
 
     async def one(rep: int, rid: str, tests: list[dict[str, Any]]) -> None:
         checks = checks_by_req[rid]
         user = judge_prompt(raw_reqs[rid], checks, tests)
         h = input_hash(
-            inputs=[RUBRIC, user],
+            inputs=[rubric_text, user],
             prompt_version=s.rubric_version,
             model=s.model,
             params={"effort": s.effort},
@@ -138,7 +138,7 @@ async def judge_run(run_dir: Path, client: JudgeClient, golden: Golden) -> dict[
             stats["cached"] += 1
         else:
             async with sem:
-                reply = await client.judge(RUBRIC, user, Verdict)
+                reply = await client.judge(rubric_text, user, Verdict)
             stats["called"] += 1
             if reply.parsed is None:
                 stats["refused"] += 1

@@ -1,0 +1,1 @@
+{"checks": [{"no": 1, "matched": true, "evidence": "Every portal page declares its default human language, step 1: lang attribute is present and not empty on the html element."}, {"no": 2, "matched": false, "evidence": ""}], "invented": ["Default language of the portal content is Turkish (tr)"], "boundary_ok": true, "ambiguity_flagged": true}
