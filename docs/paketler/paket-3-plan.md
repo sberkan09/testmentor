@@ -228,8 +228,8 @@ Komut: `uv run python -m eval.paired results/<yeni> results/<taban>` (D8 kollar�
 | madde | koşu | sonuç | durum |
 | --- | --- | --- | --- |
 | 1. Katman 1 eşikleri, referans | `p3-v0-reference` (×3), `p3-v1-reference` | şema 1,0; kapsama 1,0; adım yapısı 1,0; ham ihlal 0 (dört koşunun hepsinde) | ✓ |
-| 2a. Gerileme yok, v0 | v0 referans − `d2-qwen-r3` | eşleştirilmiş fark +0,007 [−0,024, +0,043]; düz yorumla (koşunun aralığı ≥ taban − 0,05 = 0,404) alt sınır 0,384 | eşleştirilmiş yorumla ✓, düz yorumla ✗; yorum kullanıcı onayı bekliyor |
-| 2b. Gerileme yok, v1 | v1 referans − `d9-pilot-none` | eşleştirilmiş fark 0,000 [−0,033, +0,033]; düz yorumla alt sınır 0,399 (taban − 0,05 = 0,399) | eşleştirilmiş ✓, düz yorumla sınırda |
+| 2a. Gerileme yok, v0 | v0 referans − `d2-qwen-r3` | eşleştirilmiş fark +0,007 [−0,024, +0,043]; düz yorumla (koşunun aralığı ≥ taban − 0,05 = 0,404) alt sınır 0,384 | ✓ (eşleştirilmiş yorum, kullanıcı onayı 21 Kasım 2026; düz yorumla ✗) |
+| 2b. Gerileme yok, v1 | v1 referans − `d9-pilot-none` | eşleştirilmiş fark 0,000 [−0,033, +0,033]; düz yorumla alt sınır 0,399 (taban − 0,05 = 0,399) | ✓ (eşleştirilmiş; düz yorumla sınırda) |
 | 2c. Yöntem tam eşleşmesi v0 ≥ 0,75 | `p3-v0-reference` | 0,775 / 0,700 / 0,775, ortalama 0,750 | ✓ (sınırda; yöntem prompt'u paket 1 ile bayt bayt aynı, fark modelin belirsizliği) |
 | 3. Uçtan uca | `p3-v0-predicted`, `p3-v1-predicted` | şema 1,0; adım yapısı 1,0; tahmin edilen yöntemlere göre kapsama 1,0 / 1,0. Raporlanan: referansa göre kapsama 0,70 / 0,90, ham ihlal 0 / 1, check_recall 0,404 / 0,403 | ✓ |
 | 4. Testler | `make test` | 280 geçti; bayatlama tablosu ve paket 2 testleri yeşil | ✓ |
@@ -237,8 +237,8 @@ Komut: `uv run python -m eval.paired results/<yeni> results/<taban>` (D8 kollar�
 ### Açık bulgular
 
 - **KDH-030 dejenerasyonu.** Tek üyeli öbek KDH-030 ("parolanın tamamı kesilmeden doğrulanmalı"): sınır testinde model "uzun parola" girdisini bitirmeden yazıyor (`A1b2C3…`). Bu öbeğin göründüğü beş koşunun üçünde çıktı `max_tokens`'ta kesildi (`d7-cluster` 20.480, `d8-remove` ve `d8-merge` tabanları 16.384), düğüm başarısız oldu ve öbek kapsanmadı. `p3-v1-reference` ve `d8-add` tabanında sorun çıkmadı. Bitti ölçütü 1 bu yüzden tekrarlanan bir koşuda kapsama eşiğini kaçırabilir (`d7-cluster` kapsama 0,996). Önlem adayları (prompt ya da şema sürümü değişir, yeniden ölçüm ister): şemada `test_inputs` uzunluk sınırı, prompt'a "uzun ya da tekrarlı girdiyi tarif et, yazma" kuralı, motor tarafında tekrar cezası. Paket 3'ün kapsamında uygulanmadı.
-- **D7 kararı kullanıcıda** (bkz. `docs/deneyler/D7.md`); gereksinim başına çağrının üstünlüğü iki öbek başına tabana göre de sıfırın üstünde (+0,069, +0,046).
-- **Bitti ölçütü 2'nin yorumu kullanıcıda** (yukarıdaki tablo).
+- **D7: öbek başına kalır** (kullanıcı kararı, 21 Kasım 2026). Gereksinim başına çağrının recall üstünlüğü (+0,069, +0,046) test sayısından geliyor; test sayısı aynı olan gereksinimlerde +0,011 (`docs/deneyler/D7.md`).
+- **Bitti ölçütü 2: eşleştirilmiş fark yorumu onaylandı** (kullanıcı, 21 Kasım 2026). Düz yorum v0'da sağlanamazdı: tabanın birebir aynısı bir koşunun bile alt sınırı ~0,38 çıkar.
 - `core/settings.StageSettings.prune_removals` varsayılanı `False` kalır (üretici birim testleri tasarımın ilk çağrı sayısını bağlar); üretimdeki değer `config/pipeline.yaml`'dan `true` gelir.
 - Kesilmede yeniden denememe gerekçesi maliyettir, kesinlik değil: KDH-030'da aynı prompt 5 koşunun 2'sinde geçti; yeniden deneme en pahalı çağrıyı (472 sn'ye kadar) ikiye katlar ve dejenerasyonu büyük olasılıkla tekrarlar.
 - D8 birleştirme prompt'u az tekrar ayıklıyor (tekrar oranı %13).

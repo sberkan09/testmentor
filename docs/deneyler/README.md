@@ -40,7 +40,7 @@ Altın set v1 (ERTMS 109, kamu dijital hizmeti 120 gereksinim; 519 resmî köken
 | No | Karar | Gerekçe | Ayar |
 | --- | --- | --- | --- |
 | D6 | BGE-M3, agglomerative average, eşik 0,35 (değişmedi) | Alternatif embedding'ler geçmedi; HDBSCAN ağaç tutmuyor. Eşik 0,30 v1'de iyi ama bootstrap aralığı sıfırı geçmiyor, v0'da kötü: aday. [D6](D6.md) | değişiklik yok |
-| D7 | Ölçüldü, karar kullanıcıda; öbek başına kaldı | Gereksinim başına çağrı recall +0,069 [+0,028, +0,110] (`d7-cluster`'a göre), +0,046 [+0,012, +0,082] (`p3-v1-reference`'a göre) ama uydurma %48, token %55 fazla; paketleme iki tabana göre de ölçülebilir biçimde kötü. [D7](D7.md) | değişiklik yok (`generation.max_unit_size: 1` seçenek) |
+| D7 | Öbek başına kalır (kullanıcı kararı, 21 Kasım) | Gereksinim başına çağrı recall +0,069 [+0,028, +0,110] (`d7-cluster`'a göre), +0,046 [+0,012, +0,082] (`p3-v1-reference`'a göre) ama artış test sayısından geliyor (test sayısı aynı olan gereksinimlerde +0,011); uydurma %48, token %55 fazla; paketleme iki tabana göre de kötü. [D7](D7.md) | değişiklik yok |
 | D8 | Ekleme artımlı; çıkarma budama; birleştirme prompt'u | Artımlı düzeltmeleri ve önceki testleri koruyor, 4 kat ucuz; çıkarmada çağrı ile budama aynı set; birleştirme prompt'u 100 kat ucuz, recall farkı yok. [D8](D8.md) | `config/pipeline.yaml` `generation.prune_removals: true` |
 
 Uyarı: KDH-030 sınır testinde model uzun bir girdi dizisini bitirmeden yazıyor (5 koşunun 3'ünde `max_tokens`'ta kesildi). Açık bulgu; paket 3 planı.
