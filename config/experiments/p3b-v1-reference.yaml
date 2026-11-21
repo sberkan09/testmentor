@@ -1,0 +1,6 @@
+name: p3b-v1-reference
+question: "Paket 3b: şablon g4 ile altın set v1 referans; katman 1 eşikleri ve p3-v1-reference'a göre eşleştirilmiş check_recall farkının alt sınırı ≥ −0,05."
+variable: test seti şablonu g4 (field_max_chars + kural)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+quality: true

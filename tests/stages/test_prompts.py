@@ -140,6 +140,7 @@ RENDER_HASHES: dict[tuple[str, str], str] = {
     ("method", "s1.m1"): "f11b68c9892b3bce",
     ("cluster_label", "s1.l1"): "bb68f09522d0a4f1",
     ("test_set", "s1.g3"): "01a6c677cadd67e8",
+    ("test_set", "s1.g4"): "b4e89455564dd93c",
 }
 
 

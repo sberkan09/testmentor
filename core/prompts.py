@@ -37,7 +37,7 @@ SHARED_VERSION = "s1"
 STAGE_VERSIONS: dict[NodeKind, str] = {
     NodeKind.METHOD: "m1",
     NodeKind.CLUSTER_LABEL: "l1",
-    NodeKind.TEST_SET: "g3",  # g3: t2 prompt plus mode tails (incremental, merge, pinned, retry)
+    NodeKind.TEST_SET: "g4",  # g4: describe long inputs + field maxLength (paket 3b, KDH-030)
 }
 """Template version per model stage. Bump when the dynamic rendering (requirement block, tails)
 changes; tests/stages/test_prompts.py pins a rendering hash per version."""
@@ -144,6 +144,8 @@ GENERATION_INSTRUCTION = (
     "- Cover normal behaviour, boundaries and error handling where the requirement implies "
     "them; do not add tests for behaviour the requirement does not state.\n"
     "- Every step has its own action and its own expected result.\n"
+    "- Do not write out long or repeated input values (long strings, large files, many "
+    'records); describe them instead, e.g. "a 129-character password", "a 10 MB file".\n'
     "- Leave preconditions, test_inputs and assumptions as empty strings when not needed.\n"
     "- type is one of {types}; priority is one of {priorities}."
 )
@@ -365,7 +367,9 @@ def layer3(stage: NodeKind, settings: StageSettings) -> str:
     method schema is rendered here with the placeholder list `("<method>",)`."""
     if stage == NodeKind.TEST_SET:
         return _generation_layer3(
-            schema=case_set_model(settings.test_types, settings.priorities).model_json_schema(),
+            schema=case_set_model(
+                settings.test_types, settings.priorities, settings.field_limits
+            ).model_json_schema(),
             examples=settings.examples,
             test_method=settings.test_method,
             types=settings.test_types,

@@ -1,0 +1,5 @@
+# Paket 3b: KDH-030 düzeltmesinin doğrulaması (docs/paketler/paket-3b-plan.md). Pod sonunda her durumda silinir.
+max_hours: 0.75
+steps:
+  - {experiment: p3b-kdh}
+  - {experiment: p3b-v1-reference}

@@ -171,8 +171,9 @@ class _SetJob:
             else:
                 self.existing.append(case_node.content)
         types, priorities = self.settings.test_types, self.settings.priorities
-        self.case_schema = case_set_model(types, priorities)
-        self.delta_schema = incremental_model(types, priorities)
+        limits = self.settings.field_limits
+        self.case_schema = case_set_model(types, priorities, limits)
+        self.delta_schema = incremental_model(types, priorities, limits)
 
     def stats(self) -> dict[str, Any]:
         return {

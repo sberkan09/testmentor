@@ -174,8 +174,10 @@ def test_synthetic_passages_differ_per_cluster_and_hit_size():
 # Paket 3: stage pipeline ------------------------------------------------------------------------
 
 
-async def test_reference_prompt_is_the_paket1_prompt(tmp_path):
-    """The stage pipeline sends what paket 1's bare pipeline sent (baseline comparability)."""
+async def test_reference_prompt_is_generation_messages(tmp_path):
+    """The stage pipeline's full generation request is `generation_messages` over the reference
+    cluster (layers 1–5). Byte-identical to paket 1 up to template g3 (185/185 requests, paket 3
+    step 5); from g4 (paket 3b) the instruction and the schema's field limits differ."""
     from core.prompts import Method, ProjectCard, generation_messages
     from core.schemas import case_set_model
 
@@ -196,7 +198,9 @@ async def test_reference_prompt_is_the_paket1_prompt(tmp_path):
         [by_id[i] for i in cluster],
         {i: refs[i] for i in cluster},
         schema=case_set_model(
-            tuple(CFG["test_types"]), tuple(CFG["priorities"])
+            tuple(CFG["test_types"]),
+            tuple(CFG["priorities"]),
+            tuple(sorted(CFG["generation"]["field_max_chars"].items())),
         ).model_json_schema(),
         examples=EXAMPLES,
         test_method=CFG["test_method"],

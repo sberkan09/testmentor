@@ -178,6 +178,7 @@ def stage_settings_from(cfg: dict[str, Any], examples: dict[str, Any]) -> StageS
         repair=generation.get("repair", True),
         regeneration=generation.get("regeneration", "incremental"),
         prune_removals=generation.get("prune_removals", False),
+        field_max_chars=dict(generation.get("field_max_chars") or {}),
         clustering=ClusteringSettings(**(cfg.get("clustering") or {})),
     )
 

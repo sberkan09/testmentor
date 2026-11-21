@@ -128,7 +128,8 @@ def synthetic_passages(golden, seed: str, tokens: int) -> list[str]:
 
 async def throughput(client: LLMClient, cfg: dict[str, Any], spec: dict[str, Any], golden) -> list:
     """Load at fixed concurrency levels with generation requests over the reference clusters."""
-    model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]))
+    limits = tuple(sorted((cfg["generation"].get("field_max_chars") or {}).items()))
+    model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]), limits)
     schema = model.model_json_schema()
     examples = yaml.safe_load((ROOT / cfg["examples_file"]).read_text(encoding="utf-8"))
     stage = cfg["generation"]

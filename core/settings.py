@@ -49,7 +49,15 @@ class StageSettings(BaseModel):
     regeneration: Literal["incremental", "full"] = "incremental"
     """D8: how a stale set with a valid basis is produced again. `full` always regenerates.
     A production mode: not part of `input_hash` (core/stages/base.py)."""
+    field_max_chars: dict[str, int] = {}
+    """Paket 3b: `maxLength` of text fields in the model's output schema (title, preconditions,
+    test_inputs, assumptions, action, expected). Empty: no limit (the paket 1 schema)."""
     prune_removals: bool = False
     """D8: when members only left, drop and trim their cases without a model call (`False`: the
     incremental call, as in the design's call count)."""
     clustering: ClusteringSettings = ClusteringSettings()
+
+    @property
+    def field_limits(self) -> tuple[tuple[str, int], ...]:
+        """`field_max_chars` as a sorted tuple (hashable, for the cached schema factories)."""
+        return tuple(sorted(self.field_max_chars.items()))
