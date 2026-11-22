@@ -1,0 +1,284 @@
+{
+  "meta": {
+    "run_id": "20261122-090504-p3b-v1-reference",
+    "experiment": {
+      "name": "p3b-v1-reference",
+      "question": "Paket 3b: şablon g4 ile altın set v1 referans; katman 1 eşikleri ve p3-v1-reference'a göre eşleştirilmiş check_recall farkının alt sınırı ≥ −0,05.",
+      "variable": "test seti şablonu g4 (field_max_chars + kural)",
+      "server": {
+        "engine": "vllm",
+        "model": "qwen3.8-27b",
+        "overrides": {}
+      },
+      "golden": "v1",
+      "quality": true
+    },
+    "config_file": "config/experiments/p3b-v1-reference.yaml",
+    "pipeline_config": {
+      "generation_inputs": "reference",
+      "unit_packing": false,
+      "passages": "none",
+      "methods": [
+        {
+          "name": "Test",
+          "criterion": "Davranış sistem çalıştırılarak ve girdi verilerek gözlenebiliyorsa."
+        },
+        {
+          "name": "Analiz",
+          "criterion": "Doğrulama hesap, model, benzetim ya da istatistik gerektiriyorsa."
+        },
+        {
+          "name": "İnceleme",
+          "criterion": "Belge, kod, yapılandırma ya da fiziksel ürün gözle denetlenerek doğrulanıyorsa."
+        },
+        {
+          "name": "Gösterim",
+          "criterion": "İşlev ölçüm yapılmadan, çalıştırılıp gözlemlenerek gösteriliyorsa."
+        }
+      ],
+      "test_method": "Test",
+      "test_types": [
+        "Normal",
+        "Sınır",
+        "Hata"
+      ],
+      "priorities": [
+        "Yüksek",
+        "Orta",
+        "Düşük"
+      ],
+      "clustering": {
+        "method": "agglomerative",
+        "linkage": "average",
+        "distance_threshold": 0.35,
+        "max_cluster_size": 25
+      },
+      "classification": {
+        "batch_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 4096
+      },
+      "cluster_label": {
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 512
+      },
+      "generation": {
+        "max_unit_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 16384,
+        "repair": true,
+        "field_max_chars": {
+          "title": 300,
+          "preconditions": 1000,
+          "test_inputs": 1000,
+          "assumptions": 4000,
+          "action": 1000,
+          "expected": 4000
+        },
+        "regeneration": "incremental",
+        "prune_removals": true
+      },
+      "concurrency": 16,
+      "prefix_warmup": false,
+      "examples_file": "config/prompts/examples-generation.yaml",
+      "thresholds": {
+        "schema_valid_rate": 0.99,
+        "coverage_rate": 1.0,
+        "step_structure_rate": 1.0,
+        "no_test_violations": 0
+      }
+    },
+    "golden_version": "v1",
+    "server": {
+      "pod": "qo96f4iin3ii3s",
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "overrides": {}
+    },
+    "model_spec": {
+      "repo_id": "Qwen/Qwen3.8-27B-FP8",
+      "served_name": "qwen3.8-27b",
+      "precision": "fp8",
+      "context_length": 32768,
+      "max_num_seqs": 64,
+      "engine_args": {
+        "vllm": [
+          "--reasoning-parser",
+          "qwen3",
+          "--language-model-only"
+        ],
+        "sglang": [
+          "--reasoning-parser",
+          "qwen3"
+        ]
+      },
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "gated": false,
+      "gpu_memory_utilization": null,
+      "download_ignore": [],
+      "approx_size_gb": 30.0,
+      "notes": "Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık. Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek."
+    },
+    "started_at": "2026-11-22T09:05:04Z",
+    "served_model": "qwen3.8-27b",
+    "engine_settings": {
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "base_url": "https://qo96f4iin3ii3s-8000.proxy.runpod.net/v1",
+      "served_model_name": "qwen3.8-27b",
+      "api_key_env": "LLM_API_KEY",
+      "request_timeout_s": 900.0,
+      "connect_timeout_s": 15.0,
+      "default_max_tokens": 4096,
+      "default_temperature": null,
+      "extra_body": {},
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    "prompt_versions": {
+      "embedding": "BAAI/bge-m3",
+      "clustering": "c1",
+      "method": "s1.m1+5d9f798bd379",
+      "cluster_label": "s1.l1+7f6b859095cb",
+      "retrieval": "r1",
+      "test_set": "s1.g4+1d644a8e20b3",
+      "matrix_row": "x1"
+    }
+  },
+  "runs": [
+    {
+      "all": {
+        "requirements": 229,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 0.9951,
+        "coverage_rate_before_repair": 0.9956,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 473,
+        "method_exact_match": 0.6769,
+        "method_jaccard": 0.8035,
+        "duplicate_pairs": 49,
+        "duplicate_test_rate": 0.1628,
+        "no_test_violations_raw": 0
+      },
+      "by_language": {
+        "en": {
+          "requirements": 169,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 0.9937,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 380,
+          "method_exact_match": 0.8047,
+          "method_jaccard": 0.8817
+        },
+        "tr": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 0.9833,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 93,
+          "method_exact_match": 0.3167,
+          "method_jaccard": 0.5833
+        }
+      },
+      "traps": {
+        "requirements": 1,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 3,
+        "method_exact_match": 1.0,
+        "method_jaccard": 1.0
+      },
+      "cluster_ari": 0.3284,
+      "cluster_ari_by_project": {
+        "ETC": 0.3213,
+        "KDH": 0.3355
+      },
+      "calls": {
+        "calls": 109,
+        "errors": 0,
+        "schema_valid_rate": 1.0,
+        "schema_valid_rate_generation": 1.0,
+        "tokens_total": 320044,
+        "prompt_tokens": 166425,
+        "completion_tokens": 153619,
+        "cached_tokens": 96512,
+        "prefix_cache_hit_rate": 0.5799,
+        "wall_s": 338.92,
+        "seconds_per_cluster": 8.07,
+        "tokens_per_second": 453.3
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": true,
+        "step_structure_rate": true,
+        "no_test_violations": true
+      }
+    }
+  ],
+  "throughput": null,
+  "judge": {
+    "by_project": {
+      "ETC": 0.4343,
+      "KDH": 0.4299
+    },
+    "by_split": {
+      "dev": 0.4277,
+      "holdout": 0.4694
+    },
+    "by_stratum": {
+      "control": 0.4762,
+      "core": 0.4292,
+      "non_testable": 0.3636
+    },
+    "checks_needing_documents": 0.256,
+    "checks_not_needing_documents": 0.5157,
+    "check_recall": 0.4316,
+    "by_language": {
+      "en": 0.4789,
+      "tr": 0.3476
+    },
+    "traps": 1.0,
+    "invented_per_requirement": 1.177,
+    "boundary_ok_rate": 0.2182,
+    "ambiguity_flagged_rate": 0.4545,
+    "unscored": 0,
+    "by_repeat": {
+      "0": 0.4316
+    },
+    "rubric_version": "r1",
+    "model": "claude-sonnet-5-5",
+    "stats": {
+      "cached": 3,
+      "called": 217,
+      "refused": 0
+    }
+  }
+}

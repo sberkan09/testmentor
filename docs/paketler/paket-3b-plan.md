@@ -31,3 +31,18 @@ Beklenen süre ~25 dk (hazır olma ~5 dk, KDH 3 × ~4 dk, v1 ~7 dk), ~1,1 USD. B
 ## Kapsam dışı
 
 Motor tarafında tekrar cezası (çıktıyı genel olarak değiştirir, ayrı deney ister). Sınır testi kalitesi (paket 1'den beri sınır kapsaması 0,19) ayrı prompt deneyidir.
+
+## Sonuç (22 Kasım 2026)
+
+Koşular: [`p3b-kdh`](../../results/20261122-085220-p3b-kdh/report.md) (KDH × 3), [`p3b-v1-reference`](../../results/20261122-090504-p3b-v1-reference/report.md). Pod `qo96f4iin3ii3s`, 0,36 saat, ≈ 0,96 USD, silindi (404).
+
+| ölçüt | sonuç | durum |
+| --- | --- | --- |
+| KDH × 3: kesilme 0, KDH-030 kapsanmış, şema ≥ 0,99 | 213 çağrıda kesilme 0, şema hatası 0; KDH-030 üç tekrarda da 3'er testle kapsandı; kapsama 1,0 | ✓ |
+| v1 referans: katman 1 eşikleri | şema 1,0, kapsama 1,0, adım yapısı 1,0, ham ihlal 0; 109 çağrıda kesilme 0 | ✓ |
+| v1 referans: `p3-v1-reference`'a göre eşleştirilmiş fark ≥ −0,05 | 0,432 − 0,449 = −0,017 [−0,048, +0,012] | ✓ |
+| KDH × 3: `p3-v1-reference`'ın KDH gereksinimlerine göre | 0,456 − 0,470 = −0,015 [−0,047, +0,017] | ✓ |
+
+- Düzeltmeyi prompt kuralı sağladı: model sınır testinde parolayı yazmak yerine tarif ediyor ("65 karakterlik tam doğru parola", "Kayıtlı 64 karakterlik parola"). Hiçbir alan sınıra yaklaşmadı (en uzun test girdisi 190, ön koşul 305 karakter); motorun `maxLength`'i üretimde uygulayıp uygulamadığı bu yüzden gözlenmedi, sınır yedek olarak durur (uygulanmazsa şema hatası ve tek yeniden deneme; birim testiyle bağlı).
+- Fark gürültü aralığında: aynı ayarlı iki g3 koşusu (`d7-cluster`, `p3-v1-reference`) arasında −0,023 [−0,051, +0,006] görülmüştü. Türkçe recall 0,406 → 0,348 da bu aralıkta (`d7-cluster` Türkçe 0,348).
+- Şablon g4 bundan sonra çalışma varsayımıdır; karşılaştırma tabanı `p3b-v1-reference` (v1) ve `p3-v0-reference` (v0, g3; v0'da g4 ölçülmedi).
