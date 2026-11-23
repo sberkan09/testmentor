@@ -24,6 +24,11 @@ class OrchestratorSettings(BaseModel):
     """Edit lock lifetime without a refresh."""
     undo_limit: int = Field(default=100, ge=1)
     """Undo entries kept per user and project."""
+    store_retry_s: float = Field(default=2.0, ge=0)
+    """Wait before a job whose store commit failed is tried again."""
+    store_retries: int = Field(default=2, ge=0)
+    """A node whose result could not be stored is produced again at most this many times in a
+    row, then marked failed (a lasting store error must not turn into endless model calls)."""
 
 
 def load_orchestrator_settings(config_dir: str | Path = "config") -> OrchestratorSettings:

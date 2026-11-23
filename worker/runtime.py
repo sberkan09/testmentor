@@ -194,10 +194,19 @@ class RuntimeDeps:
 
 
 class Rejected(Exception):
-    def __init__(self, reason: str, current_versions: Mapping[str, int] | None = None) -> None:
+    def __init__(
+        self,
+        reason: str,
+        current_versions: Mapping[str, int] | None = None,
+        *,
+        mutate: Callable[[ProjectRecord], None] | None = None,
+    ) -> None:
         super().__init__(reason)
         self.reason = reason
         self.current_versions = dict(current_versions or {})
+        self.mutate = mutate
+        """A project record change committed with the rejection (a refused undo entry is
+        dropped)."""
 
 
 @dataclass
@@ -355,6 +364,10 @@ class ProjectRuntime:
         self._waiting: dict[NodeKind, frozenset[NodeRef]] = {}
         self._session = uuid.uuid4().hex[:8]  # job record ids stay unique across restarts
         self._project_tools: ProjectTools | None = None
+        self._counter: int | None = None
+        """Cluster counter of the command in progress (`_new_cluster_key`)."""
+        self._store_failures: dict[NodeRef, int] = {}
+        """Results of a node that could not be stored, in a row (`store_retries`)."""
 
     # Construction -------------------------------------------------------------------------------
 
@@ -421,8 +434,12 @@ class ProjectRuntime:
     def last_seq(self) -> int:
         return self.record.last_seq
 
-    def snapshot(self, matrix: Sequence[Any] = ()) -> Snapshot:
-        state = self.state
+    def snapshot(
+        self, matrix: Callable[[ProjectState], Sequence[Any]] = lambda state: ()
+    ) -> Snapshot:
+        """Nodes, matrix, stages, jobs and `seq` from one state and record (read once; nothing
+        awaits in between)."""
+        state, record = self.state, self.record
         an = analyze(state)
         nodes = tuple(node_view(state, state.nodes[r], an.to_verify) for r in state.ordered_refs())
         stage_views = []
@@ -433,7 +450,7 @@ class ProjectRuntime:
             stage_views.append(
                 StageView(
                     stage=spec.kind,
-                    mode=self.record.stage_modes.get(spec.kind, "auto"),
+                    mode=record.stage_modes.get(spec.kind, "auto"),
                     fresh=counts[Status.FRESH],
                     stale=counts[Status.STALE],
                     running=counts[Status.RUNNING],
@@ -443,12 +460,12 @@ class ProjectRuntime:
             )
         return Snapshot(
             project_id=self.pid,
-            name=self.record.name,
-            seq=self.record.last_seq,
+            name=record.name,
+            seq=record.last_seq,
             nodes=nodes,
             stages=tuple(stage_views),
             jobs=tuple(self.job_views()),
-            matrix=tuple(matrix),
+            matrix=tuple(matrix(state)),
             locks={
                 str(r): u
                 for r, (u, exp) in sorted(self._locks.items(), key=lambda x: x[0].sort_key())
@@ -481,7 +498,11 @@ class ProjectRuntime:
         return views
 
     def events_after(self, seq: int) -> list[ServerEvent] | None:
-        if seq >= self.record.last_seq:
+        """None also for a `seq` the server never published (a client ahead of a restarted
+        server): the client takes a snapshot instead of silently missing events."""
+        if seq > self.record.last_seq:
+            return None
+        if seq == self.record.last_seq:
             return []
         if not self._buffer or self._buffer[0].seq > seq + 1:
             return None
@@ -503,12 +524,12 @@ class ProjectRuntime:
         held = self._locks.get(ref)
         if held is not None and held[0] != actor and held[1] > now:
             return False
-        self._locks[ref] = (actor, now + self.deps.orchestrator.lock_s)
         if held is None or held[0] != actor or held[1] <= now:
             self._commit(
                 self.state,
                 after=[_Draft("lock_changed", {"ref": str(ref), "user": actor}, actor)],
-            )
+            )  # a store error leaves the lock untaken
+        self._locks[ref] = (actor, now + self.deps.orchestrator.lock_s)
         return True
 
     def _lock_holder(self, ref: NodeRef) -> str | None:
@@ -524,6 +545,7 @@ class ProjectRuntime:
 
     def command(self, request: CommandRequest, actor: str) -> CommandResult:
         cmd = request.command
+        self._counter = None
         try:
             self._check_versions(request.expected_versions)
             for r in _lock_targets(cmd):
@@ -532,9 +554,11 @@ class ProjectRuntime:
                     raise Rejected(f"locked: {r} by {holder}")
             return self._dispatch(cmd, actor)
         except Rejected as exc:
-            return self._reject(cmd, actor, exc.reason, exc.current_versions)
+            return self._reject(cmd, actor, exc.reason, exc.current_versions, mutate=exc.mutate)
         except (ValueError, KeyError) as exc:
             return self._reject(cmd, actor, f"invalid: {exc}", {})
+        finally:
+            self._counter = None
 
     def system_event(self, event: Event, actor: str = "system") -> int:
         """Apply a core event that is not a user command (`KbDocumentAdded` after a knowledge base
@@ -559,11 +583,19 @@ class ProjectRuntime:
             raise Rejected("version_conflict", current)
 
     def _reject(
-        self, cmd: Command, actor: str, reason: str, current: Mapping[str, int]
+        self,
+        cmd: Command,
+        actor: str,
+        reason: str,
+        current: Mapping[str, int],
+        *,
+        mutate: Callable[[ProjectRecord], None] | None = None,
     ) -> CommandResult:
         result = CommandResult(accepted=False, seq=0, reason=reason, current_versions=dict(current))
         seq = self._commit(
-            self.state, after=[_command_draft("command_rejected", cmd, result, actor)]
+            self.state,
+            mutate=mutate,
+            after=[_command_draft("command_rejected", cmd, result, actor)],
         )
         return result.model_copy(update={"seq": seq})
 
@@ -605,10 +637,15 @@ class ProjectRuntime:
                 return self._events(cmd, actor, [MethodEdited(requirement=req, methods=methods)])
             case EditProjectCard(text=text, methods=methods):
                 return self._events(cmd, actor, [ProjectCardChanged(text=text, methods=methods)])
-            case Pin(node=r):
-                return self._events(cmd, actor, [NodePinned(node=r)])
-            case Unpin(node=r):
-                return self._events(cmd, actor, [NodeUnpinned(node=r)])
+            case Pin(node=r) | Unpin(node=r):
+                # An idle pin/unpin would still write a version and an undo entry whose undo
+                # flips the pin the previous command set; refuse it instead.
+                pin = isinstance(cmd, Pin)
+                node = state.get(r)
+                if node is not None and node.pinned == pin:
+                    raise ValueError(f"already {'pinned' if pin else 'unpinned'}: {r}")
+                event = NodePinned(node=r) if pin else NodeUnpinned(node=r)
+                return self._events(cmd, actor, [event])
             case KeepMine(node=r):
                 return self._events(cmd, actor, [NodeKept(node=r)])
             case SetStageMode(stage=kind, mode=mode):
@@ -628,6 +665,7 @@ class ProjectRuntime:
                 if node.pinned or node.status not in (Status.STALE, Status.FAILED):
                     raise ValueError(f"{r} is {node.status.value}; nothing to produce")
                 self._forced.add(r)
+                self._store_failures.pop(r, None)
                 return self._applied(cmd, actor)
             case Undo():
                 return self._undo(cmd, actor)
@@ -645,7 +683,11 @@ class ProjectRuntime:
         entry = self._undo_entry(cmd, self.state, tx.state)
         approval = any(inv.requires_approval for inv in tx.invs)
 
+        counter = self._counter
+
         def push(rec: ProjectRecord) -> None:
+            if counter is not None:
+                rec.cluster_counter = counter
             if entry is not None:
                 stack = rec.undo.setdefault(actor, [])
                 stack.append(entry)
@@ -693,13 +735,15 @@ class ProjectRuntime:
         return approve
 
     def _new_cluster_key(self) -> str:
-        n = self.record.cluster_counter
+        """The next free key; the counter reaches the record with the command's commit only
+        (`self._counter`, reset per command), so a rejected or failed command uses none."""
+        n = self._counter if self._counter is not None else self.record.cluster_counter
         existing = set(self.state.keys_of(NodeKind.CLUSTER))
         while True:
             n += 1
             key = f"C{n:03d}"
             if key not in existing:
-                self.record.cluster_counter = n  # persisted with the command's commit
+                self._counter = n
                 return key
 
     def _recut(self, threshold: float) -> MembershipChanged:
@@ -819,7 +863,15 @@ class ProjectRuntime:
         if not stack:
             raise Rejected("nothing_to_undo")
         entry = stack[-1]
-        self._check_undo(entry)
+
+        def pop(rec: ProjectRecord) -> None:
+            rec.undo[actor] = rec.undo[actor][:-1]
+
+        try:
+            self._check_undo(entry)
+        except Rejected as exc:
+            exc.mutate = pop  # a refused entry leaves the stack: older commands stay undoable
+            raise
         tx = _Tx(self.state)
         for step in entry.steps:
             if step.event is not None:
@@ -840,10 +892,6 @@ class ProjectRuntime:
                 pinned.update(step.pinned or {})
                 tx.apply(MembershipChanged(clusters=clusters, pinned=pinned))
         tx.resolve(self.store)
-
-        def pop(rec: ProjectRecord) -> None:
-            rec.undo[actor] = rec.undo[actor][:-1]
-
         approval = any(inv.requires_approval for inv in tx.invs)
         return self._applied(cmd, actor, tx, mutate=pop, approval=approval)
 
@@ -932,9 +980,19 @@ class ProjectRuntime:
             record.needs_approval = sorted(
                 set(record.needs_approval) | derived, key=NodeRef.sort_key
             )
-        if done:
-            record.needs_approval = [r for r in record.needs_approval if r not in done]
-            record.approved = [r for r in record.approved if r not in done]
+        # A gate holds only what still has to be produced. A node that is fresh again (produced,
+        # from the cache, or back to its recorded hash by the normal rule: an undone card edit)
+        # or removed leaves both lists; an approved node whose job this change cancelled (its
+        # input or context changed) needs a new approval. A running node keeps its approval, so
+        # a job released without a result (restart, store failure) does not ask again.
+        cancelled = frozenset().union(*(inv.cancel for inv in invs)) if invs else frozenset()
+
+        def held(r: NodeRef) -> bool:
+            node = new.nodes.get(r)
+            return node is not None and node.status != Status.FRESH
+
+        record.needs_approval = [r for r in record.needs_approval if held(r)]
+        record.approved = [r for r in record.approved if held(r) and r not in cancelled]
 
         waiting = self._gated(new, record)
         gate_drafts = [
@@ -965,8 +1023,9 @@ class ProjectRuntime:
         self._waiting = waiting
         self._user -= done
         self._forced -= {r for r in done}
-        cancel = frozenset().union(*(inv.cancel for inv in invs)) if invs else frozenset()
-        self._cancel(cancel)
+        for r in settled:
+            self._store_failures.pop(r, None)
+        self._cancel(cancelled)
         self._owner = {
             r: j
             for r, j in self._owner.items()
@@ -1150,9 +1209,38 @@ class ProjectRuntime:
     # Jobs ---------------------------------------------------------------------------------------
 
     async def _run_job(self, key: str, job_id: int) -> None:
+        priority = next((x.priority for x in self.queue.running() if x.job_id == job_id), "P2")
+        try:
+            started = self._start(key, job_id, priority)
+        except Exception:  # noqa: BLE001 - the store refused; memory is unchanged
+            log.exception("job %s could not start; trying again later", key)
+            self._retry_later(key, priority)
+            return
+        if started is None:
+            return
+        job, spec, ctx = started
+        token = _PROGRESS.set(lambda text: self._progress(job, text))
+        try:
+            outcome = await spec.produce(ctx, self.deps.complete)
+        except asyncio.CancelledError:
+            self._end_cancelled(job)
+            raise
+        except Exception as exc:  # noqa: BLE001 - fails the job's nodes only
+            why = f"{type(exc).__name__}: {exc}"[:2000]
+            log.warning("job %s failed: %s", job.record.job_id, why)
+            outcome = ProduceOutcome(failed={r: why for r in job.refs})
+        finally:
+            _PROGRESS.reset(token)
+        self._finish(job, outcome)
+
+    def _start(
+        self, key: str, job_id: int, priority: Priority
+    ) -> tuple[_Job, stages.StageSpec, ProduceContext] | None:
+        """Cache hits settle first; the rest is marked running (job_started). In-memory job
+        bookkeeping changes only after its commit succeeded."""
         refs = self._collect(key)
         if not refs:
-            return
+            return None
         state = self.state
         hits = []
         for r in refs:
@@ -1165,7 +1253,7 @@ class ProjectRuntime:
             self._commit(tx.state, tx=tx)
             refs = [r for r in self._collect(key) if r not in out.accepted]
             if not refs:
-                return
+                return None
         kind = refs[0].kind
         spec = stages.get(kind)
         if spec.produce is None:  # pragma: no cover - every stage has a producer (paket 3)
@@ -1173,7 +1261,6 @@ class ProjectRuntime:
         running = self.state
         for r in refs:
             running = mark_running(running, r)
-        priority = next((x.priority for x in self.queue.running() if x.job_id == job_id), "P2")
         record = JobRecord(
             job_id=f"{self.pid}-{self._session}-j{job_id}",
             stage=kind,
@@ -1183,18 +1270,27 @@ class ProjectRuntime:
             started_at=time.time(),
         )
         job = _Job(job_id, key, kind, tuple(refs), priority, record)
-        self._jobs[job_id] = job
-        self._forced -= set(refs)
         self._commit(
             running,
             before=[_job_draft("job_started", job)],
             job_records=[record],
         )
+        self._jobs[job_id] = job
+        self._forced -= set(refs)
         for r in refs:
             self._owner[r] = job_id
+        try:
+            ctx = self._context(job.refs)
+        except Exception as exc:  # noqa: BLE001 - store history unreadable: release, retry
+            log.exception("job %s could not read its context", record.job_id)
+            self._abandon(job, exc)
+            return None
+        return job, spec, ctx
+
+    def _context(self, refs: Sequence[NodeRef]) -> ProduceContext:
         hint = self._hint(refs[0]) if len(refs) == 1 else None
         tools = self._tools()
-        ctx = ProduceContext(
+        return ProduceContext(
             state=self.state,
             refs=tuple(refs),
             settings=self.deps.settings,
@@ -1206,19 +1302,6 @@ class ProjectRuntime:
             select_examples=tools.select_examples,
             example_texts=tools.example_texts,
         )
-        token = _PROGRESS.set(lambda text: self._progress(job, text))
-        try:
-            outcome = await spec.produce(ctx, self.deps.complete)
-        except asyncio.CancelledError:
-            self._end_cancelled(job)
-            raise
-        except Exception as exc:  # noqa: BLE001 - fails the job's nodes only
-            why = f"{type(exc).__name__}: {exc}"[:2000]
-            log.warning("job %s failed: %s", record.job_id, why)
-            outcome = ProduceOutcome(failed={r: why for r in refs})
-        finally:
-            _PROGRESS.reset(token)
-        self._finish(job, outcome)
 
     def _finish(self, job: _Job, outcome: ProduceOutcome) -> None:
         tx = _Tx(self.state)
@@ -1248,17 +1331,75 @@ class ProjectRuntime:
         draft.payload["accepted"] = sorted(str(r) for r in settled.accepted)
         if failed:
             draft.payload["errors"] = {str(r): w for r, w in failed.items()}
+        try:
+            self._commit(
+                new,
+                tx=tx,
+                cache_puts=[res for _, res in outcome.results],
+                job_records=[record],
+                after=[draft],
+            )
+        except Exception as exc:  # noqa: BLE001 - the store refused the result
+            log.exception("result of job %s could not be stored", record.job_id)
+            self._abandon(job, exc)
+            return
         self._jobs.pop(job.job_id, None)
-        self._commit(
-            new,
-            tx=tx,
-            cache_puts=[res for _, res in outcome.results],
-            job_records=[record],
-            after=[draft],
+
+    def _abandon(self, job: _Job, exc: BaseException) -> None:
+        """The store refused a step of a running job. Its nodes return to the normal rule and the
+        job is tried again after `store_retry_s`; a node whose result could not be stored
+        `store_retries` times in a row is marked failed instead (no endless model calls). If the
+        store refuses this too, the change is made in memory only (`_swap_in_memory`)."""
+        why = f"store: {type(exc).__name__}: {exc}"[:2000]
+        limit = self.deps.orchestrator.store_retries
+        new = self.state
+        released = False
+        for r in job.refs:
+            node = new.nodes.get(r)
+            if self._owner.get(r) != job.job_id or node is None or node.status != Status.RUNNING:
+                continue
+            count = self._store_failures[r] = self._store_failures.get(r, 0) + 1
+            if count > limit:
+                new = mark_failed(new, r)
+            else:
+                new = release(new, r)
+                released = True
+        record = job.record.model_copy(
+            update={"state": "failed", "finished_at": time.time(), "error": why[:4000]}
         )
+        draft = _job_draft("job_failed", job)
+        draft.payload["accepted"] = []
+        draft.payload["errors"] = {str(r): why for r in job.refs}
+        try:
+            self._commit(new, job_records=[record], after=[draft])
+        except Exception:  # noqa: BLE001 - nothing more the store can take now
+            log.exception("could not record the failure of %s either", record.job_id)
+            self._swap_in_memory(new)
+        self._jobs.pop(job.job_id, None)
+        if released:
+            self._retry_later(job.key, job.priority)
+
+    def _retry_later(self, key: str, priority: Priority) -> None:
+        """Queue `key` again after `store_retry_s` (replaces an immediate submission)."""
+        if self._collect(key):
+            delay = self.deps.orchestrator.store_retry_s
+            self.queue.submit(key, priority, self._runner(key), delay=delay)
+
+    def _swap_in_memory(self, new: ProjectState) -> None:
+        """Last resort when the store refuses even the release of a job's nodes: the statuses
+        change in memory only and work is scheduled again. Versions stay equal to the store's
+        (a status change writes none); the store keeps `running`, which the next status write or
+        a restart corrects. No event is published, since no event number could be persisted."""
+        self.state = new
+        self._waiting = self._gated(new, self.record)
+        self._owner = {
+            r: j
+            for r, j in self._owner.items()
+            if (n := new.nodes.get(r)) is not None and n.status == Status.RUNNING
+        }
+        self._schedule()
 
     def _end_cancelled(self, job: _Job) -> None:
-        self._jobs.pop(job.job_id, None)
         new = self.state
         for r in job.refs:
             if self._owner.get(r) == job.job_id:
@@ -1268,8 +1409,10 @@ class ProjectRuntime:
         draft.payload["cancelled"] = True
         try:
             self._commit(new, job_records=[record], after=[draft])
-        except Exception:  # noqa: BLE001 - shutting down; the reload releases running nodes
+        except Exception:  # noqa: BLE001 - e.g. shutting down with the store gone
             log.exception("could not record the cancellation of %s", record.job_id)
+            self._swap_in_memory(new)
+        self._jobs.pop(job.job_id, None)
 
     def _progress(self, job: _Job, text: str) -> None:
         event = ServerEvent(

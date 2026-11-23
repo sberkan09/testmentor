@@ -3,6 +3,9 @@
 The app knows only the service interface; bodies and events are the contract models.
 Rejected commands answer with a `CommandResult` body (`accepted: false`) and the HTTP code of
 the reason: `version_conflict` and `nothing_to_undo` 409, `locked` 423, `invalid` 422.
+
+Every endpoint is `async def`: the service is single-threaded on the server's event loop, and a
+plain `def` endpoint would run in FastAPI's thread pool.
 """
 
 from __future__ import annotations
@@ -89,7 +92,7 @@ def create_app(
         return name
 
     @app.get("/projects")
-    def list_projects() -> list[dict[str, str]]:
+    async def list_projects() -> list[dict[str, str]]:
         return [{"id": pid, "name": name} for pid, name in service.projects()]
 
     @app.post("/projects")
@@ -107,7 +110,7 @@ def create_app(
             raise HTTPException(422, str(exc)) from exc
 
     @app.get("/projects/{project_id}/snapshot")
-    def snapshot(project_id: str) -> Snapshot:
+    async def snapshot(project_id: str) -> Snapshot:
         known(project_id)
         return service.snapshot(project_id)
 
@@ -134,7 +137,7 @@ def create_app(
         return JSONResponse(result.model_dump(mode="json"), status_code=code)
 
     @app.post("/projects/{project_id}/locks")
-    def lock(
+    async def lock(
         project_id: str, body: LockBody, x_user: str | None = Header(default=None)
     ) -> JSONResponse:
         actor = actor_of(x_user)
@@ -143,7 +146,7 @@ def create_app(
         return JSONResponse({"locked": ok}, status_code=200 if ok else 423)
 
     @app.get("/projects/{project_id}/matrix.xlsx")
-    def matrix(project_id: str) -> Response:
+    async def matrix(project_id: str) -> Response:
         known(project_id)
         return Response(
             service.matrix_xlsx(project_id),

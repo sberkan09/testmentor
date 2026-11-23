@@ -141,7 +141,9 @@ class FakeProjectService:
 
     def events_after(self, project_id: str, seq: int) -> list[ServerEvent] | None:
         p = self._projects[project_id]
-        if seq >= p.seq:
+        if seq > p.seq:
+            return None  # a seq never published (as the real service)
+        if seq == p.seq:
             return []
         if not p.ring or p.ring[0].seq > seq + 1:
             return None

@@ -135,3 +135,28 @@ async def test_a_raising_job_does_not_stop_the_queue():
     await asyncio.wait_for(q.join(), 1)
     assert log == ["b"]
     await q.close()
+
+
+async def test_dispatcher_sleeps_while_due_p2_jobs_wait_for_a_p2_slot():
+    """Review finding 5: a due P2 job blocked by the P2 share must not make the dispatcher spin;
+    it starts when a running job ends."""
+    q = JobQueue(concurrency=4, p2_share=0.5)  # P2 limit 2
+    turns = 0
+    start_due = q._start_due
+
+    def counted(now: float) -> None:
+        nonlocal turns
+        turns += 1
+        start_due(now)
+
+    q._start_due = counted  # type: ignore[method-assign]
+    gate = asyncio.Event()
+    log: list[str] = []
+    for i in range(3):
+        q.submit(f"auto{i}", "P2", recorder(log, f"auto{i}", gate))
+    await asyncio.sleep(0.2)
+    assert len(q.running()) == 2 and q.is_pending("auto2")
+    assert turns <= 5, turns
+    gate.set()
+    await asyncio.wait_for(q.join(), 2)
+    assert sorted(log) == ["auto0", "auto1", "auto2"]

@@ -4,6 +4,10 @@ One instance per process, one shared job queue for every project (the concurrenc
 model server's). Projects live in memory (`worker.runtime.ProjectRuntime`) and in the store; `start`
 loads every stored project. An unknown project id raises `KeyError` (the API answers 404).
 
+The service is single-threaded: every method runs on one event loop, in its thread (the API's
+endpoints are `async def`), so a command, a job step and a snapshot never interleave. A call from
+another thread or loop raises `RuntimeError`.
+
 Setting up:
 
     store = PostgresStore.connect(dsn)            # or MemoryProjectStore() in tests
@@ -20,6 +24,8 @@ Development and tests use `services.fake_llm.FakeComplete` and `FakeEmbed`. The 
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 
@@ -45,6 +51,8 @@ from worker.runtime import ProjectRuntime, ProjectTools, RuntimeDeps
 from worker.settings import load_orchestrator_settings
 from worker.store import ProjectStore
 
+log = logging.getLogger(__name__)
+
 
 class OrchestratorService:
     def __init__(self, store: ProjectStore, deps: RuntimeDeps) -> None:
@@ -54,6 +62,9 @@ class OrchestratorService:
         self.queue = JobQueue(concurrency=o.concurrency, p2_share=o.p2_share)
         self._projects: dict[str, ProjectRuntime] = {}
         self._loaded = False
+        self._load_errors: dict[str, str] = {}
+        """Projects that failed to load (id → error), retried on the next call."""
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     @classmethod
     def from_config(
@@ -101,15 +112,45 @@ class OrchestratorService:
         loop runs)."""
         self._load()
 
+    def _on_loop(self) -> None:
+        """The service has one writer: every method runs on the event loop it first ran on, in
+        that loop's thread (`async def` endpoints; never FastAPI's thread pool)."""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            raise RuntimeError(
+                "OrchestratorService must be called on its event loop thread "
+                "(an `async def` endpoint), not from a worker thread"
+            ) from None
+        if self._loop is None:
+            self._loop = loop
+        elif loop is not self._loop:
+            raise RuntimeError("OrchestratorService is bound to another event loop")
+
     def _load(self) -> None:
+        """Every stored project, each on its own: one that fails to load is logged, left out and
+        tried again on the next call; the others are served."""
+        self._on_loop()
         if self._loaded:
             return
-        self._loaded = True
+        failed = False
         for record in self.store.list_projects():
-            if record.project_id not in self._projects:
-                self._projects[record.project_id] = ProjectRuntime.load(
-                    record, self.store, self.queue, self.deps
-                )
+            pid = record.project_id
+            if pid in self._projects:
+                continue
+            try:
+                self._projects[pid] = ProjectRuntime.load(record, self.store, self.queue, self.deps)
+            except Exception as exc:  # noqa: BLE001 - the other projects stay available
+                failed = True
+                for p in self.queue.pending():  # jobs the half-loaded runtime queued
+                    if p.key.startswith(f"{pid}|"):
+                        self.queue.drop(p.key)
+                if pid not in self._load_errors:
+                    log.exception("project %s could not be loaded; retrying on the next call", pid)
+                self._load_errors[pid] = f"{type(exc).__name__}: {exc}"
+            else:
+                self._load_errors.pop(pid, None)
+        self._loaded = not failed
 
     async def close(self) -> None:
         await self.queue.close()
@@ -153,8 +194,8 @@ class OrchestratorService:
         return self.runtime(project_id).command(request, actor)
 
     def snapshot(self, project_id: str) -> Snapshot:
-        rt = self.runtime(project_id)
-        return rt.snapshot(matrix_rows(rt.state, self.deps.settings.test_method))
+        method = self.deps.settings.test_method
+        return self.runtime(project_id).snapshot(lambda state: matrix_rows(state, method))
 
     def events_after(self, project_id: str, seq: int) -> list[ServerEvent] | None:
         return self.runtime(project_id).events_after(seq)

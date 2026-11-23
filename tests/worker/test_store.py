@@ -77,16 +77,60 @@ def test_job_record_round_trip(store):
     assert store.jobs("Q") == []
 
 
-def test_transaction_rolls_back_together(pg_store):
+def test_transaction_rolls_back_together(store):
     lbl = NodeRef(kind=NodeKind.CLUSTER_LABEL, key="A")
     node = Node(ref=lbl, content=ClusterLabelContent(name="Ad"), input_hash="h", version=1)
-    with pytest.raises(RuntimeError), pg_store.transaction():
-        pg_store.put_node("P", node, expected_version=0)
-        pg_store.save_project(record())
+    job = JobRecord(
+        job_id="P-x-j1",
+        stage=NodeKind.CLUSTER_LABEL,
+        nodes=[lbl],
+        priority="P2",
+        state="done",
+        started_at=1.0,
+    )
+    with pytest.raises(RuntimeError), store.transaction():
+        store.put_node("P", node, expected_version=0)
+        store.save_project(record())
+        store.put_job("P", job)
         raise RuntimeError("boom")
-    assert pg_store.get_node("P", lbl) is None
-    assert pg_store.history("P", lbl) == []
-    assert pg_store.get_project("P") is None
+    assert store.get_node("P", lbl) is None
+    assert store.history("P", lbl) == []
+    assert store.get_project("P") is None
+    assert store.jobs("P") == []
+
+
+async def test_failed_job_commit_is_rolled_back_and_retried(store):
+    """Review finding 6 on both stores: the result commit of label A fails once; the store
+    keeps nothing of it, memory releases the node, the job runs again and the store mirrors
+    memory."""
+    complete = FakeComplete()
+    svc = service(store, complete=complete)
+    await produced(svc)
+    label = ref(NodeKind.CLUSTER_LABEL, "A")
+    put_job = store.put_job
+    armed = [True]
+
+    def failing_put_job(project_id: str, job: JobRecord) -> None:
+        if armed[0] and job.state == "done" and label in job.nodes:
+            armed[0] = False
+            raise ConnectionError("database connection lost (simulated)")
+        put_job(project_id, job)
+
+    store.put_job = failing_put_job
+    n0 = len(complete.requests)
+    move = CommandRequest(command=MoveRequirement(requirement="R2", to_cluster="B"))
+    assert (await svc.command("P", move, "ayse")).accepted
+    await svc.wait_idle()
+    assert not armed[0]
+    state = svc.runtime("P").state
+    assert not analyze(state).stale and not analyze(state).failed
+    assert all(n.status.value != "running" for n in state.nodes.values())
+    assert calls(complete.requests[n0:])[("ClusterLabel", "A/label")] == 2
+    stored = store.load("P")
+    for r, node in state.nodes.items():
+        if node.version:
+            assert (stored[r].version, stored[r].status) == (node.version, node.status), r
+    await svc.close()
 
 
 async def test_move_scenario_on_postgres(pg_store):
