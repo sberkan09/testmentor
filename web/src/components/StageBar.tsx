@@ -23,23 +23,12 @@ export function StageBar() {
         <button className="btn small" data-testid="undo" onClick={() => void send({ type: "undo" })} title="Ctrl+Z">
           ↶ Geri al
         </button>
-        <span className="meta" style={{ margin: 0 }}>
-          Ctrl+Z son işlemini geri alır
-        </span>
       </div>
       <div className="stages" role="list">
         {stages.map((s) => (
           <div key={s.stage} role="listitem" className={`stage${s.waiting_approval ? " waiting" : ""}`} data-testid={`stage-${s.stage}`}>
             <div className="stage-head">
               <span>{STAGE_LABELS[s.stage] ?? s.stage}</span>
-              <div className="mode-toggle" role="group" aria-label="Aşama modu">
-                <button aria-pressed={s.mode === "auto"} data-testid={`mode-auto-${s.stage}`} onClick={() => void send({ type: "set_stage_mode", stage: s.stage, mode: "auto" })}>
-                  Otomatik
-                </button>
-                <button aria-pressed={s.mode === "approval"} data-testid={`mode-approval-${s.stage}`} onClick={() => void send({ type: "set_stage_mode", stage: s.stage, mode: "approval" })}>
-                  Onaylı
-                </button>
-              </div>
             </div>
             <div className="stage-counts">
               <span className="pill fresh" title="Taze">{s.fresh}</span>
@@ -52,6 +41,14 @@ export function StageBar() {
               {s.stale > 0 && <span className="pill stale" title="Bayat">{s.stale}</span>}
               {s.failed > 0 && <span className="pill failed" title="Hata">{s.failed}</span>}
             </div>
+            <div className="mode-toggle" role="group" aria-label="Aşama modu">
+                <button aria-pressed={s.mode === "auto"} data-testid={`mode-auto-${s.stage}`} onClick={() => void send({ type: "set_stage_mode", stage: s.stage, mode: "auto" })}>
+                  Otomatik
+                </button>
+                <button aria-pressed={s.mode === "approval"} data-testid={`mode-approval-${s.stage}`} onClick={() => void send({ type: "set_stage_mode", stage: s.stage, mode: "approval" })}>
+                  Onaylı
+                </button>
+              </div>
             {s.waiting_approval && (
               <button className="btn small primary" data-testid={`approve-${s.stage}`} onClick={() => void send({ type: "approve_stage", stage: s.stage })}>
                 Onayla
