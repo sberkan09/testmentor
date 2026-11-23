@@ -17,6 +17,7 @@ from enum import StrEnum
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
+from typing_extensions import TypedDict
 
 from core.schemas import Step
 
@@ -181,6 +182,14 @@ class ClusterLabelContent(BaseModel):
     rationale: str = ""
 
 
+class _RetrievalDump(TypedDict, total=False):
+    """Serialised form of `RetrievalContent` (keeps the generated serialization schema complete)."""
+
+    kind: Literal["retrieval"]
+    passage_ids: list[str]
+    example_keys: list[str]
+
+
 class RetrievalContent(BaseModel):
     """Passage ids in rank order. Test sets depend on these ids, not on the index version.
 
@@ -195,11 +204,11 @@ class RetrievalContent(BaseModel):
     example_keys: tuple[str, ...] = ()
 
     @model_serializer(mode="wrap")
-    def _omit_empty_examples(self, handler: Any) -> dict[str, Any]:
-        data = handler(self)
+    def _omit_empty_examples(self, handler: Any) -> _RetrievalDump:
+        data: dict[str, Any] = handler(self)
         if not data.get("example_keys"):
             data.pop("example_keys", None)
-        return data
+        return data  # type: ignore[return-value]
 
 
 class TestSetContent(BaseModel):

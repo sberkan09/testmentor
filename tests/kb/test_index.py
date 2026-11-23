@@ -48,7 +48,8 @@ def test_texts_are_prompt_ready_and_project_scoped():
     idx = InMemoryIndex(SETTINGS)
     c = chunks("D", "alpha beta")[0]
     idx.add("P", [c], [[1.0, 0.0]])
-    assert idx.texts("P", [c.passage_id]) == ["[D §H] alpha beta"]
+    assert idx.texts("P", [c.passage_id]) == [c.prompt_text()]
+    assert c.prompt_text().startswith("[D §H] ") and c.prompt_text().endswith("alpha beta")
     with pytest.raises(KeyError):
         idx.texts("Q", [c.passage_id])
     with pytest.raises(KeyError):

@@ -21,7 +21,7 @@ from core.kb.chunking import Chunk
 from core.kb.settings import KbSettings
 from core.nodes import NodeKind, RetrievalContent, ref
 from core.prompts import render_example
-from services.fake_llm import FakeEmbed
+from services.fake_llm import FakeComplete, FakeEmbed
 from services.kb_examples import ExamplePool, build_entry
 from services.kb_index import InMemoryIndex, KbIndex, ingest_document
 from services.kb_retrieve import (
@@ -29,7 +29,7 @@ from services.kb_retrieve import (
     make_example_source,
     make_select_examples,
 )
-from tests.stages.helpers import REQS, SETTINGS, ScriptedComplete, case_json, drive, project
+from tests.stages.helpers import REQS, SETTINGS, case_json, drive, project
 
 KB = KbSettings(chunk_tokens=60, chunk_overlap_tokens=0, top_k=4, examples=2)
 MARKERS = {"PA": "ALFAMARKER", "PB": "BETAMARKER"}
@@ -114,7 +114,7 @@ async def exercise(index: KbIndex, pool: ExamplePool) -> dict[str, dict]:
         pool.add(pid, [entry])
     for pid in MARKERS:
         retrieve, passages = build_retrieval(index, pid, embed, KB)
-        complete = ScriptedComplete()
+        complete = FakeComplete()
         run = await drive(
             project(REQS, CLUSTERS),
             complete,
@@ -129,7 +129,11 @@ async def exercise(index: KbIndex, pool: ExamplePool) -> dict[str, dict]:
         out[pid] = {
             "retrieval": retrieval,
             "chunks": own[pid],
-            "prompts": [r.messages[-1]["content"] for r in complete.of(NodeKind.TEST_SET)],
+            "prompts": [
+                r.messages[-1]["content"]
+                for r in complete.requests
+                if r.schema.__name__ == "TestCaseSet"
+            ],
         }
     return out
 

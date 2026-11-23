@@ -159,6 +159,45 @@ def test_unknown_modes_and_example_settings_are_refused(tmp_path):
         kk_pipeline(tmp_path, {"kb": {**CFG["kb"], "examples": 2}})
 
 
+async def test_golden_v1_kdh_runs_in_index_mode_over_the_committed_documents(tmp_path, monkeypatch):
+    """The batch runs golden v1: build a corpus cache from the committed KDH texts (the system
+    documents and the snapshots) and run the whole project once with the fakes."""
+    from eval.golden_v1 import load_golden_v1
+
+    corpus = ROOT / "eval" / "corpus" / "kdh"
+    files = sorted((corpus / "system").glob("*.md")) + sorted((corpus / "snapshots").rglob("*.md"))
+    assert len(files) > 10
+    base = tmp_path / "cache" / "kdh"
+    (base / "text").mkdir(parents=True)
+    index, visible = {}, []
+    for f in files:
+        doc = "-".join(f.relative_to(corpus).with_suffix("").parts)
+        rel = f"text/{doc}.txt"
+        (base / rel).write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
+        index[doc] = {"role": "corpus", "language": "en", "texts": [{"file": rel}]}
+        visible.append(rel)
+    (base / "index.json").write_text(json.dumps(index))
+    (base / "writer_visible.txt").write_text("".join(f + "\n" for f in sorted(visible)))
+    import eval.kb_corpus as kc
+
+    monkeypatch.setattr(kc, "CORPUS_DIR", tmp_path)
+    golden = load_golden_v1(projects=["KDH"])
+    pipe, fake = kk_pipeline(tmp_path, {"passages": "index"})
+    res = await pipe.run(golden)
+    kb = next(r for r in res.records if r.get("type") == "kb")
+    assert kb["chunks"] > 500
+    project = next(r for r in res.records if r.get("type") == "project")
+    assert not project["errors"]
+    retrieved = [ids for ids in project["retrieval"].values()]
+    assert retrieved and all(len(ids) == 8 for ids in retrieved)  # kb.top_k at the default
+    prompts = [
+        r.messages[-1]["content"] for r in fake.requests if r.schema.__name__ == "TestCaseSet"
+    ]
+    assert prompts and all(
+        "(none)" not in p[p.index("# Retrieved") : p.index("# Requirements")] for p in prompts
+    )
+
+
 def test_d9_experiment_arms_change_exactly_one_setting():
     from eval.run import load_experiment
 
