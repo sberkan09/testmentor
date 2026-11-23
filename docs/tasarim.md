@@ -331,7 +331,7 @@ Durumun tek sahibi sunucudur: ön yüz komut gönderir, sonuçları olay akış�
 | Veritabanı | Postgres, pgvector | düğümler, sürümler, olay günlüğü, indeks |
 | Model sunucusu | vLLM (çalışma varsayımı) | metin üretimi |
 | Embedding servisi | BGE-M3 (çalışma varsayımı) | vektörler |
-| Dağıtım | Docker Compose | dört servis (model sunucusu, embedding, Postgres, uygulama), tek sunucu; uygulama servisi API'yi ve derlenmiş ön yüzü sunar (paket 10) |
+| Dağıtım | Docker Compose | dört servis (model sunucusu, embedding, Postgres, uygulama), tek sunucu; uygulama servisi API'yi ve derlenmiş ön yüzü sunar (paket 10). Kurum sunucusu internetsizdir: imajlar, sürümü sabitlenmiş model ağırlıkları, Compose dosyası ve kurulum betikleri internete bağlı bir makinede tek pakette toplanır, sunucuda yalnızca yerel dosyalardan kurulur; GPU servisleri çevrimdışı kipte çalışır (paket 12) |
 
 ### Kod düzeni
 
