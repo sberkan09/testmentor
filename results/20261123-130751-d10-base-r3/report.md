@@ -59,3 +59,9 @@
 - by_language.tr.test_cases: 116 → 124
 - traps.test_cases: 4 → 3
 
+## Hakem (katman 2)
+
+- check_recall: 0.4894
+- en: 0.5361
+- tr: 0.4064
+
