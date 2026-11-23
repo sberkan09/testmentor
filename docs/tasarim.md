@@ -73,7 +73,7 @@ Kurallar:
 - Sürüm içerik değişikliğini ve kullanıcı kararını sayar (üretim, düzenleme, taşıma, koruma, sabitleme ve çözme). Durum değişikliği (`fresh`, `stale`, `running`, `failed`) sürüm yazmaz. Silinip yeniden oluşan düğüm 1. sürümden başlar; geçmiş eklemeli tutulur.
 - Üretimi başarısız olan düğüm `failed` olur, kuyruğa kendiliğinden girmez ve aşağısını bekletir. Girdisi değişirse yeniden `stale` olur; kullanıcı yeniden deneyebilir.
 - Matris satırı kendi gereksinimine de bağlıdır; böylece iki satır aynı cache anahtarını paylaşmaz. Test durumlarını anahtarlarıyla birlikte görür: aynı içerikli test durumu başka öbeğe geçerse satır bayatlar.
-- Kullanıcı düzenlemesi yeni bir sürüm yazar (`origin=edited`, `pinned=true`). Eski sürümler silinmez, geri alma sürüm değiştirmektir. Geri alma, komutun değiştirdiği kaynak ve düzenlenmiş düğümlerin önceki içeriğini yeni olaylarla geri yazar; türev düğümler beklenen hash'leri eskiye döndüğü için çıktı cache'inden gelir. Öbek üyeliği sabit atamalarıyla birlikte geri yazılır: `membership_changed` olayı isteğe bağlı olarak sabit atamaları da taşır (paket 5). Komuttan sonra bu düğümleri başka bir komut değiştirdiyse geri alma sürüm çakışmasıyla reddedilir.
+- Kullanıcı düzenlemesi yeni bir sürüm yazar (`origin=edited`, `pinned=true`). Eski sürümler silinmez, geri alma sürüm değiştirmektir. Geri alma, komutun değiştirdiği kaynak ve düzenlenmiş düğümlerin önceki içeriğini yeni olaylarla geri yazar; türev düğümler beklenen hash'leri eskiye döndüğü için çıktı cache'inden gelir. Öbek üyeliği sabit atamalarıyla birlikte geri yazılır: `membership_changed` olayı isteğe bağlı olarak sabit atamaları da taşır (paket 5). Komuttan sonra bu düğümleri başka bir komut değiştirdiyse geri alma sürüm çakışmasıyla reddedilir; reddedilen kayıt kullanıcının yığınından düşer, böylece daha eski komutları geri alınabilir (paket 5 incelemesi).
 - Her düzenleme olay günlüğüne yazılır (`requirement_moved`, `cluster_created`, `test_case_edited`). Arayüz bu olayları dinler, denetim izi de buradan çıkar.
 
 ## Pipeline aşamaları
@@ -277,6 +277,7 @@ D8 (paket 3) sonrası: yalnızca üye çıkan set modelsiz budanır (`generation
 - Aynı düğüm için bekleyen iş varsa yenisi onun yerine geçer. Çalışan işin girdisi değiştiyse akış kesilerek iptal edilir.
 - Eşzamanlılık sınırı vLLM'in dizi sınırına eşittir; P2 işleri yuvaların en çok %70'ini kullanır.
 - Şema doğrulaması başarısız olursa bir kez yeniden denenir, sonra düğüm `failed` olur. Çıktı `max_tokens`'ta kesildiyse (`finish_reason: length`) yeniden denenmez: yeniden deneme en pahalı çağrıyı ikiye katlar ve dejenerasyonu büyük olasılıkla tekrarlar (paket 3, KDH-030: aynı prompt 5 koşunun 3'ünde kesildi, 2'sinde geçti).
+- Bir işin sonucu veritabanına yazılamazsa (bağlantı kopması gibi) düğüm normal kurala döner ve iş `store_retry_s` sonra yeniden denenir; aynı düğümün sonucu art arda `store_retries` kez yazılamazsa düğüm `failed` olur. Böylece kalıcı bir depo hatası sınırsız model çağrısına dönüşmez (paket 5 incelemesi).
 - İlk sürümde kuyruk, iş kayıtları Postgres'te duran bir asyncio işçi havuzudur. Tek GPU için Redis ya da Celery gerekmez.
 
 ### Beklenen süreler (tahmin, ölçülecek)
