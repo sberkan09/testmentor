@@ -6,7 +6,7 @@ Files:
 - `engines.yaml`: serving engines (image, launch arguments, extra request fields).
 
 Environment overrides (handy on a pod or in CI): `LLM_ENGINE`, `LLM_MODEL`, `LLM_BASE_URL`,
-`EMBEDDING_BASE_URL`.
+`LLM_HOST` (the `{host}` of `llm.base_url`; Compose sets the engine service), `EMBEDDING_BASE_URL`.
 """
 
 from __future__ import annotations
@@ -85,6 +85,8 @@ class EmbeddingSettings(BaseModel):
     batch_size: int = 32
     api_key_env: str | None = None
     request_timeout_s: float = 120.0
+    dim: int = 1024
+    """Vector dimension; the knowledge base table (`kb_chunks.embedding`) is created with it."""
 
 
 def _read(config_dir: Path, name: str) -> dict[str, Any]:
@@ -118,7 +120,10 @@ def load_llm_settings(config_dir: str | Path = "config") -> LLMSettings:
     if engine_key not in engines:
         raise KeyError(f"unknown engine {engine_key!r}; known: {sorted(engines)}")
     model, engine = models[model_key], engines[engine_key]
-    base_url = os.environ.get("LLM_BASE_URL") or runtime["base_url"].format(port=engine.port)
+    host = os.environ.get("LLM_HOST") or "localhost"
+    base_url = os.environ.get("LLM_BASE_URL") or runtime["base_url"].format(
+        port=engine.port, host=host
+    )
     return LLMSettings(
         engine=engine_key,
         model=model_key,

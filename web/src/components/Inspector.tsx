@@ -329,6 +329,32 @@ function RequirementEditor({ state, node }: { state: ProjectState; node: NodeVie
   );
 }
 
+/** Passages the retrieval node of the cluster found in the knowledge base (paket 10). An id is
+ *  `<document>#<chunk>@<digest>`; the document and chunk number are shown. */
+function Passages({ state, clusterKey }: { state: ProjectState; clusterKey: string }) {
+  const node = state.nodes[`retrieval:${clusterKey}`];
+  if (!node) return null;
+  const ids = (node.content?.["passage_ids"] as string[] | undefined) ?? [];
+  return (
+    <>
+      <div className="section-title">Bilgi havuzundan parçalar ({ids.length})</div>
+      {ids.length === 0 ? (
+        <span className="meta" data-testid="passages-empty">
+          {node.status === "fresh" ? "Parça yok; Belgeler sekmesinden belge yükleyebilirsin." : "Aranıyor…"}
+        </span>
+      ) : (
+        <div className="chips" data-testid="passages">
+          {ids.map((id) => (
+            <span key={id} className="link-chip" style={{ cursor: "default" }} title={id} data-testid="passage-id">
+              {id.split("@")[0]}
+            </span>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 function ClusterEditor({ state, clusterKey }: { state: ProjectState; clusterKey: string }) {
   const { send, select } = useActions();
   const c = clusters(state).find((x) => x.key === clusterKey);
@@ -369,6 +395,7 @@ function ClusterEditor({ state, clusterKey }: { state: ProjectState; clusterKey:
           <p>{c.rationale}</p>
         </div>
       )}
+      <Passages state={state} clusterKey={clusterKey} />
       <div className="section-title">Test durumları ({c.caseKeys.length})</div>
       {c.caseKeys.map((k) => {
         const n = state.nodes[`test_case:${k}`];

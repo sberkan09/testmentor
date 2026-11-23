@@ -153,9 +153,14 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
         )
         svc["profiles"] = [key]
         services[key] = svc
+    app = infra["app"]
+    for key in sorted(engines):
+        services[key]["networks"] = {"default": {"aliases": [app["llm_alias"]]}}
     services["embedding"] = gpu_service(
         emb["image"], embedding_argv(config_dir), emb["port"], "/health"
     )
+    # Every engine profile, not the external one: there the embedding server is elsewhere.
+    services["embedding"]["profiles"] = sorted(engines)
     services["postgres"] = {
         "image": pg["image"],
         "environment": {
@@ -164,7 +169,7 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
             "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD .env dosyasında tanımlı olmalı}",
         },
         "volumes": ["pgdata:/var/lib/postgresql", "./initdb:/docker-entrypoint-initdb.d:ro"],
-        "ports": [f"{pg['port']}:5432"],
+        "ports": [f"${{POSTGRES_PORT:-{pg['port']}}}:5432"],
         "healthcheck": {
             "test": ["CMD-SHELL", f"pg_isready -U {pg['user']} -d {pg['db']}"],
             "interval": "5s",
@@ -173,14 +178,63 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
         },
         "restart": "unless-stopped",
     }
+    services["app"] = app_service(infra, runtime, emb)
     doc = {"name": "testmentor", "services": services, "volumes": {"pgdata": {}}}
+    profiles = " | ".join(sorted(engines))
     header = (
         "# ÜRETİLMİŞ DOSYA, elle düzenleme. Kaynak: config/*.yaml; yeniden üret: make compose\n"
-        "# Profiller: vllm | sglang (sunum motoru). embedding ve postgres her profilde çalışır.\n"
+        f"# Profiller: {profiles} (sunum motoru, embedding ile) | {app['external_profile']}\n"
+        "# (model ve embedding kurumun ayrı sunucusunda; adresleri .env'de: LLM_BASE_URL,\n"
+        "# EMBEDDING_BASE_URL). postgres ve app her profilde çalışır (docs/pilot.md).\n"
         "# Etkin model config/runtime.yaml'daki varsayılandır; başka model için make compose\n"
         "# öncesi runtime.yaml'ı değiştir.\n"
     )
     return header + yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=1000)
+
+
+def app_service(
+    infra: dict[str, Any], runtime: dict[str, Any], emb: dict[str, Any]
+) -> dict[str, Any]:
+    """API and built frontend (paket 10). Model and embedding addresses default to the services
+    of this compose file (engine alias, `embedding`); in the external profile `.env` sets
+    LLM_BASE_URL and EMBEDDING_BASE_URL. Secrets come from `.env`, never from config."""
+    app, pg = infra["app"], infra["postgres"]
+    port = int(app["port"])
+    dsn = f"postgresql://{pg['user']}:${{POSTGRES_PASSWORD}}@postgres:5432/{pg['db']}"
+    return {
+        "image": app["image"],
+        "build": {"context": "..", "dockerfile": app["dockerfile"]},
+        "environment": {
+            "TESTMENTOR_PG_DSN": dsn,
+            "TESTMENTOR_AUTH_MODE": f"${{TESTMENTOR_AUTH_MODE:-{app['auth_mode']}}}",
+            "TESTMENTOR_AUTH_SECRET": "${TESTMENTOR_AUTH_SECRET:-}",
+            "TESTMENTOR_USERS_FILE": "/app/data/users.yaml",
+            "TESTMENTOR_FAKE_LLM": "${TESTMENTOR_FAKE_LLM:-0}",
+            "LLM_ENGINE": f"${{LLM_ENGINE:-{runtime['llm']['engine']}}}",
+            "LLM_MODEL": f"${{LLM_MODEL:-{runtime['llm']['model']}}}",
+            "LLM_HOST": app["llm_alias"],
+            "LLM_BASE_URL": "${LLM_BASE_URL:-}",
+            "EMBEDDING_BASE_URL": f"${{EMBEDDING_BASE_URL:-http://embedding:{emb['port']}/v1}}",
+            "LLM_API_KEY": "${LLM_API_KEY:?LLM_API_KEY .env dosyasında tanımlı olmalı}",
+        },
+        "volumes": [f"${{TESTMENTOR_DATA_DIR:-{app['data_dir']}}}:/app/data"],
+        "ports": [f"${{APP_PORT:-{app['host_port']}}}:{port}"],
+        "depends_on": {"postgres": {"condition": "service_healthy"}},
+        "healthcheck": {
+            "test": [
+                "CMD",
+                "python",
+                "-c",
+                f"import urllib.request; urllib.request.urlopen("
+                f"'http://localhost:{port}/auth/config', timeout=5)",
+            ],
+            "interval": "10s",
+            "timeout": "5s",
+            "retries": 6,
+            "start_period": "30s",
+        },
+        "restart": "unless-stopped",
+    }
 
 
 def download_lines(config_dir: Path = ROOT / "config", clean: list[str] | None = None) -> list[str]:

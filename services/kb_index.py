@@ -55,6 +55,9 @@ class KbIndex(Protocol):
     def version(self, project_id: str) -> str:
         """Changes with every add or remove in the project (`KbIndexContent.version`)."""
 
+    def documents(self, project_id: str) -> dict[str, int]:
+        """Document id → chunk count, ordered by document id (the upload list, paket 10)."""
+
 
 @dataclass
 class _Project:
@@ -125,6 +128,12 @@ class InMemoryIndex:
     def version(self, project_id: str) -> str:
         p = self._projects.get(project_id)
         return f"v{p.changes if p else 0}"
+
+    def documents(self, project_id: str) -> dict[str, int]:
+        p = self._projects.get(project_id)
+        if p is None:
+            return {}
+        return {d: len(ids) for d, ids in sorted(p.by_document.items()) if ids}
 
     def texts(self, project_id: str, ids: Sequence[str]) -> list[str]:
         p = self._projects.get(project_id)

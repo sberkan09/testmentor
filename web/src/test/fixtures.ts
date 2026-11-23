@@ -88,6 +88,8 @@ export function fakeApi(overrides: Partial<StudioApi> = {}): StudioApi & { comma
   const commands: CommandRequest[] = [];
   const api: StudioApi & { commands: CommandRequest[] } = {
     commands,
+    authConfig: async () => ({ mode: "header" }),
+    login: async (user) => ({ token: "jeton", user, expires_at: 0 }),
     listProjects: async () => [{ id: "P", name: "Proje" }],
     createProject: async () => snapshot(),
     snapshot: async () => snapshot(),
@@ -97,6 +99,9 @@ export function fakeApi(overrides: Partial<StudioApi> = {}): StudioApi & { comma
     },
     lock: async () => true,
     matrixUrl: (id) => `/projects/${id}/matrix.xlsx`,
+    listDocuments: async () => [],
+    uploadDocument: async (_id, file) => ({ document: { id: file.name, name: file.name, chunks: 1, added_by: "ayse", added_at: 0 }, seq: 7 }),
+    removeDocument: async () => ({ seq: 8 }),
     ...overrides,
   };
   return api;

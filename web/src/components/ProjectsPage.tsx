@@ -4,28 +4,62 @@ import { guessMapping, readTables, type SheetTables } from "../api/tabular";
 import type { ImportRequest } from "../types";
 
 export function UserGate() {
-  const { setUser } = useActions();
+  const { setUser, login } = useActions();
+  const passwordMode = useStudio((s) => s.authMode === "password");
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   return (
     <div className="overlay">
       <form
         className="dialog"
         style={{ width: 420 }}
         data-testid="user-gate"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          setUser(name);
+          if (!passwordMode) {
+            setUser(name);
+            return;
+          }
+          setBusy(true);
+          setError("");
+          const failed = await login(name, password);
+          setBusy(false);
+          if (failed) {
+            setError(failed);
+            setPassword("");
+          }
         }}
       >
-        <h2>Hoş geldin</h2>
+        <h2>{passwordMode ? "Giriş" : "Hoş geldin"}</h2>
         <p className="sub">Düzenlemelerin diğer kullanıcılara bu adla görünür.</p>
         <div className="field">
           <label htmlFor="user-name">Kullanıcı adı</label>
-          <input id="user-name" data-testid="user-name" className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} />
+          <input id="user-name" data-testid="user-name" className="input" autoFocus autoComplete="username" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
+        {passwordMode && (
+          <div className="field">
+            <label htmlFor="user-password">Parola</label>
+            <input
+              id="user-password"
+              data-testid="user-password"
+              className="input"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        )}
+        {error && (
+          <div className="error-text" data-testid="login-error">
+            {error}
+          </div>
+        )}
         <div className="dialog-actions">
-          <button className="btn primary" data-testid="user-submit" disabled={!name.trim()}>
-            Devam
+          <button className="btn primary" data-testid="user-submit" disabled={!name.trim() || (passwordMode && !password) || busy}>
+            {passwordMode ? (busy ? "Giriş yapılıyor…" : "Giriş yap") : "Devam"}
           </button>
         </div>
       </form>

@@ -6,7 +6,7 @@ PY := uv run python
 UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o))
 MAX_ARGS := $(if $(MAX_HOURS),--max-hours $(MAX_HOURS))
 
-.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down
+.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down app-image users-add
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
 	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) $(MAX_ARGS) && $(PY) scripts/runpod.py wait
@@ -59,11 +59,24 @@ status:
 balance:
 	$(ENV) $(PY) scripts/runpod.py balance
 
-local-up:      ## Yerel/üretim sunucusu: docker compose (ENGINE=vllm|sglang)
-	docker compose -f infra/compose.yaml --env-file .env --profile $(or $(ENGINE),vllm) up -d --wait
+# Compose profili: vllm | sglang (model sunucusu bu makinede) | harici (yalnızca Postgres ve
+# uygulama; model ve embedding adresleri .env'de). Kurulum: docs/pilot.md
+PROFILE := $(or $(PROFILE),$(ENGINE),vllm)
+comma := ,
+COMPOSE := docker compose -f infra/compose.yaml --env-file .env --profile $(PROFILE)
+COMPOSE_ENV := $(if $(filter-out harici,$(PROFILE)),LLM_ENGINE=$(PROFILE))
+
+local-up:      ## Yerel/üretim sunucusu: docker compose (PROFILE=vllm|sglang|harici)
+	$(COMPOSE_ENV) $(COMPOSE) up -d --wait
 
 local-down:
-	docker compose -f infra/compose.yaml --env-file .env --profile $(or $(ENGINE),vllm) down
+	$(COMPOSE) down
+
+app-image:     ## Uygulama imajı (API + ön yüz); kurum vekili varsa EXTRA_CA=/yol/ca.pem
+	docker build $(if $(EXTRA_CA),--secret id=extra_ca$(comma)src=$(EXTRA_CA)) -f infra/app.Dockerfile -t testmentor-app:local .
+
+users-add:     ## Parolalı giriş kullanıcısı ekle (çalışan uygulamada): make users-add NAME=ayse
+	$(COMPOSE) exec app python -m api.users add $(NAME)
 
 # Paket 8: ön yüz (web/)
 .PHONY: web-install web-build web-test web-e2e

@@ -2,9 +2,10 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
+import { ApiError, createRestApi } from "../api/client";
 import { createStudioStore } from "../api/store";
 import { StudioProvider } from "../context";
-import { FakeSocket, fakeApi, memoryStorage, snapshot } from "../test/fixtures";
+import { FakeSocket, fakeApi, memoryStorage, node, snapshot } from "../test/fixtures";
 
 beforeEach(() => {
   FakeSocket.instances = [];
@@ -141,5 +142,128 @@ describe("katman görünümü", () => {
     await userEvent.click(screen.getByTestId("view-clusters"));
     expect(await screen.findByTestId("cluster-A")).toBeInTheDocument();
     vi.restoreAllMocks();
+  });
+});
+
+describe("bilgi havuzu (paket 10)", () => {
+  it("öbek denetçisi arama düğümünün parça kimliklerini gösterir", async () => {
+    const snap = snapshot();
+    snap.nodes.push(
+      node("retrieval", "A", { kind: "retrieval", passage_ids: ["politika.md#0@ab12cd34", "politika.md#3@ffee0011"], example_keys: [] }),
+      node("retrieval", "B", { kind: "retrieval", passage_ids: [], example_keys: [] }),
+    );
+    mount({ snapshot: async () => snap });
+    await userEvent.click(await screen.findByTestId("project-P"));
+    await userEvent.click(await screen.findByTestId("cluster-name-A"));
+    const chips = await screen.findAllByTestId("passage-id");
+    expect(chips.map((c) => c.textContent)).toEqual(["politika.md#0", "politika.md#3"]);
+    await userEvent.click(screen.getByTestId("cluster-name-B"));
+    expect(await screen.findByTestId("passages-empty")).toBeInTheDocument();
+  });
+
+  it("Belgeler sekmesi listeler, yükler ve kaldırır", async () => {
+    let docs = [{ id: "a.md", name: "a.md", chunks: 2, added_by: "ali", added_at: 0 }];
+    const uploadDocument = vi.fn(async (_id: string, file: File) => {
+      const doc = { id: file.name, name: file.name, chunks: 3, added_by: "ayse", added_at: 0 };
+      docs = [...docs, doc];
+      return { document: doc, seq: 7 };
+    });
+    const removeDocument = vi.fn(async () => {
+      docs = docs.filter((d) => d.id !== "a.md");
+      return { seq: 8 };
+    });
+    mount({ listDocuments: async () => docs, uploadDocument, removeDocument });
+    await userEvent.click(await screen.findByTestId("project-P"));
+    await userEvent.click(await screen.findByTestId("view-documents"));
+    expect(await screen.findByTestId("document-a.md")).toHaveTextContent("ali");
+    await userEvent.upload(screen.getByTestId("document-file"), new File(["# Başlık\n\nmetin"], "b.md", { type: "text/markdown" }));
+    await waitFor(() => expect(uploadDocument).toHaveBeenCalledWith("P", expect.any(File)));
+    expect(await screen.findByTestId("document-chunks-b.md")).toHaveTextContent("3");
+    await userEvent.click(screen.getByTestId("document-remove-a.md"));
+    await waitFor(() => expect(screen.queryByTestId("document-a.md")).toBeNull());
+    expect(screen.getByTestId("documents-count")).toHaveTextContent("1");
+  });
+});
+
+describe("parolalı giriş (paket 10)", () => {
+  function mountPassword(apiOverrides = {}) {
+    const api = fakeApi({ authConfig: async () => ({ mode: "password" as const }), ...apiOverrides });
+    const tokens = new Map<string, string>();
+    const tokenStorage = { getItem: (k: string) => tokens.get(k) ?? null, setItem: (k: string, v: string) => void tokens.set(k, v), removeItem: (k: string) => void tokens.delete(k) };
+    const store = createStudioStore({ api, socketFactory: (u) => new FakeSocket(u), storage: memoryStorage(), tokenStorage });
+    render(
+      <StudioProvider store={store} api={api}>
+        <App />
+      </StudioProvider>,
+    );
+    return { api, store, tokens };
+  }
+
+  it("başlık kipinde parola alanı yok", async () => {
+    const api = fakeApi();
+    const store = createStudioStore({ api, socketFactory: (u) => new FakeSocket(u), storage: memoryStorage() });
+    render(
+      <StudioProvider store={store} api={api}>
+        <App />
+      </StudioProvider>,
+    );
+    expect(await screen.findByTestId("user-name")).toBeInTheDocument();
+    expect(screen.queryByTestId("user-password")).toBeNull();
+  });
+
+  it("yanlış parolada hata, doğru parolada jetonla projeler; WebSocket jetonu taşır", async () => {
+    const login = vi.fn(async (user: string, password: string) => {
+      if (password !== "parola123") throw new ApiError("kullanıcı adı ya da parola yanlış", 401);
+      return { token: "jeton-1", user, expires_at: 0 };
+    });
+    const { store, tokens } = mountPassword({ login });
+    await userEvent.type(await screen.findByTestId("user-name"), "ayşe");
+    await userEvent.type(screen.getByTestId("user-password"), "yanlis");
+    await userEvent.click(screen.getByTestId("user-submit"));
+    expect(await screen.findByTestId("login-error")).toHaveTextContent("parola yanlış");
+    await userEvent.type(screen.getByTestId("user-password"), "parola123");
+    await userEvent.click(screen.getByTestId("user-submit"));
+    await screen.findByTestId("projects-page");
+    expect(store.getState().user).toBe("ayşe");
+    expect(tokens.get("testmentor.token")).toBe("jeton-1");
+    await userEvent.click(await screen.findByTestId("project-P"));
+    await screen.findByTestId("studio");
+    expect(FakeSocket.instances.at(-1)?.url).toContain("token=jeton-1");
+    await userEvent.click(screen.getByTestId("logout"));
+    expect(await screen.findByTestId("user-password")).toBeInTheDocument();
+    expect(tokens.has("testmentor.token")).toBe(false);
+  });
+
+  it("401 cevabında giriş ekranına döner", async () => {
+    const { store } = mountPassword();
+    store.setState({ token: "eski", user: "ayşe" });
+    await screen.findByTestId("projects-page");
+    store.getState().logout(true);
+    expect(await screen.findByTestId("user-password")).toBeInTheDocument();
+    expect(await screen.findByText(/Oturumun sona erdi/)).toBeInTheDocument();
+  });
+});
+
+describe("REST istemcisi kimliği", () => {
+  it("jeton varsa Bearer, yoksa X-User; 401 kancayı çağırır; xlsx bağlantısı jetonu taşır", async () => {
+    const seen: Record<string, string>[] = [];
+    let status = 200;
+    const fetchFn = (async (_url: string, init?: RequestInit) => {
+      seen.push((init?.headers ?? {}) as Record<string, string>);
+      return new Response(JSON.stringify([]), { status });
+    }) as unknown as typeof fetch;
+    let token: string | null = null;
+    const onUnauthorized = vi.fn();
+    const api = createRestApi(() => "Ayşe", fetchFn, { getToken: () => token, onUnauthorized });
+    await api.listProjects();
+    expect(seen.at(-1)).toEqual({ "X-User": "Ay%C5%9Fe" });
+    expect(api.matrixUrl("P")).toBe("/projects/P/matrix.xlsx");
+    token = "j t";
+    await api.listProjects();
+    expect(seen.at(-1)).toEqual({ Authorization: "Bearer j t" });
+    expect(api.matrixUrl("P")).toBe("/projects/P/matrix.xlsx?token=j%20t");
+    status = 401;
+    await expect(api.listProjects()).rejects.toBeInstanceOf(ApiError);
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
   });
 });

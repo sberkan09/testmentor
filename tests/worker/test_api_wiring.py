@@ -14,6 +14,7 @@ from tests.api.conftest import META, csv_bytes
 
 def test_api_on_the_real_service(monkeypatch, tmp_path):
     monkeypatch.setenv("TESTMENTOR_FAKE_LLM", "1")
+    monkeypatch.delenv("TESTMENTOR_PG_DSN", raising=False)  # fixed key DEN: in memory
     from api.main import build_service
 
     service = build_service()

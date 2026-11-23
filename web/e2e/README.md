@@ -35,6 +35,26 @@ Playwright tarayıcısı kuruludur; `playwright install` çalıştırma. Config,
 
 Her proje anahtarı koşuya özgüdür (zaman damgası), bu yüzden aynı API'de tekrar koşabilir.
 
+## Paket 10 testleri
+
+- `documents.spec.ts`: Belgeler sekmesinden belge yüklenir; öbek denetçisinde arama düğümünün parça kimlikleri (`<belge>#<sıra>`) görünür, test setlerinin sürümü artar (yeniden üretildi).
+- `auth.spec.ts`: parolalı giriş (yanlış parola, jetonsuz istek 401, bozuk jetonla giriş ekranına dönüş). `E2E_PASSWORD` verilmezse sunucunun başlık kipinde olduğu varsayılır ve yalnızca parola alanının olmadığı denetlenir.
+- `helpers.ts` içindeki `login` parola alanı görünürse `E2E_PASSWORD` ile doldurur; `flow.spec.ts` ve `documents.spec.ts` iki kipte de koşar.
+
+## Compose ile kurulan uygulamaya karşı (paket 10)
+
+`E2E_BASE_URL` verilince Playwright sunucu açmaz, o adresi kullanır (API ve derlenmiş ön yüz aynı adreste):
+
+```bash
+# harici profili, sahte model, Postgres; .env yerine bir deneme dosyası (docs/pilot.md)
+docker compose -p tm10 -f infra/compose.yaml --env-file deneme.env --profile harici up -d --wait
+echo "pilot-parola-123" | docker compose -p tm10 -f infra/compose.yaml --env-file deneme.env --profile harici exec -T app python -m api.users add ayse
+echo "pilot-parola-123" | docker compose -p tm10 -f infra/compose.yaml --env-file deneme.env --profile harici exec -T app python -m api.users add mehmet
+cd web && E2E_BASE_URL=http://127.0.0.1:18000 E2E_PASSWORD=pilot-parola-123 npx playwright test --trace off
+```
+
+Deneme dosyası: `POSTGRES_PASSWORD`, `LLM_API_KEY` (sahte modelde kullanılmaz), `TESTMENTOR_AUTH_SECRET` (en az 32 karakter), `TESTMENTOR_FAKE_LLM=1`, `APP_PORT=18000`, `TESTMENTOR_DATA_DIR` (users.yaml klasörü), `LLM_BASE_URL` ve `EMBEDDING_BASE_URL` (sahte modelde kullanılmaz).
+
 ## Sahte API ile (geliştirme ve ön doğrulama)
 
 Arka uç yokken `web/mock/server.mjs` sözleşmeye göre çalışan küçük bir sahte API sunar (akışlı üretim, sürüm çakışması, kilit, geri alma dahil):
