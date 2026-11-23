@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 
 from scripts.infra_render import (
     COMPOSE_PATH,
@@ -165,3 +166,66 @@ def test_llm_host_fills_the_base_url(monkeypatch):
     monkeypatch.setenv("LLM_BASE_URL", "http://gpu.kurum:8000/v1")
     monkeypatch.setenv("LLM_HOST", "llm")
     assert load_llm_settings().base_url == "http://gpu.kurum:8000/v1"
+
+
+# Paket 12: internetsiz kurulum ------------------------------------------------------------
+
+
+def _rendered(bundle=None) -> dict:
+    text = render_compose(bundle=bundle)
+    return yaml.safe_load(text)
+
+
+def test_gpu_services_run_offline():
+    infra = yaml.safe_load((ROOT / "config" / "infra.yaml").read_text(encoding="utf-8"))
+    offline = infra["offline"]["env"]
+    assert offline["HF_HUB_OFFLINE"] == "1" and "TRANSFORMERS_OFFLINE" in offline
+    services = _rendered()["services"]
+    gpu = [n for n, s in services.items() if "deploy" in s]
+    assert "embedding" in gpu and len(gpu) >= 2
+    for name in gpu:
+        env = services[name]["environment"]
+        for key, value in offline.items():
+            assert env[key] == f"${{{key}:-{value}}}", (name, key)
+
+
+def test_server_sizing_is_set_in_env_with_config_defaults():
+    infra = yaml.safe_load((ROOT / "config" / "infra.yaml").read_text(encoding="utf-8"))
+    names = infra["offline"]["sizing_env"]
+    services = _rendered()["services"]
+    runtime = yaml.safe_load((ROOT / "config" / "runtime.yaml").read_text(encoding="utf-8"))
+    models = yaml.safe_load((ROOT / "config" / "models.yaml").read_text(encoding="utf-8"))
+    model = models["models"][runtime["llm"]["model"]]
+    line = services["vllm"]["command"][0]
+    assert f"${{{names['context_length']}:-{model['context_length']}}}" in line
+    assert f"${{{names['max_num_seqs']}:-{model['max_num_seqs']}}}" in line
+    assert f"${{{names['gpu_memory_utilization']}:-" in line and "@@" not in line
+    emb = services["embedding"]["command"][0]
+    assert f"${{{infra['offline']['embedding_memory_env']}:-" in emb
+
+
+def test_bundle_compose_never_builds_or_pulls():
+    doc = _rendered(bundle={"app_image": "testmentor-app:abc123"})
+    services = doc["services"]
+    assert all(s.get("pull_policy") == "never" for s in services.values())
+    assert all("build" not in s for s in services.values())
+    app = services["app"]
+    assert app["image"] == "testmentor-app:abc123"
+    assert "./config:/app/config:ro" in app["volumes"]
+    assert any(v.startswith("${TESTMENTOR_DATA_DIR:-./data}") for v in app["volumes"])
+    assert "./initdb:/docker-entrypoint-initdb.d:ro" in services["postgres"]["volumes"]
+    gpu = [s for s in services.values() if "deploy" in s]
+    assert all("${MODELS_DIR:-./models}:/models" in s["volumes"] for s in gpu)
+
+
+def test_offline_rehearsal_proxies_only_the_model_servers():
+    script = render_pod_script("vllm", "qwen3.8-27b", offline_rehearsal=True)
+    lines = script.splitlines()
+    proxied = [ln for ln in lines if "HTTPS_PROXY=" in ln]
+    assert len(proxied) == 2  # embedding and model server
+    assert all(" serve " in ln for ln in proxied)
+    watchdog = script[: script.index("export HF_HUB_OFFLINE")]
+    assert "PROXY" not in watchdog and "self_delete" in watchdog  # the watchdog keeps its network
+    assert "[refs]" in script
+    normal = render_pod_script("vllm", "qwen3.8-27b")
+    assert "PROXY" not in normal and "TRANSFORMERS_OFFLINE=1" in normal

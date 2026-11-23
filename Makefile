@@ -3,10 +3,10 @@
 SHELL := /bin/bash
 ENV := set -a; [ -f .env ] && . ./.env; set +a;
 PY := uv run python
-UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o))
+UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o)) $(if $(OFFLINE),--offline-rehearsal)
 MAX_ARGS := $(if $(MAX_HOURS),--max-hours $(MAX_HOURS))
 
-.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down app-image users-add demo demo-video
+.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down app-image users-add demo demo-video offline-bundle
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
 	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) $(MAX_ARGS) && $(PY) scripts/runpod.py wait
@@ -98,3 +98,6 @@ demo:          ## Canlı demo: pod (bekçili) + bu makinede uygulama, proje ve b
 
 demo-video:    ## Demo videosu: pod + uygulama + Playwright kaydı + MP4 (OUT=dizin, zorunlu); sonunda pod silinir
 	bash demo/run.sh record $(or $(OUT),$(error OUT=dizin gerekli))
+
+offline-bundle: ## İnternetsiz kurulum paketi (internete bağlı makinede; yalnızca Docker): make offline-bundle OUT=dizin
+	bash infra/offline/build.sh $(or $(OUT),$(error OUT=dizin gerekli))

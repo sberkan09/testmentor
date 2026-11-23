@@ -43,6 +43,8 @@ class ModelSpec(BaseModel):
     # Repo files not needed for serving (e.g. duplicate checkpoints), skipped when downloading.
     download_ignore: list[str] = Field(default_factory=list)
     approx_size_gb: float | None = None
+    # Hugging Face commit the offline bundle carries (paket 12); None: not bundled yet.
+    revision: str | None = None
     notes: str = ""
 
 

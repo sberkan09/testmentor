@@ -46,6 +46,24 @@ gpu_memory:
   llm: 0.80             # tasarımdaki başlangıç ayarı
   embedding: 0.08       # BGE-M3, yaklaşık 7,5 GB
 
+# Paket 12: internetsiz kurulum. GPU servisleri (Compose ve pod) çevrimdışı kipte çalışır; hiçbir şey
+# indirilmez, telemetri gönderilmez. Çevrimdışı provada (make up OFFLINE=1) model sunucusu ve
+# embedding süreçlerinin HTTP(S) çıkışı ölü bir vekile yönlendirilir; bekçi bunun dışındadır.
+offline:
+  env:
+    HF_HUB_OFFLINE: "1"
+    TRANSFORMERS_OFFLINE: "1"
+    HF_DATASETS_OFFLINE: "1"
+    VLLM_NO_USAGE_STATS: "1"
+    DO_NOT_TRACK: "1"
+  rehearsal_proxy: http://127.0.0.1:9   # dinleyen yok: vekil kullanan her istek bağlantı hatası alır
+  # Kurulum yerinde .env ile değişebilen model sunucusu boyut ayarları (Compose değişken adları)
+  sizing_env:
+    context_length: LLM_MAX_MODEL_LEN
+    max_num_seqs: LLM_MAX_NUM_SEQS
+    gpu_memory_utilization: LLM_GPU_MEMORY_UTILIZATION
+  embedding_memory_env: EMBEDDING_GPU_MEMORY_UTILIZATION
+
 paths:
   hf_home: /models/hf   # ağırlıklar volume'da HF önbelleği olarak durur
 

@@ -76,7 +76,9 @@ def engine_argv(
     )
 
 
-def embedding_argv(config_dir: Path = ROOT / "config") -> list[str]:
+def embedding_argv(
+    config_dir: Path = ROOT / "config", gpu_memory_utilization: Any = None
+) -> list[str]:
     emb = load_embedding_server(config_dir)
     infra = load_infra(config_dir)
     return _fill(
@@ -85,7 +87,9 @@ def embedding_argv(config_dir: Path = ROOT / "config") -> list[str]:
             "model": emb["model"],
             "served_name": emb["served_name"],
             "port": emb["port"],
-            "gpu_memory_utilization": infra["gpu_memory"]["embedding"],
+            "gpu_memory_utilization": gpu_memory_utilization
+            if gpu_memory_utilization is not None
+            else infra["gpu_memory"]["embedding"],
         },
     )
 
@@ -98,7 +102,17 @@ def shell_line(argv: list[str]) -> str:
 # Compose -----------------------------------------------------------------------------------
 
 
-def render_compose(config_dir: Path = ROOT / "config") -> str:
+def _sized(argv_with_markers: list[str], line: str, defaults: dict[str, Any], names: dict) -> str:
+    """Puts `${NAME:-default}` (Compose interpolation) where the sizing markers are."""
+    for key, name in names.items():
+        line = line.replace(f"@@{key}@@", f"${{{name}:-{defaults[key]}}}")
+    return line
+
+
+def render_compose(config_dir: Path = ROOT / "config", bundle: dict[str, str] | None = None) -> str:
+    """Compose file. `bundle` (paket 12, internetsiz kurulum): `{"app_image": tag}` renders the
+    file of the offline bundle: no build, `pull_policy: never`, paths next to the file (config/,
+    initdb/, data/, models/), app settings mounted from config/."""
     engines = load_engines(config_dir)
     infra = load_infra(config_dir)
     emb = load_embedding_server(config_dir)
@@ -113,17 +127,28 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
             }
         }
     }
+    offline = infra["offline"]
     common_env = {
         "LLM_API_KEY": "${LLM_API_KEY:?LLM_API_KEY .env dosyasında tanımlı olmalı}",
         "HF_HOME": "/models/hf",
-        "HF_HUB_OFFLINE": "${HF_HUB_OFFLINE:-1}",
+        # paket 12: nothing is downloaded and no telemetry is sent (offline.env in infra.yaml)
+        **{k: f"${{{k}:-{v}}}" for k, v in offline["env"].items()},
     }
 
-    def gpu_service(image: str, argv: list[str], port: int, health: str) -> dict[str, Any]:
+    def gpu_service(
+        image: str,
+        argv: list[str],
+        port: int,
+        health: str,
+        sizing: tuple[dict[str, Any], dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
+        line = "exec " + shell_line(argv).replace("$", "$$")
+        if sizing is not None:
+            line = _sized(argv, line, *sizing)
         return {
             "image": image,
             "entrypoint": ["/bin/sh", "-c"],
-            "command": ["exec " + shell_line(argv).replace("$", "$$")],
+            "command": [line],
             "environment": dict(common_env),
             "volumes": ["${MODELS_DIR:-./models}:/models"],
             "ports": [f"{port}:{port}"],
@@ -146,10 +171,22 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
         }
 
     services: dict[str, Any] = {}
+    model = load_models(config_dir)[default_model]
+    names = dict(offline["sizing_env"])
+    defaults = {
+        "context_length": model.context_length,
+        "max_num_seqs": model.max_num_seqs,
+        "gpu_memory_utilization": model.gpu_memory_utilization or infra["gpu_memory"]["llm"],
+    }
+    markers = {k: f"@@{k}@@" for k in names}
     for key in sorted(engines):
         e = engines[key]
         svc = gpu_service(
-            e.image, engine_argv(key, default_model, config_dir), e.port, e.health_path
+            e.image,
+            engine_argv(key, default_model, config_dir, overrides=markers),
+            e.port,
+            e.health_path,
+            sizing=(defaults, names),
         )
         svc["profiles"] = [key]
         services[key] = svc
@@ -157,7 +194,14 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
     for key in sorted(engines):
         services[key]["networks"] = {"default": {"aliases": [app["llm_alias"]]}}
     services["embedding"] = gpu_service(
-        emb["image"], embedding_argv(config_dir), emb["port"], "/health"
+        emb["image"],
+        embedding_argv(config_dir, gpu_memory_utilization="@@gpu_memory_utilization@@"),
+        emb["port"],
+        "/health",
+        sizing=(
+            {"gpu_memory_utilization": infra["gpu_memory"]["embedding"]},
+            {"gpu_memory_utilization": offline["embedding_memory_env"]},
+        ),
     )
     # Every engine profile, not the external one: there the embedding server is elsewhere.
     services["embedding"]["profiles"] = sorted(engines)
@@ -179,8 +223,23 @@ def render_compose(config_dir: Path = ROOT / "config") -> str:
         "restart": "unless-stopped",
     }
     services["app"] = app_service(infra, runtime, emb)
+    if bundle is not None:
+        app_svc = services["app"]
+        app_svc.pop("build", None)
+        app_svc["image"] = bundle["app_image"]
+        app_svc["volumes"] = ["${TESTMENTOR_DATA_DIR:-./data}:/app/data", "./config:/app/config:ro"]
+        for svc in services.values():
+            svc["pull_policy"] = "never"  # the offline machine has only the loaded images
     doc = {"name": "testmentor", "services": services, "volumes": {"pgdata": {}}}
     profiles = " | ".join(sorted(engines))
+    if bundle is not None:
+        header = (
+            "# İnternetsiz kurulum paketinin Compose dosyası (paket 12). Üretildi: make offline-bundle\n"
+            "# İmajlar docker load ile yüklenir, hiçbiri çekilmez (pull_policy: never). Ağırlıklar\n"
+            "# ./models/hf altında, uygulama ayarları ./config altında. Kurulum: KURULUM.md\n"
+            f"# Profiller: {profiles} (model sunucusu ve embedding ile) | {app['external_profile']}\n"
+        )
+        return header + yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=1000)
     header = (
         "# ÜRETİLMİŞ DOSYA, elle düzenleme. Kaynak: config/*.yaml; yeniden üret: make compose\n"
         f"# Profiller: {profiles} (sunum motoru, embedding ile) | {app['external_profile']}\n"
@@ -368,8 +427,14 @@ def render_pod_script(
     download: bool = False,
     config_dir: Path = ROOT / "config",
     overrides: dict[str, Any] | None = None,
+    offline_rehearsal: bool = False,
 ) -> str:
-    """Bash script that runs as the pod's entrypoint (one container, no Docker inside)."""
+    """Bash script that runs as the pod's entrypoint (one container, no Docker inside).
+
+    `offline_rehearsal` (paket 12): the model and embedding servers run with every HTTP(S)
+    proxy variable pointing at a dead address, so whatever they try to fetch fails; the
+    watchdog (started before, without them) keeps its own network to delete the pod. The
+    model revisions in the cache are printed (`[refs]`) and the embedding log goes to stdout."""
     infra = load_infra(config_dir)
     pg = infra["postgres"]
     hf_home = infra["paths"]["hf_home"]
@@ -387,7 +452,30 @@ def render_pod_script(
     if download:
         lines += download_lines(config_dir)
     # From here on nothing may be downloaded: a recreated pod must start from the volume.
-    lines.append("export HF_HUB_OFFLINE=1")
+    offline = infra["offline"]
+    lines.append("export " + " ".join(f"{k}={v}" for k, v in offline["env"].items()))
+    dead = ""
+    if offline_rehearsal:
+        proxy = offline["rehearsal_proxy"]
+        dead = (
+            "env "
+            + " ".join(
+                f"{k}={proxy}"
+                for k in (
+                    "HTTP_PROXY",
+                    "HTTPS_PROXY",
+                    "ALL_PROXY",
+                    "http_proxy",
+                    "https_proxy",
+                    "all_proxy",
+                )
+            )
+            + " NO_PROXY=localhost,127.0.0.1,::1 no_proxy=localhost,127.0.0.1,::1 "
+        )
+        lines += [
+            'echo "[offline] çevrimdışı prova: model ve embedding süreçlerinin çıkışı ölü vekile"',
+            f'for r in {hf_home}/hub/models--*/refs/main; do echo "[refs] $r $(cat "$r")"; done',
+        ]
     if infra["runpod"].get("postgres_mode") == "in_gpu_pod":
         port, user, db = pg["port"], pg["user"], pg["db"]
         lines += [
@@ -429,12 +517,17 @@ def render_pod_script(
         ]
     if engine_key == "vllm":
         # The embedding server needs the vLLM runtime; on the SGLang image it is not started.
+        emb_out = (
+            '2>&1 | sed -u "s/^/[embedding] /" | tee "$LOG/embedding.log" &'
+            if offline_rehearsal
+            else '> "$LOG/embedding.log" 2>&1 &'
+        )
         lines += [
-            f'{shell_line(embedding_argv(config_dir))} > "$LOG/embedding.log" 2>&1 &',
+            f"{dead}{shell_line(embedding_argv(config_dir))} {emb_out}",
         ]
     lines += [
         'echo "[llm] starting $(date -u +%FT%TZ)"',
-        f'{shell_line(engine_argv(engine_key, model_key, config_dir, overrides))} 2>&1 | tee "$LOG/llm.log"',
+        f'{dead}{shell_line(engine_argv(engine_key, model_key, config_dir, overrides))} 2>&1 | tee "$LOG/llm.log"',
     ]
     return "\n".join(lines) + "\n"
 
@@ -443,6 +536,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("compose")
+    b = sub.add_parser("compose-bundle", help="internetsiz kurulum paketinin Compose dosyası")
+    b.add_argument("--app-image", required=True)
+    b.add_argument("--out", type=Path, required=True)
     p = sub.add_parser("pod-script")
     p.add_argument("engine")
     p.add_argument("model")
@@ -451,6 +547,9 @@ def main() -> int:
     if args.cmd == "compose":
         COMPOSE_PATH.write_text(render_compose(), encoding="utf-8")
         print(f"yazıldı: {COMPOSE_PATH.relative_to(ROOT)}")
+    elif args.cmd == "compose-bundle":
+        args.out.write_text(render_compose(bundle={"app_image": args.app_image}), encoding="utf-8")
+        print(f"yazıldı: {args.out}")
     else:
         sys.stdout.write(render_pod_script(args.engine, args.model, download=args.download))
     return 0

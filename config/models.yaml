@@ -3,6 +3,7 @@
 models:
   qwen3.8-27b:
     repo_id: Qwen/Qwen3.8-27B-FP8      # Qwen'in resmî FP8 sürümü; gated değil
+    revision: c3a462cc3d38cf351f3b26cbd763469eeb74ef81  # internetsiz paket bu sürümü taşır (paket 12)
     served_name: qwen3.8-27b
     precision: fp8            # D4 (paket 1): BF16 ile aynı kalite, 1,8 kat hızlı
     context_length: 32768     # D5 (paket 1): 16k'nın hız faydası yok

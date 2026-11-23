@@ -145,6 +145,7 @@ def pod_body(
     download: bool,
     overrides: dict[str, Any] | None = None,
     deadline: int | None = None,
+    offline_rehearsal: bool = False,
 ) -> dict[str, Any]:
     cfg = load_infra()["runpod"]
     engine = load_engines()[engine_key]
@@ -179,7 +180,13 @@ def pod_body(
         "entrypoint": [
             "bash",
             "-c",
-            render_pod_script(engine_key, model_key, download=download, overrides=overrides),
+            render_pod_script(
+                engine_key,
+                model_key,
+                download=download,
+                overrides=overrides,
+                offline_rehearsal=offline_rehearsal,
+            ),
         ],
     }
 
@@ -300,7 +307,15 @@ def cmd_up(rp: Runpod, args: argparse.Namespace) -> int:
     overrides = parse_overrides(args.override)
     max_hours = args.max_hours or load_infra()["watchdog"]["max_hours"]
     deadline = watchdog_deadline(max_hours)
-    body = pod_body(engine_key, model_key, vol["id"], args.download, overrides, deadline)
+    body = pod_body(
+        engine_key,
+        model_key,
+        vol["id"],
+        args.download,
+        overrides,
+        deadline,
+        offline_rehearsal=getattr(args, "offline_rehearsal", False),
+    )
     until = time.strftime("%H:%M UTC", time.gmtime(deadline))
     idle_min = load_infra()["watchdog"]["idle_minutes"]
     print(
@@ -399,7 +414,15 @@ def cmd_reconfigure(rp: Runpod, args: argparse.Namespace) -> int:
     deadline = pod.get("watchdog_deadline") or watchdog_deadline(
         load_infra()["watchdog"]["max_hours"]
     )
-    body = pod_body(engine_key, model_key, vol["id"], args.download, overrides, deadline)
+    body = pod_body(
+        engine_key,
+        model_key,
+        vol["id"],
+        args.download,
+        overrides,
+        deadline,
+        offline_rehearsal=getattr(args, "offline_rehearsal", False),
+    )
     patch = {k: body[k] for k in ("image", "ports", "env", "entrypoint")}
     r = rp.http.patch(f"/pods/{pod['id']}", json=patch)
     if r.status_code >= 400:
@@ -503,11 +526,17 @@ def main() -> int:
     up.add_argument("--download", action="store_true", help="ağırlıkları volume'a indir")
     up.add_argument("--override", action="append", help="sunucu ayarı, ör. max_num_seqs=64")
     up.add_argument("--max-hours", type=float, help="bekçinin en uzun ömrü (saat)")
+    up.add_argument(
+        "--offline-rehearsal",
+        action="store_true",
+        help="çevrimdışı prova: model ve embedding süreçlerinin HTTP çıkışı ölü vekile (paket 12)",
+    )
     ex = sub.add_parser("extend")
     ex.add_argument("--hours", type=float, required=True)
     rc = sub.add_parser("reconfigure")
     rc.add_argument("--engine")
     rc.add_argument("--model")
+    rc.add_argument("--offline-rehearsal", action="store_true")
     rc.add_argument("--download", action="store_true")
     rc.add_argument("--override", action="append")
     w = sub.add_parser("wait")
