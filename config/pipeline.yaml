@@ -80,6 +80,7 @@ kb:                         # paket 7: bilgi havuzu (D9 çalışma varsayımı: 
   bm25_b: 0.75
   reranker: none            # none | çapraz kodlayıcı model kimliği (D9)
   rerank_candidates: 3      # reranker ilk 3 x top_k adayı görür
+  rerank_max_tokens: 512    # çapraz kodlayıcı girdi sınırı (sorgu + parça); sınırsız CPU puanlaması ~3 kat yavaş
   card_tokens: 1500         # proje kartı metni üst sınırı
   card_draft_input_tokens: 12000   # kart taslağı çağrısına giren belge alıntısı bütçesi
   card_draft_max_tokens: 4096

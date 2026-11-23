@@ -152,7 +152,8 @@ def test_paket11_arms_change_exactly_one_setting():
 def test_paket11_batch_lists_existing_experiments_base_first():
     batch = yaml.safe_load((ROOT / "config" / "batches" / "paket11.yaml").read_text("utf-8"))
     names = [s["experiment"] for s in batch["steps"]]
-    assert names[0] == "d10-base" and len(set(names)) == len(names) == 4
+    # the reranker arm first: its CPU reranking falls in the watchdog's first 30 (uncounted) minutes
+    assert names[0] == "d9-rerank" and "d10-base" in names and len(set(names)) == len(names) == 4
     assert batch["max_hours"] <= 1.5
     for n in names:
         assert (ROOT / "config" / "experiments" / f"{n}.yaml").exists()

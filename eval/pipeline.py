@@ -237,7 +237,7 @@ class Pipeline:
         self.kb_vectors = kb_vectors or ChunkVectorCache(
             None, embeddings.model_version, embeddings.embed
         )
-        self.reranker = make_reranker(self.settings.kb.reranker)
+        self.reranker = make_reranker(self.settings.kb.reranker, self.settings.kb.rerank_max_tokens)
         self.model = llm.settings.served_model_name if llm is not None else "model"
         self.configs = stage_configs(
             self.settings, model=self.model, embedding_model_version=embeddings.model_version

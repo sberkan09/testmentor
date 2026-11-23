@@ -1,11 +1,13 @@
 # Paket 11: D10 (sızıntısız örnek havuzu) ve D9 reranker kolu (docs/paketler/paket-11-plan.md).
-# Pod sonunda her durumda silinir (eval/batch.py). Taban kolu önce koşar; kollar onunla eşleştirilir.
+# Pod sonunda her durumda silinir (eval/batch.py). Taban kolu (d10-base) aynı batch'te koşar; kollar onunla eşleştirilir.
 # Reranker kolu sentence-transformers ister: batch'i `uv sync --group d6` yapılmış ortamda koş.
 # Model (BAAI/bge-reranker-v2-m3) yerel Hugging Face önbelleğinde olmalı (CPU'da çalışır, pod'a gitmez).
-# Kesme sırası (süre yetmezse sondan): d9-rerank, d10-ex4. Bekçi kapatılmaz (make extend HOURS=1).
-max_hours: 1.25
+# d9-rerank ilk sırada: 98 öbeğin yeniden sıralaması CPU'da ~21 dk sürer (12 çift ~13 sn, 512 token
+# sınırıyla) ve bu sırada GPU çoğunlukla boştur; bekçi ilk 30 dakikayı boşta saymaz.
+# Kesme sırası (süre yetmezse sondan): d10-ex4. Bekçi kapatılmaz (make extend HOURS=1).
+max_hours: 1.5
 steps:
+  - {experiment: d9-rerank}
   - {experiment: d10-base}
   - {experiment: d10-ex2}
   - {experiment: d10-ex4}
-  - {experiment: d9-rerank}
