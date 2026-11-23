@@ -47,4 +47,36 @@ Kurum verisi Runpod'a giremez; pilot kurumun kendi GPU sunucusunda, Compose ile 
 
 ## Uygulamada netleşenler
 
-(kol doldurur)
+Kol G, 23 Kasım 2026. Tasarımdan sapma yok; aşağıdakiler tasarımın açık bıraktığı ayrıntılar.
+
+### Bilgi havuzu
+
+- `api/main.build_server()` sunucunun tek kurulum yeridir: depo, indeks, örnek havuzu, `tools=` ve yükleme işleyicisi (`services/kb_documents.KbDocuments`). `build_service()` geriye uyumluluk için kaldı (`build_server().service`).
+- `PgIndex` deponun bağlantısını paylaşmaz, aynı DSN'e kendi autocommit bağlantısını açar. Vektör boyutu ayardadır (`config/runtime.yaml` → `embedding.dim: 1024`; sahte modelde `FakeEmbed().dim` = 48). `ensure_schema` mevcut tablonun boyutunu denetler ve farklıysa açık bir hatayla durur (aynı veritabanı önce sahte modelle kurulduysa).
+- `KbIndex` arayüzüne `documents(project_id)` (belge → parça sayısı) eklendi; belge listesi indeksten gelir, böylece Postgres'te yeniden başlatmadan sonra da doğrudur. Özgün dosya adı, ekleyen ve zaman ayrı küçük bir kayıtta (`kb_documents` tablosu ya da bellek içi sözlük).
+- Belge kimliği dosya adının güvenli halidir (`[\w.-]`, `#` ve `@` yok). Aynı dosya yeniden yüklenince belge değişir, metin aynıysa parça kimlikleri aynı kalır ve test setleri bayatlamaz.
+- Metinsiz dosya (taranmış PDF, boş metin) 422 ile reddedilir; desteklenmeyen tür ve boyut sınırı `config/runtime.yaml` → `kb_upload` (`KbSettings`'e girmedi: o ayarlar arama aşamasının hash'ine girer, yükleme sınırı girmemeli). PDF okuma iş parçacığında, indeks ve orkestratör çağrıları olay döngüsünde.
+- `DELETE /projects/{id}/kb/documents/{belge}` de yazıldı. Kaldırma da `KbDocumentAdded` olayıyla bildirilir (olayın adı "eklendi" ama anlamı "indeks sürümü değişti"; arama düğümleri yeniden denetlenir); sözleşme dondurulduğu için yeni olay türü eklenmedi.
+- Ön yüz: "Belgeler" sekmesi; liste `kb_index` düğümünün sürümü değişince yeniden okunur (başka kullanıcının yüklemesi de görünür). Öbek denetçisinde "Bilgi havuzundan parçalar" bölümü arama düğümünün parça kimliklerini gösterir (`<belge>#<sıra>`).
+- Sahte modelin test seti cevabı parçalara bakmaz, ama parça kimlikleri test setinin girdi hash'ine girdiği için yüklemeden sonra her test seti yeniden üretilir (sürüm artar); uçtan uca testler bunu denetler.
+
+### Kullanıcı girişi
+
+- `api/auth.py`: scrypt (n=2^14, r=8, p=1), jeton `base64url(json{u, exp}).base64url(HMAC-SHA256)`. Gizli anahtar en az 32 karakter, yoksa parolalı kipte sunucu açılmaz. Bilinmeyen kullanıcıda da sahte bir özet denetlenir (süre farkı kullanıcı varlığını sızdırmasın); scrypt `asyncio.to_thread` ile.
+- Jeton sorgu parametresiyle yalnızca WebSocket'te ve `matrix.xlsx` bağlantısında kabul edilir (düz bağlantı başlık gönderemez); diğer REST istekleri `Authorization: Bearer` ister. WebSocket geçersiz jetonda 4401 ile kapanır, istemci yeniden bağlanmayı bırakıp giriş ekranına döner.
+- `TESTMENTOR_AUTH_MODE` ve `TESTMENTOR_USERS_FILE` ortam değişkenleri ayarı ezer: depo varsayılanı `header` (testler), Compose'un varsayılanı `password` (pilot).
+- Giriş denemesi sınırlaması yok (şirket içi ağ, scrypt yavaş); gerekirse ters vekilde.
+
+### Dağıtım
+
+- Compose: `embedding` artık yalnızca motor profillerinde (`vllm`, `sglang`); profilsiz olsaydı `harici` profili de onu, yani vLLM imajını başlatırdı. `harici` profilinde yalnızca `postgres` ve `app` kalır (`docker compose --profile harici config --services`; test: `tests/test_infra_render.py`).
+- Uygulamanın model adresi: motor servislerine ağ takma adı `llm` verildi ve `llm.base_url` şablonu `http://{host}:{port}/v1` oldu (`LLM_HOST`, varsayılan `localhost`). `harici` profilinde `.env` içindeki `LLM_BASE_URL` önceliklidir. `LLM_ENGINE` ve `LLM_MODEL` Compose'ta ortamdan gelir (`make local-up PROFILE=sglang` motoru da geçirir).
+- Portlar ortamdan değişir: `APP_PORT` (varsayılan 8080; 8000 vLLM'in), `POSTGRES_PORT`.
+- İmaj kökü `python:3.12-slim`, uv `ghcr.io/astral-sh/uv:0.11.32` (yerel uv ile aynı kilit biçimi), ön yüz `node:22-slim` ile derlenir; imaj 1,1 GB. Kurum vekili TLS'i yeniden imzalıyorsa kök sertifika BuildKit gizlisi olarak verilir (`make app-image EXTRA_CA=...`), imaja girmez. Bu ortamda da aynı yol kullanıldı (kapsayıcı trafiği yeniden imzalanıyor); Docker Hub hız sınırı nedeniyle temel imajlar `mirror.gcr.io`'dan çekilip yerelde etiketlendi.
+- Kapsayıcı root ile çalışır: bağlanan `data/` klasörüne `python -m api.users add` yazabilsin diye (pilot.md güvenlik notu).
+
+### Doğrulama
+
+- `PgIndex` ve depo testleri `pgvector/pgvector:0.8.7-pg18` kapsayıcısına karşı geçti; yalıtım testi atlanmadan koştu. Yeni `tests/kb/test_index_pg.py`: bellek içi indeksle aynı parçalar ve en iyi sonuç, yalıtım, sürüm, boyut denetimi, belge kaydı, Postgres'li sunucuda yüklemeden arama düğümüne.
+- Compose (`harici`, sahte model, Postgres, parolalı kip) ile kurulan uygulamaya karşı Playwright: `flow.spec.ts`, `documents.spec.ts`, `auth.spec.ts` geçti; uygulama yeniden başlatılınca projeler ve belge listesi Postgres'ten geldi; `pg_dump` yedeği alındı.
+- Doğrulanamayan: `vllm`, `sglang`, `embedding` servisleri (GPU yok, imajlar çalıştırılmadı); gerçek modelle `harici`.

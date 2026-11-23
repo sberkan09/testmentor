@@ -45,7 +45,8 @@ Paket 0 çıktısı. Sunum motorları, embedding servisi ve Postgres; Runpod'da 
 | `make smoke` | 16 eşzamanlı, şemaya bağlı istek ve önek cache ölçümü; rapor `results/smoke/` |
 | `make down` | pod'u siler, `get-pod` 404 ve `list-pods` ile doğrular, süre çarpı fiyatı yazar |
 | `make compose` | `infra/compose.yaml` dosyasını yeniden üretir |
-| `make local-up` / `make local-down` | yerel ya da üretim sunucusunda compose |
+| `make local-up` / `make local-down` | yerel ya da üretim sunucusunda compose; `PROFILE=vllm\|sglang\|harici` (harici: yalnızca Postgres ve uygulama), kurulum [pilot.md](pilot.md) |
+| `make app-image` / `make users-add NAME=...` | uygulama imajı (`infra/app.Dockerfile`) / parolalı giriş kullanıcısı (paket 10) |
 
 Runpod kimlik doğrulaması `RUNPOD_API_KEY` ortam değişkeniyle yapılır (`.env`). Betikler yalnızca `infra/.runpod-state.json` içine kendi yazdıkları kaynakları siler.
 

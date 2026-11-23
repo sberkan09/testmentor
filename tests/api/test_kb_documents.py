@@ -127,9 +127,10 @@ def test_without_a_knowledge_base_the_endpoints_answer_404(tmp_path):
 
 
 def test_fake_model_uses_postgres_when_a_dsn_is_set(monkeypatch):
-    from api.main import build_deps
-
     monkeypatch.setenv("TESTMENTOR_FAKE_LLM", "1")
+    monkeypatch.delenv("TESTMENTOR_PG_DSN", raising=False)
+    from api.main import build_deps  # first import builds a server: in memory here
+
     monkeypatch.setenv("TESTMENTOR_PG_DSN", "postgresql://u@h/db")
     monkeypatch.delenv("TESTMENTOR_STORE", raising=False)
     deps = build_deps()

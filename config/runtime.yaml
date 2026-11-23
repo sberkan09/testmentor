@@ -3,7 +3,7 @@
 llm:
   engine: vllm            # çalışma varsayımı (D1)
   model: qwen3.8-27b      # çalışma varsayımı (D2)
-  base_url: "http://localhost:{port}/v1"   # Runpod'da LLM_BASE_URL ya da infra/.runpod-state.json
+  base_url: "http://{host}:{port}/v1"   # host: LLM_HOST (varsayılan localhost; Compose'ta llm); Runpod'da LLM_BASE_URL ya da infra/.runpod-state.json
   api_key_env: LLM_API_KEY
   request_timeout_s: 900
   connect_timeout_s: 15

@@ -186,13 +186,13 @@ async def test_registry_and_uploads_on_postgres(schema_dsn):
 def test_server_on_postgres_upload_reaches_retrieval(schema_dsn, monkeypatch, tmp_path):
     from fastapi.testclient import TestClient
 
-    from api.app import create_app
-    from api.main import build_server
-    from tests.api.conftest import META, csv_bytes
-
     monkeypatch.setenv("TESTMENTOR_FAKE_LLM", "1")
     monkeypatch.setenv("TESTMENTOR_PG_DSN", schema_dsn)
     monkeypatch.delenv("TESTMENTOR_STORE", raising=False)
+    from api.app import create_app
+    from api.main import build_server  # the module builds its own server on first import
+    from tests.api.conftest import META, csv_bytes
+
     server = build_server()
     app = create_app(server.service, kb=server.kb, static_dir=tmp_path / "yok")
     user = {"X-User": "ayse"}
