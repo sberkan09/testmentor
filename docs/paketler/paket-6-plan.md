@@ -23,3 +23,17 @@
 ## Kurallar
 
 Ücretli kaynak ve hakem yok. `make test`, `make lint` yeşil.
+
+## Uygulamada netleşenler
+
+Sözleşme (`worker/contracts.py`) değiştirilmedi. Sözleşmede tanımsız kalan noktalar:
+
+- **`job_progress`** kalıcı değildir ve `seq` artırmaz. Olayın `seq` alanı son kalıcı olayın numarasıdır; `events_after` ve olay halkası bu olayı içermez, yalnızca `subscribe` ile canlı gelir. API WebSocket'te bu olayı yinelenen-olay süzgecinden geçirmeden olduğu gibi iletir; istemci `seq` ilerletmez (paket 8 ile uyumlu).
+- **`stage_waiting_approval`** payload'ı `{"stage": "<kind>"}` (`NodeKind` değeri).
+- **Reddedilen komut** gövdesi çıplak `CommandResult`'tır (`detail` içine sarılmaz): `version_conflict` ve `nothing_to_undo` 409, `locked` 423, `invalid` 422. `reason` alanının ilk sözcüğü (`:` ya da boşluğa kadar) kodu belirler; bilinmeyen kod 422. Komut gövdesi şemaya uymazsa da 422 ve `CommandResult(reason="invalid: ...")` döner. `X-User` yoksa 400 (`detail` gövdesi), bilinmeyen proje 404.
+- **`POST /locks`**: 200 `{"locked": true}` ya da 423 `{"locked": false}`; `X-User` zorunlu.
+- **`POST /projects`** içe alma hatası (`ValueError`, `KeyError`: bozuk `meta`, eşleme, var olan anahtar) 422; `detail` düz metindir.
+- **WebSocket**: `after` yoksa ya da `events_after` `None` dönerse ilk mesaj `{"type":"snapshot","snapshot":...}`; aksi halde önce kaçırılan olaylar, sonra canlılar. Abonelik tekrar oynatmadan önce kurulur (`subscribe` çağrılır, bir `await sleep(0)` ile kaydın oluşması beklenir); tekrar oynatılmış `seq`'e eşit ya da küçük canlı olaylar atlanır, böylece boşluk ve yineleme olmaz. Gerçek `subscribe` bir async üreteç ise kayıt ilk okumada olabilir; paket 5 kaydı çağrı anında yapan bir nesne döndürmeli ya da bu sıra yeniden düşünülmeli. Sunucu 20 sn'de bir `{"type":"ping"}` yollar; istemcinin `{"type":"ping"}` mesajına `{"type":"pong"}` döner. Bilinmeyen proje için bağlantı 4404 koduyla kapatılır.
+- **Statik dosya**: `web/dist` varsa `/` altında, bulunmayan yollar için `index.html` yedeğiyle sunulur; API yolları öncelikli. `create_app(service, static_dir=..., ping_interval_s=...)` ikisini de ayarlar.
+- **`api/main.py`**: `build_service()` paket 5'in `worker.service` kurucusunu çağıracak tek yerdir; bağımlılıklar `build_deps()` ile `ServiceDeps` olarak hazırlanır. `worker/service.py` yoksa açık hata ile durur; kurucu bağlanana kadar `NotImplementedError`.
+- Testler `tests/api/fake_service.py` ile çalışır (`move_requirement`, `edit_test_case`, `pin`, `unpin`, `lock_changed`; diğer komutlar yalnızca `command_applied`). Aşama ve iş görünümleri sahtede boştur.
