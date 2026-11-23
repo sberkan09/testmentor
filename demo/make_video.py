@@ -31,8 +31,24 @@ def durations(frames: list[dict], end: float, marks: list[dict], speed_to: float
         for t0, t1, speed in spans:  # compress the part of [a, b] that lies inside a span
             inside = max(0.0, min(b, t1) - max(a, t0))
             d -= inside - inside / speed
-        out.append(max(d, 1 / 60))
+        out.append(d)
     return out
+
+
+def thin(
+    frames: list[dict], ds: list[float], min_d: float = 1 / 30
+) -> tuple[list[dict], list[float]]:
+    """Drop frames shorter than one output frame, giving their time to the previous kept frame
+    (a sped-up span has many frames of a few milliseconds each)."""
+    kept: list[dict] = [frames[0]]
+    out: list[float] = [ds[0]]
+    for f, d in zip(frames[1:], ds[1:], strict=True):
+        if out[-1] < min_d:
+            out[-1] += d
+        else:
+            kept.append(f)
+            out.append(d)
+    return kept, out
 
 
 def main() -> int:
@@ -46,7 +62,7 @@ def main() -> int:
     meta = json.loads((args.frames / "frames.json").read_text(encoding="utf-8"))
     frames, end = meta["frames"], meta["end"]
     marks = json.loads(args.marks.read_text(encoding="utf-8"))["marks"]
-    ds = durations(frames, end, marks, args.speed_to)
+    frames, ds = thin(frames, durations(frames, end, marks, args.speed_to))
     ds[-1] = max(ds[-1], args.tail)
     lines = ["ffconcat version 1.0"]
     for f, d in zip(frames, ds, strict=True):

@@ -7,12 +7,13 @@
 set -euo pipefail
 OUT=${1:?çıktı dizini}
 mkdir -p "$OUT"
-cd "$(dirname "$0")/.."
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+cd "$ROOT"
 API_PID=""
 cleanup() {
   [ -n "$API_PID" ] && kill "$API_PID" 2>/dev/null || true
   pkill -f "vite preview" 2>/dev/null || true
-  make down
+  make -C "$ROOT" down
 }
 trap cleanup EXIT
 
@@ -48,6 +49,6 @@ print(f"duman: {len(cases)} test durumu, başarısız {failed}")
 if busy or not cases or failed: sys.exit("duman testi geçmedi")
 PY
 
-cd web
+cd "$ROOT/web"
 DEMO=1 DEMO_FRAMES="$OUT/frames" DEMO_MARKS="$OUT/marks.json" \
   npx playwright test e2e/demo.spec.ts --trace off 2>&1 | tee "$OUT/demo.log"

@@ -13,7 +13,7 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 7 | `paket-7-plan.md` | C (Sonnet) | **bitti** (23.11): yalıtım testi geçti; D9: gerçek hibrit arama +0,073 [+0,035, +0,114], 400 token, ilk 4 (`kb.top_k`), kart var |
 | 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; **bitti testi (Playwright) gerçek API'ye karşı geçti** (sahte modelle) |
 | 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
-| Demo | – | bu oturum | gerçek model çıktılarıyla demo videosu (Playwright kaydı + ffmpeg alt yazı, MP4) |
+| Demo | – | **bitti** (23.11) | `docs/demo/testmentor-demo.mp4` (76 sn, gerçek model çıktıları, bekleme bölümleri hızlandırılmış); kayıt `demo/record_real.sh`, kurgu `demo/make_video.py` |
 
 Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC ve demoya uygun sürüm**, ayrıca demo videosu. Kesme sırası: paket 9 (kesildi) → D10 → D9'un ek kolları → fark ekranı ve çok kullanıcılı ayrıntılar.
 
@@ -44,3 +44,4 @@ Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC 
 | 23.11 | Paket 5 incelemesi: 7. bulgu kararı, reddedilen geri alma kaydı yığından düşer; düzeltme kolu onay kuralında çalışan düğümün onayını korudu (depo hatasından sonra yeniden onay istenmesin), kabul edildi | inceleme bulguları |
 | 23.11 | D9: `kb.top_k` 8 → 4 (4/8/12 arasında ölçülebilir fark yok, 4 en kısa prompt); parça boyu 400 ve kart kalır | planın kuralı: fark yoksa basit ve ucuz olan |
 
+| 23.11 | Demo kaydı Playwright videosu yerine CDP ekran akışı kareleriyle; `make_video.py` bekleme aralıklarını 6 sn'ye sıkıştırır, bir çıktı karesinden kısa kareleri atar | Playwright'ın ffmpeg derlemesi ortamda yok |
