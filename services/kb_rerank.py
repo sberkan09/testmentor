@@ -9,6 +9,7 @@ names none.
 from __future__ import annotations
 
 import asyncio
+import threading
 from collections.abc import Callable, Sequence
 
 Scorer = Callable[[list[tuple[str, str]]], Sequence[float]]
@@ -38,9 +39,13 @@ def load_cross_encoder(model_id: str, max_tokens: int | None = None) -> Scorer:
             "kb.reranker needs sentence-transformers: `uv run --group d6 ...` (optional group)"
         ) from exc
     model = CrossEncoder(model_id, max_length=max_tokens)  # pragma: no cover
+    lock = threading.Lock()  # pragma: no cover
 
     def score(pairs: list[tuple[str, str]]) -> Sequence[float]:  # pragma: no cover
-        return [float(x) for x in model.predict(pairs)]
+        # one call at a time: torch already uses every core per call, and concurrent retrievals
+        # (one thread each) oversubscribe the CPU (load ~32 on 4 cores, slower overall)
+        with lock:
+            return [float(x) for x in model.predict(pairs)]
 
     return score  # pragma: no cover
 
