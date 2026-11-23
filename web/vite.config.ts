@@ -9,6 +9,8 @@ export default defineConfig({
   plugins: [react()],
   server: { port: 5173, proxy },
   preview: { port: 4173, proxy },
+  // The lazily loaded layer view chunk carries three.js (~900 kB); the main chunk stays small.
+  build: { chunkSizeWarningLimit: 1000 },
   test: {
     environment: "jsdom",
     globals: true,

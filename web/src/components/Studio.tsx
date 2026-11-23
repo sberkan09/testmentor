@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { useActions, useStudio, useView } from "../context";
 import { ClusterView } from "./ClusterView";
 import { DiffDialog } from "./DiffDialog";
@@ -6,6 +6,9 @@ import { Inspector } from "./Inspector";
 import { MatrixView } from "./MatrixView";
 import { StageBar } from "./StageBar";
 import { initials } from "./ui";
+
+// The 3D layer view (three.js) is a separate chunk: the 2D views never load it.
+const LayerView = lazy(() => import("../views/layers/LayerView"));
 
 const CONN_LABEL = { connecting: "Bağlanıyor", open: "Canlı", reconnecting: "Yeniden bağlanıyor", closed: "Bağlantı yok" } as const;
 
@@ -49,6 +52,9 @@ export function Studio() {
           <button role="tab" aria-selected={view === "matrix"} data-testid="view-matrix" onClick={() => setView("matrix")}>
             Matris
           </button>
+          <button role="tab" aria-selected={view === "layers"} data-testid="view-layers" onClick={() => setView("layers")}>
+            Katmanlar
+          </button>
         </div>
         <div className="spacer" />
         <span className={`conn ${status}`} data-testid="connection">
@@ -61,7 +67,17 @@ export function Studio() {
         </span>
       </header>
       <div className="workspace">
-        <main className="canvas">{view === "clusters" ? <ClusterView /> : <MatrixView />}</main>
+        <main className="canvas">
+          {view === "clusters" ? (
+            <ClusterView />
+          ) : view === "matrix" ? (
+            <MatrixView />
+          ) : (
+            <Suspense fallback={<div className="empty">3B katman görünümü yükleniyor…</div>}>
+              <LayerView />
+            </Suspense>
+          )}
+        </main>
         <aside className="inspector" aria-label="Denetçi" data-testid="inspector">
           <Inspector />
         </aside>

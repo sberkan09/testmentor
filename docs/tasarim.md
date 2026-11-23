@@ -393,7 +393,7 @@ Arayüz tek bir çalışma alanıdır: ortada canlı tuval, yanlarda paneller, a
 | Matris görünümü | gereksinim-test tablosu ve tutarlılık uyarıları | filtre, hücreden düzenleme, dışa aktarım |
 | Katman görünümü (3B) | üst üste üç düzlem (öbekler, test durumları, matris) ve aralarındaki izlenebilirlik ipleri | gezinme ve seçim; düzenleme yapılmaz |
 
-Katman görünümünde derinlik pipeline aşamasını gösterir. Yukarı ipi çıkmayan gereksinim test edilmemiş gereksinimdir; bir öğe seçilince kamera ilgili 2B görünüme iner.
+Katman görünümünde derinlik pipeline aşamasını gösterir. Yukarı ipi çıkmayan gereksinim test edilmemiş gereksinimdir; bir öğe seçilince kamera ilgili 2B görünüme iner. İpler de yakınlaştırmaya bağlıdır: uzaktan her adanın ipleri bir demet olarak (kapsanmış gereksinim → adanın test durumları → adanın matris bloğu), yakından kameranın baktığı birkaç adanın ipleri tek tek (gereksinim → test durumu → matris satırı) çizilir; kapsanmamış gereksinimin iki görünümde de ipi yoktur.
 
 ### Durum dili
 
