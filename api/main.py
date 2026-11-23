@@ -13,7 +13,6 @@ wired; the dependencies it needs are assembled here as `ServiceDeps`.
 
 from __future__ import annotations
 
-import importlib
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -87,26 +86,28 @@ def build_deps() -> ServiceDeps:
 
 
 def build_service() -> ProjectService:
-    """The `ProjectService` of this process.
+    """The `ProjectService` of this process: `worker.service.OrchestratorService` (paket 5) with
+    the memory or Postgres store; stored projects load on the first request."""
+    from services.settings import load_embedding_settings, load_llm_settings
+    from worker.service import OrchestratorService
+    from worker.store import MemoryProjectStore
+    from worker.store_pg import PostgresStore
 
-    TODO(birleştirme): paket 5'in `worker.service` kurucusu burada çağrılacak
-    (`deps.complete`, `deps.embed`, `deps.settings`; `deps.store == "memory"` için
-    `core.store.InMemoryStore`, aksi halde `deps.pg_dsn` ile Postgres deposu). İmza tahmin
-    edilmedi.
-    """
-    try:
-        module: Any = importlib.import_module("worker.service")
-    except ModuleNotFoundError as exc:
-        if exc.name not in {"worker.service", "worker"}:
-            raise
-        raise RuntimeError(
-            "worker/service.py (paket 5) bulunamadı: API ProjectService olmadan başlamaz. "
-            "Paket 5 birleştirilince api/main.py içindeki build_service() bağlanır."
-        ) from exc
     deps = build_deps()
-    raise NotImplementedError(
-        f"build_service() worker.service ({module.__name__}) ile henüz bağlanmadı "
-        f"(store={deps.store}, fake={deps.fake})"
+    if deps.store == "memory":
+        store: Any = MemoryProjectStore()
+    else:
+        assert deps.pg_dsn is not None
+        store = PostgresStore.connect(deps.pg_dsn)
+    return OrchestratorService.from_config(
+        store,
+        complete=deps.complete,
+        embed=deps.embed,
+        settings=deps.settings,
+        model="fake-llm" if deps.fake else load_llm_settings().model,
+        embedding_model_version="fake-embed"
+        if deps.fake
+        else load_embedding_settings().model_version,
     )
 
 

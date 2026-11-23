@@ -239,7 +239,12 @@ class _Subscription:
     async def __anext__(self) -> ServerEvent:
         if self not in self.owner._subscribers:
             raise StopAsyncIteration
-        return await self.queue.get()
+        try:
+            return await self.queue.get()
+        except asyncio.CancelledError:
+            # The consumer's task was cancelled (client gone): stop collecting events for it.
+            self.owner._subscribers.discard(self)
+            raise
 
     async def aclose(self) -> None:
         self.owner._subscribers.discard(self)

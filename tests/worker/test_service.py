@@ -148,3 +148,23 @@ async def test_project_tools_are_built_per_project():
     assert {pid for pid, _ in asked} == {"P", "Q"}
     assert ("P", ("R1", "R2")) in asked
     await svc.close()
+
+
+async def test_subscription_registers_at_once_and_ends_with_its_task():
+    svc = service()
+    await produced(svc)
+    rt = svc.runtime("P")
+    sub = svc.subscribe("P")  # registered before the first read
+    assert sub in rt._subscribers
+
+    async def pump():
+        async for _ in sub:
+            pass
+
+    task = asyncio.create_task(pump())
+    await asyncio.sleep(0.01)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert sub not in rt._subscribers
+    await svc.close()

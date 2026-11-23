@@ -28,6 +28,7 @@ from core.graph import ProjectState
 from core.llm import Complete
 from core.matrix_view import matrix_rows
 from core.nodes import NodeRef
+from core.settings import StageSettings
 from core.stages.base import Embed, PassageSource, Retrieve
 from services.importer import build_project
 from services.settings import load_llm_settings, load_stage_settings, stage_configs
@@ -52,6 +53,7 @@ class OrchestratorService:
         o = deps.orchestrator
         self.queue = JobQueue(concurrency=o.concurrency, p2_share=o.p2_share)
         self._projects: dict[str, ProjectRuntime] = {}
+        self._loaded = False
 
     @classmethod
     def from_config(
@@ -66,12 +68,13 @@ class OrchestratorService:
         config_dir: str | Path = "config",
         model: str | None = None,
         embedding_model_version: str | None = None,
+        settings: StageSettings | None = None,
     ) -> OrchestratorService:
         """Settings from `config/`: stage settings (pipeline.yaml), stage configs with the active
         model (runtime.yaml `llm.model`) and embedding model version, orchestrator section."""
         from services.settings import load_embedding_settings
 
-        settings = load_stage_settings(config_dir)
+        settings = settings or load_stage_settings(config_dir)
         configs = stage_configs(
             settings,
             model=model or load_llm_settings(config_dir).model,
@@ -93,7 +96,15 @@ class OrchestratorService:
     # Lifecycle ----------------------------------------------------------------------------------
 
     async def start(self) -> None:
-        """Load every stored project and queue its pending work."""
+        """Load every stored project and queue its pending work. Optional: the first call of any
+        service method inside the event loop does it too (the API builds the service before the
+        loop runs)."""
+        self._load()
+
+    def _load(self) -> None:
+        if self._loaded:
+            return
+        self._loaded = True
         for record in self.store.list_projects():
             if record.project_id not in self._projects:
                 self._projects[record.project_id] = ProjectRuntime.load(
@@ -108,11 +119,13 @@ class OrchestratorService:
         await self.queue.join()
 
     def runtime(self, project_id: str) -> ProjectRuntime:
+        self._load()
         return self._projects[project_id]
 
     # ProjectService -----------------------------------------------------------------------------
 
     async def create_project(self, request: ImportRequest, data: bytes, filename: str) -> Snapshot:
+        self._load()
         if request.key in self._projects or self.store.get_project(request.key) is not None:
             raise ValueError(f"project {request.key} exists")
         if self.deps.embed is None:
@@ -129,6 +142,7 @@ class OrchestratorService:
 
     async def add_project(self, state: ProjectState, name: str) -> Snapshot:
         """Register an already built project (import, tests, development data)."""
+        self._load()
         pid = state.project_id
         if pid in self._projects or self.store.get_project(pid) is not None:
             raise ValueError(f"project {pid} exists")
@@ -136,23 +150,23 @@ class OrchestratorService:
         return self.snapshot(pid)
 
     async def command(self, project_id: str, request: CommandRequest, actor: str) -> CommandResult:
-        return self._projects[project_id].command(request, actor)
+        return self.runtime(project_id).command(request, actor)
 
     def snapshot(self, project_id: str) -> Snapshot:
-        rt = self._projects[project_id]
+        rt = self.runtime(project_id)
         return rt.snapshot(matrix_rows(rt.state, self.deps.settings.test_method))
 
     def events_after(self, project_id: str, seq: int) -> list[ServerEvent] | None:
-        return self._projects[project_id].events_after(seq)
+        return self.runtime(project_id).events_after(seq)
 
     def subscribe(self, project_id: str) -> AsyncIterator[ServerEvent]:
-        return self._projects[project_id].subscribe()
+        return self.runtime(project_id).subscribe()
 
     def lock(self, project_id: str, ref: NodeRef, actor: str) -> bool:
-        return self._projects[project_id].lock(ref, actor)
+        return self.runtime(project_id).lock(ref, actor)
 
     def matrix_xlsx(self, project_id: str) -> bytes:
-        rt = self._projects[project_id]
+        rt = self.runtime(project_id)
         return matrix_xlsx(rt.state, self.deps.settings.test_method)
 
     def kb_document_added(
@@ -161,7 +175,8 @@ class OrchestratorService:
         """After a knowledge base upload (paket 7; not part of the frozen `ProjectService`):
         every retrieval re-checks; test sets whose passages are unchanged stay fresh."""
         event = KbDocumentAdded(document_id=document_id, index_version=index_version)
-        return self._projects[project_id].system_event(event, actor)
+        return self.runtime(project_id).system_event(event, actor)
 
     def projects(self) -> list[tuple[str, str]]:
+        self._load()
         return sorted((pid, rt.record.name) for pid, rt in self._projects.items())
