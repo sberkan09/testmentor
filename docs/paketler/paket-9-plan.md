@@ -48,3 +48,32 @@ Sonuç: SwiftShader'da örnekli çizim örnek başına ~20 µs tutuyor (üçgen 
 - **Seçim:** ışın önce noktalar ve matris hücrelerine, sonra ekranda 8 piksel içindeki en yakın noktaya, sonra adaya. Seçilen öğeye kamera 550 ms'de iner, ardından gereksinim ve test durumu öbek görünümünü (öbek kartı görünür alana kaydırılır), matris hücresi matris görünümünü (satır görünür alana kaydırılır) açar ve denetçide öğe seçilir.
 - **Bağımsızlık:** katman görünümü `React.lazy` ile ayrı parça (three.js dahil); 2B görünümler ondan hiçbir şey içe aktarmaz. Ana paket 241,8 kB'tan 242,5 kB'a çıktı (yalnızca sekme ve tembel yükleme).
 - **Ölçüm yöntemi:** sahne istek üzerine çizilir (`frameloop="demand"`, sönümlü yörünge her karede yeniden çizim ister); her çizilen kare `window.__testmentorLayers.frames` içine zaman damgası yazar. Ortalama = (son − ilk) / (kare sayısı − 1), en az 100 kare şartıyla. Fare her animasyon karesinde bir adım sürüklenir. Chromium bayrakları: `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`; çizici dizgesi `ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)`.
+
+### Eşik ve bütçe taraması
+
+Yeni düzende (Points, birleştirilmiş ağlar, öbek bloklu matris, doğrusal çıktı), eşzamanlı çizim süresi, uzaklık oranına göre (oran = kamera uzaklığı / çerçeve uzaklığı; yük ortalaması ~30, değerler gürültülü):
+
+| İpler | oran 1 | 0,8 | 0,6 | 0,5 | 0,45 | 0,4 | 0,3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| hepsi tek tek (19.318 parça) | 46 ms | 68 | 60 | 71 | 78 | 73 | 64 |
+| ada demetleri (3.810 parça, ilk biçim) | 18 | 24 | 26 | 26 | 29 | 25 | 26 |
+| ipsiz | 14 | 17 | 13 | 19 | 20 | 15 | 15 |
+
+Tüm iplerin tek tek çizimi hiçbir uzaklıkta bütçeye girmiyor; yaklaştıkça ipler ekranda uzadığı için ucuzlamıyor da. Demet ilk biçimde her gereksinim için iki parçaydı (gereksinim → merkez → satır); merkez → matris ipleri ada başına bire indirildi (~2.000 parça, tek başına ~6 ms). Yörünge ölçümüyle (kare aralığı, yük ~10–20): yalnızca odaktaki adaların gerçek ipleri (1.340 parça, 6 ada) 0,12–1 oranlarında 19–27 ms; aynı odak artı diğer adaların demetleri 28–30 ms, demetsiz 23 ms. Bu yüzden eşiğin içinde diğer adaların demetleri çizilmez. Eşik 0,45: bunun üstünde odak, görünen sahnenin küçük bir parçası kalıyor ve demet görünümü daha bilgilendirici; bütçe 1.600 parça, yaklaştıkça yarıya iner (0,2 oranında ~800 parça, 3 ada).
+
+## Sonuç
+
+Bitti testi `web/e2e/layers-perf.spec.ts` geçiyor (eşik değişmedi: ortalama ≤ 33 ms, ≥ 100 kare). 1440×900, Chromium 153 + SwiftShader, bayraklar yukarıda. Ölçümler, aynı makinede başka oturumların ağır işleri sürerken alındı (4 çekirdek); yük ortalaması her koşunun yanında:
+
+| Koşu (commit) | Yük | Uzak, demet ipler | Eşik içi (0,43), 1.340 gerçek ip parçası | Sonuç |
+| --- | --- | --- | --- | --- |
+| eski hal, 93eb7e5 öncesi | ~8 | 20,6 ms | 26,1 ms | geçti |
+| eski hal | ~3 | 20,0 ms | 24,3 ms | geçti |
+| kamera düzeltmesi sonrası | ~20 | 25,7 ms | 29,3 ms | geçti |
+| kamera düzeltmesi sonrası | ~25 | 32,8 ms | 36,5 ms | kaldı (eşik içi) |
+| kamera düzeltmesi sonrası | ~30 | 24,9 ms | 32,5 ms | geçti |
+| 6770045, tüm e2e takımı | ~34 | 29,6 ms | 30,5 ms | geçti |
+
+Sessiz makinede (yük ≤ 8) uzak görünüm ~20 ms, eşik içi ~24–26 ms; ilk ölçüm 328 ms idi. Test çekişmeye duyarlıdır: başka bir süreç 3+ çekirdeği kullanırken eşik içi yörünge 33 ms'yi aşabilir (bir koşuda 36,5 ms). Eşik gevşetilmedi, yeniden deneme ya da yüke göre atlama eklenmedi.
+
+Seçim adımları (gereksinim → öbek görünümü ve öbek kartı görünür alanda; matris hücresi → matris görünümü ve satır görünür alanda; denetçide öğe seçili) ve "başladığı yere dönen sürükleme seçim sayılmaz" adımı her koşuda geçti. Mevcut e2e (`flow.spec.ts`) yeşil, `demo.spec.ts` önceden olduğu gibi atlanıyor.
