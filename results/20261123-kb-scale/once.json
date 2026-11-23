@@ -1,0 +1,66 @@
+{
+  "params": {
+    "dsn": "postgresql://postgres:tmtest@127.0.0.1:55435/postgres",
+    "projects": 50,
+    "chunks": 2000,
+    "big": 20000,
+    "dim": 1024,
+    "queries": 30,
+    "out": "/tmp/claude-0/kb_scale_base.json"
+  },
+  "ingest": [
+    {
+      "project": "P000",
+      "chunks": 2000,
+      "seconds": 10.3,
+      "chunks_per_s": 195.1
+    },
+    {
+      "project": "BIG",
+      "chunks": 20000,
+      "seconds": 321.5,
+      "chunks_per_s": 62.2
+    }
+  ],
+  "search": [
+    {
+      "project": "P000",
+      "chunks": 2000,
+      "queries": 30,
+      "p50_ms": 378.4,
+      "p95_ms": 1111.6,
+      "max_ms": 1533.0,
+      "dense_p50_ms": 10.1,
+      "keyword_p50_ms": 384.4,
+      "dense_first_ok": 30,
+      "foreign_results": 0
+    },
+    {
+      "project": "BIG",
+      "chunks": 20000,
+      "queries": 30,
+      "p50_ms": 2932.8,
+      "p95_ms": 14116.9,
+      "max_ms": 21862.3,
+      "dense_p50_ms": 8.9,
+      "keyword_p50_ms": 2712.6,
+      "dense_first_ok": 24,
+      "foreign_results": 0
+    }
+  ],
+  "ingest_total": {
+    "chunks": 120000,
+    "seconds": 1661.8,
+    "chunks_per_s": 72.2
+  },
+  "dense_plan": [
+    "Limit  (cost=2823.16..4254.91 rows=50 width=41)",
+    "  ->  Incremental Sort  (cost=2823.16..575866.57 rows=20012 width=41)",
+    "        Sort Key: ((embedding <=> ",
+    "        Presorted Key: ((embedding <=> ",
+    "        ->  Index Scan using kb_chunks_embedding on kb_chunks  (cost=2794.56..574966.03 rows=20012 width=41)",
+    "              Order By: (embedding <=> ",
+    "              Filter: ((embedding IS NOT NULL) AND (project_id = 'BIG'::text))"
+  ],
+  "table_size": "1962 MB"
+}

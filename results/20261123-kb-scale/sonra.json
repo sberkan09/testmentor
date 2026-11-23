@@ -1,0 +1,67 @@
+{
+  "params": {
+    "dsn": "postgresql://postgres:tmtest@127.0.0.1:55435/postgres",
+    "projects": 50,
+    "chunks": 2000,
+    "big": 20000,
+    "dim": 1024,
+    "queries": 30,
+    "out": "/tmp/claude-0/kb_scale_new.json"
+  },
+  "ingest": [
+    {
+      "project": "P000",
+      "chunks": 2000,
+      "seconds": 2.1,
+      "chunks_per_s": 961.6
+    },
+    {
+      "project": "BIG",
+      "chunks": 20000,
+      "seconds": 22.0,
+      "chunks_per_s": 907.9
+    }
+  ],
+  "search": [
+    {
+      "project": "P000",
+      "chunks": 2000,
+      "queries": 30,
+      "p50_ms": 94.0,
+      "p95_ms": 183.8,
+      "max_ms": 211.7,
+      "dense_p50_ms": 10.6,
+      "keyword_p50_ms": 89.8,
+      "dense_first_ok": 30,
+      "foreign_results": 0
+    },
+    {
+      "project": "BIG",
+      "chunks": 20000,
+      "queries": 30,
+      "p50_ms": 540.6,
+      "p95_ms": 1189.6,
+      "max_ms": 1325.4,
+      "dense_p50_ms": 131.2,
+      "keyword_p50_ms": 424.3,
+      "dense_first_ok": 30,
+      "foreign_results": 0
+    }
+  ],
+  "ingest_total": {
+    "chunks": 120000,
+    "seconds": 131.0,
+    "chunks_per_s": 915.7
+  },
+  "dense_plan": [
+    "Limit  (cost=24445.06..24445.19 rows=50 width=41)",
+    "  ->  Sort  (cost=24445.06..24494.42 rows=19745 width=41)",
+    "        Sort Key: ((embedding <=> ",
+    "        ->  Bitmap Heap Scan on kb_chunks  (cost=241.32..23789.15 rows=19745 width=41)",
+    "              Recheck Cond: (project_id = 'BIG'::text)",
+    "              Filter: (embedding IS NOT NULL)",
+    "              ->  Bitmap Index Scan on kb_chunks_document  (cost=0.00..236.38 rows=19745 width=0)",
+    "                    Index Cond: (project_id = 'BIG'::text)"
+  ],
+  "table_size": "1025 MB"
+}
