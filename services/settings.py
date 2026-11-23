@@ -18,6 +18,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.kb.settings import KbSettings
 from core.llm import LLMParams
 from core.nodes import NodeKind, StageConfig
 from core.settings import ClusteringSettings, StageSettings
@@ -180,6 +181,7 @@ def stage_settings_from(cfg: dict[str, Any], examples: dict[str, Any]) -> StageS
         prune_removals=generation.get("prune_removals", False),
         field_max_chars=dict(generation.get("field_max_chars") or {}),
         clustering=ClusteringSettings(**(cfg.get("clustering") or {})),
+        kb=KbSettings(**(cfg.get("kb") or {})),
     )
 
 
@@ -199,8 +201,9 @@ def stage_configs(
     an output reaches `input_hash`). `regeneration` and `prune_removals` (D8) choose the
     production mode and stay out, like the mode itself (core/stages/base.py).
     Embedding: version = the embedding model version. Clustering: version `c1`, params =
-    `settings.clustering` as plain JSON. Retrieval and matrix: fixed versions `r1` and `x1`
-    (paket 7 and 4 change them)."""
+    `settings.clustering` as plain JSON. Retrieval: version `r2`, params = the kb settings that
+    decide its output (chunking, search, reranker, examples). Matrix: fixed version `x1`
+    (paket 4 changes it)."""
     from core import stages
     from core.prompts import prompt_version
 
@@ -218,7 +221,9 @@ def stage_configs(
         ),
         NodeKind.METHOD: llm_stage(NodeKind.METHOD, batch_size=settings.method_batch_size),
         NodeKind.CLUSTER_LABEL: llm_stage(NodeKind.CLUSTER_LABEL),
-        NodeKind.RETRIEVAL: StageConfig(prompt_version=RETRIEVAL_VERSION),
+        NodeKind.RETRIEVAL: StageConfig(
+            prompt_version=RETRIEVAL_VERSION, params=settings.kb.retrieval_params()
+        ),
         NodeKind.TEST_SET: llm_stage(
             NodeKind.TEST_SET,
             max_unit_size=settings.max_unit_size,
@@ -233,5 +238,5 @@ def stage_configs(
 
 
 CLUSTERING_VERSION = "c1"
-RETRIEVAL_VERSION = "r1"  # paket 7 changes it
+RETRIEVAL_VERSION = "r2"  # r2 (paket 7): hybrid search; params = `KbSettings.retrieval_params`
 MATRIX_VERSION = "x1"  # paket 4 changes it

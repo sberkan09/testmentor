@@ -31,6 +31,13 @@ class KbSettings(BaseModel):
     card_draft_input_tokens: int = Field(default=12000, ge=1)
     card_draft_max_tokens: int = Field(default=4096, ge=1)
 
+    def retrieval_params(self) -> dict[str, object]:
+        """What decides the retrieval stage's output (enters its `StageConfig.params`): chunking,
+        search, fusion, reranker and example count. The card draft settings do not."""
+        return self.model_dump(
+            mode="json", exclude={"card_tokens", "card_draft_input_tokens", "card_draft_max_tokens"}
+        )
+
     @property
     def chunk_chars(self) -> int:
         return self.chunk_tokens * self.chars_per_token
