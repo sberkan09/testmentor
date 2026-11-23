@@ -45,3 +45,9 @@ Bütçe: 6 koşu × ~7 dk + hazır olma, ~45 dk, ~2 USD.
 
 - Reranker CPU'da öbek başına ~13 sn (512 token sınırıyla 12 çift); 98 öbek ~19 dk. Kol batch'te ilk sırada koştu (1466 sn).
 - Sunucu sabitlenen testleri havuza hiç yazmıyordu; `services/kb_example_sync.py` eklendi (tasarım, Örnek havuzu).
+
+## Sonuç
+
+- Tekrarlı ölçüm: taban 0,489 / 0,482 / 0,515, 4 örnek 0,543 / 0,540 / 0,551. Fark +0,050, en geniş kol içi aralık 0,033, birleşik eşleştirilmiş aralık [+0,025, +0,074]. Kuralın iki koşulu da sağlandı: `kb.examples: 4`.
+- Reranker kapalı kalır. Rapor: [D10](../deneyler/D10.md), [D9](../deneyler/D9.md) paket 11 bölümü.
+- Maliyet: pod `2muhu5folo55ck` 0,81 saat ≈ 2,17 USD, pod `ojij9aaejbqad2` 0,75 saat ≈ 2,01 USD. Bakiye 17,74 → 13,68 USD.

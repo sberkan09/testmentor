@@ -14,7 +14,7 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; **bitti testi (Playwright) gerçek API'ye karşı geçti** (sahte modelle) |
 | 9 | `paket-9-plan.md` | F (Opus) | **birleşti** (23.11): 3B katman görünümü (tembel yüklenen ayrı paket); bitti testi geçti (yazılım çizimiyle 2.000 gereksinim / ~5.000 test, ortalama kare 20–30 ms; yüksek yükte bir koşu 36,5 ms ile kaldı); InstancedMesh yerine Points ve birleşik ağ, mesafeye bağlı iplik ayrıntısı (planda) |
 | 10 | `paket-10-plan.md` | G (Opus) | **birleşti** (23.11): sunucuda bilgi havuzu (PgIndex / bellek içi) ve belge yükleme (txt, md, PDF), parolalı giriş, uygulama imajı ve `harici` profili, `docs/pilot.md`; pgvector ile 126 + 27 test, Compose uygulamasına karşı Playwright 3/3 (parolalı kip). GPU servisleri burada koşturulmadı |
-| 11 | `paket-11-plan.md` | ana oturum | D10 ve reranker, sürüyor |
+| 11 | `paket-11-plan.md` | ana oturum | **bitti** (23.11): D10 → `kb.examples: 4` (3'er tekrarla +0,050 [+0,025, +0,074]); reranker kapalı kalır (+0,017, sıfırı kapsıyor); sunucuda havuz sabit testlerle eşitlenir. İki batch: 2,17 + 2,01 USD |
 | Demo | – | **bitti** (23.11) | `docs/demo/testmentor-demo.mp4` (76 sn, gerçek model çıktıları, bekleme bölümleri hızlandırılmış); kayıt `demo/record_real.sh`, kurgu `demo/make_video.py` |
 
 Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC ve demoya uygun sürüm**, ayrıca demo videosu. Kesme sırası: paket 9 (kesildi) → D10 → D9'un ek kolları → fark ekranı ve çok kullanıcılı ayrıntılar.
@@ -52,3 +52,5 @@ Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC 
 | 23.11 | Pilot doğrulaması bu konteynerde Docker ile (daemon elle başlatıldı, `pgvector/pgvector:0.8.7-pg18` çekildi); GPU servisleri yerelde çalıştırılmaz | ortam |
 | 23.11 | Paket 9 ve 10 birleştirildi; çakışma yalnızca sekme listesinde (Öbekler, Matris, Belgeler, Katmanlar); 507 Python, 49 web testi | – |
 | 23.11 | Reranker CPU'da öbek başına ~13 sn (512 token sınırıyla, 12 çift); kol batch'te ilk sırada, puanlama tek seferde bir çağrı | pod'da GPU boş beklemesin; bekçi ilk 30 dk'yı saymaz |
+| 23.11 | D10'un tek koşuluk ilk okuması kararsız sayıldı: aynı ayarlı iki taban −0,035 farklı çıktı (gereksinim bootstrap'ı üretim gürültüsünü içermiyor). 0 ve 4 örnek 3'er tekrarla yeniden ölçüldü; karar kuralı pod açılmadan plana yazıldı | danışman önerisi, ölçüm geçerliliği |
+| 23.11 | Sunucu sabitlenen testleri örnek havuzuna hiç yazmıyordu (paket 7 boşluğu); `services/kb_example_sync.py`. Havuz değişikliği tek başına aramaları yeniden denetletmez | tek sabitleme tüm projeyi yeniden üretmesin |
