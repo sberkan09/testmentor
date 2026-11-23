@@ -1,0 +1,11 @@
+name: d10-base
+question: "D10 tabanı: sızıntısız referans havuzu kurulur, örnek verilmez (kb.examples=0); kollar bununla eşleştirilir"
+variable: kb.examples=0
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  example_pool: reference
+  kb:
+    examples: 0
+quality: true

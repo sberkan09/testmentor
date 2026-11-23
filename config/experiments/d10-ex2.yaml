@@ -1,0 +1,11 @@
+name: d10-ex2
+question: "D10: öbek başına 2 örnek (sızıntısız referans havuzu); check_recall ve üslup uyumu d10-base ile karşılaştırılır"
+variable: kb.examples=2
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  example_pool: reference
+  kb:
+    examples: 2
+quality: true

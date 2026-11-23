@@ -1,0 +1,12 @@
+name: d9-rerank
+question: "D9 reranker kolu: çapraz kodlayıcı (BAAI/bge-reranker-v2-m3, CPU) ilk 3 x top_k adayı yeniden sıralar; belge gerektiren denetimlerde check_recall d10-base ile karşılaştırılır."
+variable: kb.reranker=BAAI/bge-reranker-v2-m3
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  example_pool: reference
+  kb:
+    examples: 0
+    reranker: BAAI/bge-reranker-v2-m3
+quality: true
