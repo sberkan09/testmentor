@@ -73,7 +73,10 @@ Bitti testi `web/e2e/layers-perf.spec.ts` geçiyor (eşik değişmedi: ortalama 
 | kamera düzeltmesi sonrası | ~25 | 32,8 ms | 36,5 ms | kaldı (eşik içi) |
 | kamera düzeltmesi sonrası | ~30 | 24,9 ms | 32,5 ms | geçti |
 | 6770045, tüm e2e takımı | ~34 | 29,6 ms | 30,5 ms | geçti |
+| 6770045, sessiz makine, 1. koşu | 3,9 | 22,1 ms | 25,2 ms | geçti |
+| 6770045, 2. koşu | 4,9 | 20,6 ms | 24,4 ms | geçti |
+| 6770045, 3. koşu | 5,7 | 21,7 ms | 24,0 ms | geçti |
 
-Sessiz makinede (yük ≤ 8) uzak görünüm ~20 ms, eşik içi ~24–26 ms; ilk ölçüm 328 ms idi. Test çekişmeye duyarlıdır: başka bir süreç 3+ çekirdeği kullanırken eşik içi yörünge 33 ms'yi aşabilir (bir koşuda 36,5 ms). Eşik gevşetilmedi, yeniden deneme ya da yüke göre atlama eklenmedi.
+Son kodda sessiz makinede (yük 4–6, üç koşu) uzak görünüm 20,6–22,1 ms, eşik içi 24,0–25,2 ms; ilk ölçüm 328 ms idi. Test çekişmeye duyarlıdır: başka bir süreç 3+ çekirdeği kullanırken eşik içi yörünge 33 ms'yi aşabilir (bir koşuda 36,5 ms). Eşik gevşetilmedi, yeniden deneme ya da yüke göre atlama eklenmedi.
 
 Seçim adımları (gereksinim → öbek görünümü ve öbek kartı görünür alanda; matris hücresi → matris görünümü ve satır görünür alanda; denetçide öğe seçili) ve "başladığı yere dönen sürükleme seçim sayılmaz" adımı her koşuda geçti. Mevcut e2e (`flow.spec.ts`) yeşil, `demo.spec.ts` önceden olduğu gibi atlanıyor.
