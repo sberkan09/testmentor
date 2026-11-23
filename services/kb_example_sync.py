@@ -19,6 +19,7 @@ so the selection does not run against an empty pool.
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Sequence
 from typing import Any
 
@@ -28,6 +29,8 @@ from core.prompts import render_example
 from core.stages.base import Embed, SelectExamples
 from services.kb_examples import ExamplePool, build_entry
 from worker.contracts import CommandRequest, CommandResult
+
+log = logging.getLogger(__name__)
 
 
 def approved_cases(state: ProjectState) -> dict[str, tuple[TestCaseContent, list[str]]]:
@@ -95,7 +98,13 @@ class ExampleSyncingService:
     async def command(self, project_id: str, request: CommandRequest, actor: str) -> CommandResult:
         result = await self._inner.command(project_id, request, actor)
         if result.accepted:
-            await self.sync(project_id)
+            try:
+                await self.sync(project_id)
+            except Exception:  # the command is committed; the next retrieval syncs again
+                self._synced.discard(project_id)
+                log.exception(
+                    "example pool sync failed for %s; retried before next retrieval", project_id
+                )
         return result
 
     async def sync(self, project_id: str) -> bool:
