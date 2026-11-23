@@ -85,6 +85,8 @@ class EmbeddingSettings(BaseModel):
     batch_size: int = 32
     api_key_env: str | None = None
     request_timeout_s: float = 120.0
+    dim: int = 1024
+    """Vector dimension; the knowledge base table (`kb_chunks.embedding`) is created with it."""
 
 
 def _read(config_dir: Path, name: str) -> dict[str, Any]:

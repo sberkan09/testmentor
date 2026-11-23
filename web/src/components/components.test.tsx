@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
 import { createStudioStore } from "../api/store";
 import { StudioProvider } from "../context";
-import { FakeSocket, fakeApi, memoryStorage, snapshot } from "../test/fixtures";
+import { FakeSocket, fakeApi, memoryStorage, node, snapshot } from "../test/fixtures";
 
 beforeEach(() => {
   FakeSocket.instances = [];
@@ -126,5 +126,45 @@ describe("kilit", () => {
     store.getState().receiveEvent({ seq: 6, project_id: "P", type: "lock_changed", actor: "ali", payload: { ref: "test_case:A:TC-1", user: "ali" } });
     expect(await screen.findByTestId("lock-banner")).toHaveTextContent("ali");
     expect(screen.getByTestId("tc-title")).toBeDisabled();
+  });
+});
+
+describe("bilgi havuzu (paket 10)", () => {
+  it("öbek denetçisi arama düğümünün parça kimliklerini gösterir", async () => {
+    const snap = snapshot();
+    snap.nodes.push(
+      node("retrieval", "A", { kind: "retrieval", passage_ids: ["politika.md#0@ab12cd34", "politika.md#3@ffee0011"], example_keys: [] }),
+      node("retrieval", "B", { kind: "retrieval", passage_ids: [], example_keys: [] }),
+    );
+    mount({ snapshot: async () => snap });
+    await userEvent.click(await screen.findByTestId("project-P"));
+    await userEvent.click(await screen.findByTestId("cluster-name-A"));
+    const chips = await screen.findAllByTestId("passage-id");
+    expect(chips.map((c) => c.textContent)).toEqual(["politika.md#0", "politika.md#3"]);
+    await userEvent.click(screen.getByTestId("cluster-name-B"));
+    expect(await screen.findByTestId("passages-empty")).toBeInTheDocument();
+  });
+
+  it("Belgeler sekmesi listeler, yükler ve kaldırır", async () => {
+    let docs = [{ id: "a.md", name: "a.md", chunks: 2, added_by: "ali", added_at: 0 }];
+    const uploadDocument = vi.fn(async (_id: string, file: File) => {
+      const doc = { id: file.name, name: file.name, chunks: 3, added_by: "ayse", added_at: 0 };
+      docs = [...docs, doc];
+      return { document: doc, seq: 7 };
+    });
+    const removeDocument = vi.fn(async () => {
+      docs = docs.filter((d) => d.id !== "a.md");
+      return { seq: 8 };
+    });
+    mount({ listDocuments: async () => docs, uploadDocument, removeDocument });
+    await userEvent.click(await screen.findByTestId("project-P"));
+    await userEvent.click(await screen.findByTestId("view-documents"));
+    expect(await screen.findByTestId("document-a.md")).toHaveTextContent("ali");
+    await userEvent.upload(screen.getByTestId("document-file"), new File(["# Başlık\n\nmetin"], "b.md", { type: "text/markdown" }));
+    await waitFor(() => expect(uploadDocument).toHaveBeenCalledWith("P", expect.any(File)));
+    expect(await screen.findByTestId("document-chunks-b.md")).toHaveTextContent("3");
+    await userEvent.click(screen.getByTestId("document-remove-a.md"));
+    await waitFor(() => expect(screen.queryByTestId("document-a.md")).toBeNull());
+    expect(screen.getByTestId("documents-count")).toHaveTextContent("1");
   });
 });

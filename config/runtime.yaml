@@ -17,6 +17,11 @@ embedding:
   batch_size: 32
   api_key_env: LLM_API_KEY
   request_timeout_s: 120
+  dim: 1024                             # vektör boyutu; kb_chunks.embedding bu boyutla kurulur
+
+kb_upload:                  # paket 10: bilgi havuzuna belge yükleme (POST /projects/{id}/kb/documents)
+  max_mb: 20
+  extensions: [.txt, .md, .markdown, .pdf]   # PDF yalnızca metin katmanlıysa (taranmış PDF reddedilir)
 
 database:
   url_env: DATABASE_URL                 # postgresql://testmentor:...@localhost:5432/testmentor

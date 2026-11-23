@@ -492,6 +492,69 @@
       "title": "JobView",
       "type": "object"
     },
+    "KbDocumentView": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "chunks": {
+          "title": "Chunks",
+          "type": "integer"
+        },
+        "added_by": {
+          "default": "",
+          "title": "Added By",
+          "type": "string"
+        },
+        "added_at": {
+          "default": 0.0,
+          "title": "Added At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "chunks"
+      ],
+      "title": "KbDocumentView",
+      "type": "object"
+    },
+    "KbRemoveResult": {
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "seq"
+      ],
+      "title": "KbRemoveResult",
+      "type": "object"
+    },
+    "KbUploadResult": {
+      "properties": {
+        "document": {
+          "$ref": "#/$defs/KbDocumentView"
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "document",
+        "seq"
+      ],
+      "title": "KbUploadResult",
+      "type": "object"
+    },
     "KeepMine": {
       "additionalProperties": false,
       "description": "Fark ekranı \"benimkini koru\" (`core.events.NodeKept`).",
@@ -1207,6 +1270,15 @@
     },
     "matrix_row": {
       "$ref": "#/$defs/MatrixRowView"
+    },
+    "kb_document": {
+      "$ref": "#/$defs/KbDocumentView"
+    },
+    "kb_upload_result": {
+      "$ref": "#/$defs/KbUploadResult"
+    },
+    "kb_remove_result": {
+      "$ref": "#/$defs/KbRemoveResult"
     }
   },
   "required": [
@@ -1216,7 +1288,10 @@
     "snapshot",
     "server_event",
     "node_view",
-    "matrix_row"
+    "matrix_row",
+    "kb_document",
+    "kb_upload_result",
+    "kb_remove_result"
   ],
   "title": "ApiContract",
   "type": "object"

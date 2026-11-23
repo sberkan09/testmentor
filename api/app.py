@@ -15,7 +15,7 @@ import contextlib
 import json
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 from urllib.parse import unquote
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile, WebSocket
@@ -25,6 +25,7 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.websockets import WebSocketDisconnect
 
+from api.models import KbDocumentView, KbRemoveResult, KbUploadResult
 from core.nodes import NodeRef
 from worker.contracts import (
     CommandRequest,
@@ -34,6 +35,9 @@ from worker.contracts import (
     ServerEvent,
     Snapshot,
 )
+
+if TYPE_CHECKING:
+    from services.kb_documents import DocumentInfo, KbDocuments
 
 XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 _STATUS = {
@@ -67,12 +71,25 @@ class _SpaFiles(StaticFiles):
             raise
 
 
+def _document_view(info: DocumentInfo) -> KbDocumentView:
+    return KbDocumentView(
+        id=info.id,
+        name=info.name,
+        chunks=info.chunks,
+        added_by=info.added_by,
+        added_at=info.added_at,
+    )
+
+
 def create_app(
     service: ProjectService,
     *,
+    kb: KbDocuments | None = None,
     static_dir: Path | None = None,
     ping_interval_s: float = 20.0,
 ) -> FastAPI:
+    """`kb`: the knowledge base uploads (paket 10); without it the `/kb/documents` endpoints
+    answer 404."""
     app = FastAPI(title="testmentor")
     command_adapter: TypeAdapter[CommandRequest] = TypeAdapter(CommandRequest)
 
@@ -153,6 +170,48 @@ def create_app(
             media_type=XLSX_TYPE,
             headers={"Content-Disposition": f'attachment; filename="{project_id}-matrix.xlsx"'},
         )
+
+    def kb_or_404() -> KbDocuments:
+        if kb is None:
+            raise HTTPException(404, "knowledge base is not configured")
+        return kb
+
+    @app.get("/projects/{project_id}/kb/documents")
+    async def kb_documents(project_id: str) -> list[KbDocumentView]:
+        docs = kb_or_404()
+        known(project_id)
+        return [_document_view(d) for d in docs.list(project_id)]
+
+    @app.post("/projects/{project_id}/kb/documents")
+    async def kb_upload(
+        project_id: str,
+        file: Annotated[UploadFile, File()],
+        x_user: str | None = Header(default=None),
+    ) -> KbUploadResult:
+        from services.kb_documents import UploadRejected
+
+        actor = actor_of(x_user)
+        docs = kb_or_404()
+        known(project_id)
+        data = await file.read()
+        try:
+            info, seq = await docs.add(project_id, file.filename or "", data, actor)
+        except UploadRejected as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return KbUploadResult(document=_document_view(info), seq=seq)
+
+    @app.delete("/projects/{project_id}/kb/documents/{document_id}")
+    async def kb_remove(
+        project_id: str, document_id: str, x_user: str | None = Header(default=None)
+    ) -> KbRemoveResult:
+        actor = actor_of(x_user)
+        docs = kb_or_404()
+        known(project_id)
+        try:
+            seq = docs.remove(project_id, document_id, actor)
+        except KeyError as exc:
+            raise HTTPException(404, f"unknown document {document_id}") from exc
+        return KbRemoveResult(seq=seq)
 
     @app.websocket("/projects/{project_id}/events")
     async def events(

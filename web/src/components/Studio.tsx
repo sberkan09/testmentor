@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useActions, useStudio, useView } from "../context";
 import { ClusterView } from "./ClusterView";
 import { DiffDialog } from "./DiffDialog";
+import { DocumentsView } from "./DocumentsView";
 import { Inspector } from "./Inspector";
 import { MatrixView } from "./MatrixView";
 import { StageBar } from "./StageBar";
@@ -49,6 +50,9 @@ export function Studio() {
           <button role="tab" aria-selected={view === "matrix"} data-testid="view-matrix" onClick={() => setView("matrix")}>
             Matris
           </button>
+          <button role="tab" aria-selected={view === "documents"} data-testid="view-documents" onClick={() => setView("documents")}>
+            Belgeler
+          </button>
         </div>
         <div className="spacer" />
         <span className={`conn ${status}`} data-testid="connection">
@@ -61,7 +65,7 @@ export function Studio() {
         </span>
       </header>
       <div className="workspace">
-        <main className="canvas">{view === "clusters" ? <ClusterView /> : <MatrixView />}</main>
+        <main className="canvas">{view === "clusters" ? <ClusterView /> : view === "matrix" ? <MatrixView /> : <DocumentsView />}</main>
         <aside className="inspector" aria-label="Denetçi" data-testid="inspector">
           <Inspector />
         </aside>

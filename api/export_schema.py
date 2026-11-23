@@ -1,4 +1,5 @@
-"""`python -m api.export_schema`: JSON schema of the API contract (`worker/contracts.py`) into
+"""`python -m api.export_schema`: JSON schema of the API contract (`worker/contracts.py`, and
+`api/models.py` for the endpoints added in paket 10) into
 `api/schema.json`. The frontend (paket 8) generates its TypeScript types from it; a test checks
 that the committed file is current."""
 
@@ -9,6 +10,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from api.models import KbDocumentView, KbRemoveResult, KbUploadResult
 from worker.contracts import (
     CommandRequest,
     CommandResult,
@@ -32,6 +34,9 @@ class ApiContract(BaseModel):
     server_event: ServerEvent
     node_view: NodeView
     matrix_row: MatrixRowView
+    kb_document: KbDocumentView
+    kb_upload_result: KbUploadResult
+    kb_remove_result: KbRemoveResult
 
 
 def render() -> str:

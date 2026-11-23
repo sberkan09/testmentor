@@ -97,6 +97,9 @@ export function fakeApi(overrides: Partial<StudioApi> = {}): StudioApi & { comma
     },
     lock: async () => true,
     matrixUrl: (id) => `/projects/${id}/matrix.xlsx`,
+    listDocuments: async () => [],
+    uploadDocument: async (_id, file) => ({ document: { id: file.name, name: file.name, chunks: 1, added_by: "ayse", added_at: 0 }, seq: 7 }),
+    removeDocument: async () => ({ seq: 8 }),
     ...overrides,
   };
   return api;

@@ -17,7 +17,7 @@ export interface Selection {
   key: string;
 }
 
-export type ViewName = "clusters" | "matrix";
+export type ViewName = "clusters" | "matrix" | "documents";
 
 export interface StudioState {
   user: string | null;

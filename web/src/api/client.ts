@@ -1,4 +1,4 @@
-import type { CommandRequest, CommandResult, ImportRequest, NodeRef, Snapshot } from "../types";
+import type { CommandRequest, CommandResult, ImportRequest, KbDocumentView, KbRemoveResult, KbUploadResult, NodeRef, Snapshot } from "../types";
 
 /** REST surface used by the store; tests replace it with a fake. */
 export interface StudioApi {
@@ -8,6 +8,10 @@ export interface StudioApi {
   command(projectId: string, req: CommandRequest): Promise<CommandResult>;
   lock(projectId: string, ref: NodeRef): Promise<boolean>;
   matrixUrl(projectId: string): string;
+  /** Knowledge base documents of a project (paket 10). */
+  listDocuments(projectId: string): Promise<KbDocumentView[]>;
+  uploadDocument(projectId: string, file: File): Promise<KbUploadResult>;
+  removeDocument(projectId: string, documentId: string): Promise<KbRemoveResult>;
 }
 
 export class ApiError extends Error {
@@ -84,6 +88,24 @@ export function createRestApi(getUser: () => string, fetchFn: typeof fetch = (..
     },
     matrixUrl(projectId) {
       return `/projects/${encodeURIComponent(projectId)}/matrix.xlsx`;
+    },
+    async listDocuments(projectId) {
+      return json<KbDocumentView[]>(await fetchFn(`/projects/${encodeURIComponent(projectId)}/kb/documents`, { headers: headers() }));
+    },
+    async uploadDocument(projectId, file) {
+      const form = new FormData();
+      form.append("file", file, file.name);
+      return json<KbUploadResult>(
+        await fetchFn(`/projects/${encodeURIComponent(projectId)}/kb/documents`, { method: "POST", headers: headers(), body: form }),
+      );
+    },
+    async removeDocument(projectId, documentId) {
+      return json<KbRemoveResult>(
+        await fetchFn(`/projects/${encodeURIComponent(projectId)}/kb/documents/${encodeURIComponent(documentId)}`, {
+          method: "DELETE",
+          headers: headers(),
+        }),
+      );
     },
   };
 }

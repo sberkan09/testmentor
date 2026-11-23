@@ -168,6 +168,13 @@ export type Type19 =
   | "stage_waiting_approval"
   | "lock_changed";
 export type Actor = string;
+export type Id3 = string;
+export type Name4 = string;
+export type Chunks = number;
+export type AddedBy = string;
+export type AddedAt = number;
+export type Seq3 = number;
+export type Seq4 = number;
 
 /**
  * Container so that every model lands in one schema with shared `$defs`.
@@ -180,6 +187,9 @@ export interface ApiContract {
   server_event: ServerEvent;
   node_view: NodeView;
   matrix_row: MatrixRowView;
+  kb_document: KbDocumentView;
+  kb_upload_result: KbUploadResult;
+  kb_remove_result: KbRemoveResult;
 }
 /**
  * `POST /projects` body (multipart: this as JSON field `meta` plus the file).
@@ -427,4 +437,18 @@ export interface ServerEvent {
 }
 export interface Payload {
   [k: string]: unknown;
+}
+export interface KbDocumentView {
+  id: Id3;
+  name: Name4;
+  chunks: Chunks;
+  added_by?: AddedBy;
+  added_at?: AddedAt;
+}
+export interface KbUploadResult {
+  document: KbDocumentView;
+  seq: Seq3;
+}
+export interface KbRemoveResult {
+  seq: Seq4;
 }
