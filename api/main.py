@@ -149,6 +149,11 @@ def build_server(deps: ServiceDeps | None = None) -> Server:
         registry = PgRegistry(kb_conn)
         registry.ensure_schema()
     pool = ExamplePool()
+    # approved (pinned) test cases enter the example pool after each command and before a
+    # project's first retrieval in this process (paket 11)
+    from services.kb_example_sync import ExampleSyncingService
+
+    syncing = ExampleSyncingService(None, pool, deps.embed)
     reranker = make_reranker(kb_settings.reranker, kb_settings.rerank_max_tokens)
     embed = deps.embed
 
@@ -157,7 +162,9 @@ def build_server(deps: ServiceDeps | None = None) -> Server:
         return ProjectTools(
             retrieve=retrieve,
             passages=passages,
-            select_examples=make_select_examples(pool, project_id, embed, kb_settings.examples),
+            select_examples=syncing.synced_selection(
+                project_id, make_select_examples(pool, project_id, embed, kb_settings.examples)
+            ),
             example_texts=make_example_source(pool, project_id),
         )
 
@@ -172,6 +179,7 @@ def build_server(deps: ServiceDeps | None = None) -> Server:
         if deps.fake
         else load_embedding_settings().model_version,
     )
+    syncing.bind(service)
     kb = KbDocuments(
         index,
         registry,
@@ -181,7 +189,7 @@ def build_server(deps: ServiceDeps | None = None) -> Server:
         load_upload_settings(),
         on_change=service.kb_document_added,
     )
-    return Server(service=service, kb=kb)
+    return Server(service=syncing, kb=kb)
 
 
 def build_service() -> ProjectService:

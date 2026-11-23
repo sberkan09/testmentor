@@ -71,6 +71,11 @@ class ExamplePool:
         pool.entries.pop(key, None)
         pool.changes += 1
 
+    def entries(self, project_id: str) -> dict[str, ExampleEntry]:
+        """Copy of the project's entries by test case key."""
+        p = self._projects.get(project_id)
+        return dict(p.entries) if p else {}
+
     def version(self, project_id: str) -> str:
         p = self._projects.get(project_id)
         return f"e{p.changes if p else 0}"
