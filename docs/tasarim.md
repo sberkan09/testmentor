@@ -64,7 +64,7 @@ Kurallar:
 - Düğüm bayattır ⇔ kayıtlı `input_hash`, güncel girdilerden hesaplanan beklenen hash'ten farklıdır. Her olaydan sonra beklenen hash'ler projenin tamamı için yeniden hesaplanır. Üretim sonucu yazıldığında yalnızca yazılan düğümün aşağı akışı yeniden hesaplanır; sonucun baştan hesapla aynı olduğu testle doğrulanır. Ters bağımlılık dizini arayüz ve doğrulama listesi için tutulur.
 - Bir düğümün üstü taze değilse (bayat, çalışıyor, başarısız ya da kendisi bekliyor) düğüm, kendi girdileri değişmediyse bayat sayılmaz, doğrulanacak listesine girer: durumu `fresh` kalır, üstü taze olana kadar kuyruğa alınmaz. Üst düğüm yeniden üretilir; çıktısı aynıysa aşağısı taze kalır (erken kesme). Arama sonucu bu yolla çalışır. Embedding istisnadır: vektörler bayt düzeyinde kararlı olmadığı için aşağısı embedding'i beklenen hash'iyle görür, girdisi değişen embedding'in aşağısı (öbekleme ağacı) doğrudan bayatlar.
 - Üretim sonucu yalnızca üstündeki her düğüm taze ya da sabitlenmişken (bekleyen yokken) yazılır; aksi halde reddedilir.
-- `running` düğümün işi şu durumlarda iptal edilir: girdisi (`input_hash`) ya da bağlamı (`cache_key`; örneğin öbekte bir test durumu düzenlendi ya da sabitlendi) değişti, düğüm silindi, elle düzenlendi ya da sabitlendi. İptalden sonra durum normal kuralla belirlenir (kayıtlı hash beklenene eşitse `fresh`, değilse `stale`). Eski girdi ya da bağlamla biten sonuç çıktı cache'ine kendi anahtarıyla yazılır, düğüme yazılmaz.
+- `running` düğümün işi şu durumlarda iptal edilir: girdisi (`input_hash`) ya da bağlamı (`cache_key`; örneğin öbekte bir test durumu düzenlendi ya da sabitlendi) değişti, düğüm silindi, elle düzenlendi ya da sabitlendi. İptalden sonra durum normal kuralla belirlenir (kayıtlı hash beklenene eşitse `fresh`, değilse `stale`). Eski girdi ya da bağlamla biten sonuç çıktı cache'ine kendi anahtarıyla yazılır, düğüme yazılmaz. İşi düğüme sonuç yazmadan biten `running` düğüm (iş iptal edildi, sonucu reddedildi ya da süreç yeniden başladı) aynı normal kurala döner (paket 5, `release`). Örnek: üstündeki arama sonucu bayatladı ama düğümün kendi hash'i değişmedi; sonuç reddedilir, düğüm üstü taze olunca yeniden kuyruğa girer.
 - Hiç üretilmemiş (içeriksiz) düğüm sabitlenemez ve korunamaz.
 - Öbek hash'i üyelerin kimlik ve metinlerine bağlıdır, öbeğin adına ya da ekrandaki konumuna değil. Ad değiştirmek testleri bayatlatmaz.
 - Sabitleme düğüm başınadır; test setinde sabitlenen birim tek test durumudur.
@@ -73,7 +73,7 @@ Kurallar:
 - Sürüm içerik değişikliğini ve kullanıcı kararını sayar (üretim, düzenleme, taşıma, koruma, sabitleme ve çözme). Durum değişikliği (`fresh`, `stale`, `running`, `failed`) sürüm yazmaz. Silinip yeniden oluşan düğüm 1. sürümden başlar; geçmiş eklemeli tutulur.
 - Üretimi başarısız olan düğüm `failed` olur, kuyruğa kendiliğinden girmez ve aşağısını bekletir. Girdisi değişirse yeniden `stale` olur; kullanıcı yeniden deneyebilir.
 - Matris satırı kendi gereksinimine de bağlıdır; böylece iki satır aynı cache anahtarını paylaşmaz. Test durumlarını anahtarlarıyla birlikte görür: aynı içerikli test durumu başka öbeğe geçerse satır bayatlar.
-- Kullanıcı düzenlemesi yeni bir sürüm yazar (`origin=edited`, `pinned=true`). Eski sürümler silinmez, geri alma sürüm değiştirmektir.
+- Kullanıcı düzenlemesi yeni bir sürüm yazar (`origin=edited`, `pinned=true`). Eski sürümler silinmez, geri alma sürüm değiştirmektir. Geri alma, komutun değiştirdiği kaynak ve düzenlenmiş düğümlerin önceki içeriğini yeni olaylarla geri yazar; türev düğümler beklenen hash'leri eskiye döndüğü için çıktı cache'inden gelir. Öbek üyeliği sabit atamalarıyla birlikte geri yazılır: `membership_changed` olayı isteğe bağlı olarak sabit atamaları da taşır (paket 5). Komuttan sonra bu düğümleri başka bir komut değiştirdiyse geri alma sürüm çakışmasıyla reddedilir; reddedilen kayıt kullanıcının yığınından düşer, böylece daha eski komutları geri alınabilir (paket 5 incelemesi).
 - Her düzenleme olay günlüğüne yazılır (`requirement_moved`, `cluster_created`, `test_case_edited`). Arayüz bu olayları dinler, denetim izi de buradan çıkar.
 
 ## Pipeline aşamaları
@@ -211,8 +211,8 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 | D6 | Embedding ve kümeleme | BGE-M3 ve iki alternatif; agglomerative ve HDBSCAN | uzmanın elle öbeklemesiyle uyum, kullanıcının yapmak zorunda kaldığı taşıma sayısı | BGE-M3, agglomerative | **BGE-M3, agglomerative average, eşik 0,35 (değişmedi)** (paket 3). Alternatif modeller geçmedi; HDBSCAN v1'de iyi ama ağaç tutmuyor, v0'da öbekleri dağıtıyor. Eşik 0,30 v1'de taşımayı azalttı (54 → 45, 70 → 66) ama gereksinim bootstrap aralıkları sıfırı geçmiyor ve v0'da kötü: aday olarak kaldı. Referans belge bölümleri (uzman değil), iki proje: uzman öbeklemesiyle yeniden ölçülmeli. [D6](deneyler/D6.md) |
 | D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; birim sınırı 10 ve 25 (50 çıkarıldı: Test gereksinimi başına ~624 çıktı token'ıyla ~31 bin token eder, 32 bin bağlama sığmaz; paket 3) | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | **Öbek başına kalır** (paket 3; kullanıcı kararı, 21 Kasım 2026). Artış test sayısından geliyor: test sayısı iki kolda aynı olan 80 gereksinimde fark +0,011, gereksinim başına kolun daha çok test yazdığı 133 gereksinimde +0,110. Daha çok kapsama istenirse öbek bağlamını koruyan prompt deneyi (gereksinim başına daha çok sınır ve hata testi) daha ucuz yoldur. Hakem recall'ı: gereksinim başına çağrı 0,495, öbek başına 0,426, 10'luk paket 0,385, 25'lik paket 0,355. Gereksinim başına çağrı öbek başınadan ölçülebilir biçimde iyi (+0,069 [+0,028, +0,110]; ikinci öbek başına koşuya göre +0,046 [+0,012, +0,082]) ama uydurma içerik %48 (1,26 → 1,87), test sayısı %57, çıktı token'ı %55 artıyor; öbekleri paketlemek ölçülebilir biçimde kötü. [D7](deneyler/D7.md) |
 | D8 | Yeniden üretim biçimi | artımlı ve baştan (ekleme), artımlı çağrı ve modelsiz budama (çıkarma), birleştirme prompt'u ve baştan (birleştirme); kollar aynı taban üzerinde | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | **Ekleme: artımlı; çıkarma: modelsiz budama; birleştirme: birleştirme prompt'u** (paket 3). Eklemede artımlı önceki testlerin %100'ünü korudu (baştan %9), düzeltmeleri tekrarlamadı (baştan 7), token'ın dörtte birini harcadı; recall farkı yok (+0,029 [−0,020, +0,079]). Çıkarmada çağrı ile budama aynı seti verdi (fark +0,008 [0, +0,024]): daha basit olan budama (`generation.prune_removals: true`). Birleştirmede prompt 100 kat az token, 8 kat kısa; recall farkı yok. [D8](deneyler/D8.md) |
-| D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | pilot (paket 1b): altın set v1 belgenin etkisini ölçebiliyor; kâhin parçalarla belge gerektiren denetimlerde recall 0,28 → 0,49 ([`D9`](deneyler/D9.md)). Parça boyu, sayı ve reranker paket 7'de |
-| D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | bu paketin kapsamı dışında |
+| D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | **400 token, ilk 4, reranker yok, kart var** (paket 7, 23 Kasım 2026). Gerçek hibrit arama parçasız koşuya göre +0,073 [+0,035, +0,114], belge gerektiren denetimlerde 0,26 → 0,40 (kâhin 0,49). Parça boyu ve sayısı kolları arasında ölçülebilir fark yok; ilk 4 en kısa prompt (−%31). Reranker koşulmadı. Pilot (paket 1b): kâhin parçalarla belge gerektiren denetimlerde 0,28 → 0,49. [D9](deneyler/D9.md) |
+| D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | **Kesildi** (paket 7, 23 Kasım 2026): örnek havuzu kodu hazır, varsayılan kapalı (`kb.examples: 0`); altın setin referans testlerinden kurulan havuz cevap anahtarını sızdırır, sızıntısız havuz ayrı iş. |
 | D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 | bu paketin kapsamı dışında |
 | D12 | Önek ısıtma | paralel çağrıları ilk çağrı öneki işleyene kadar bekletmek ve bekletmemek | ilk üretimin toplam süresi ve önek cache isabet oranı | bekletmek | **Bekletmemek.** Önek isabeti aynı (%54), süre biraz kısa, recall farkı gürültü içinde. [D12](deneyler/D12.md) |
 
@@ -277,6 +277,7 @@ D8 (paket 3) sonrası: yalnızca üye çıkan set modelsiz budanır (`generation
 - Aynı düğüm için bekleyen iş varsa yenisi onun yerine geçer. Çalışan işin girdisi değiştiyse akış kesilerek iptal edilir.
 - Eşzamanlılık sınırı vLLM'in dizi sınırına eşittir; P2 işleri yuvaların en çok %70'ini kullanır.
 - Şema doğrulaması başarısız olursa bir kez yeniden denenir, sonra düğüm `failed` olur. Çıktı `max_tokens`'ta kesildiyse (`finish_reason: length`) yeniden denenmez: yeniden deneme en pahalı çağrıyı ikiye katlar ve dejenerasyonu büyük olasılıkla tekrarlar (paket 3, KDH-030: aynı prompt 5 koşunun 3'ünde kesildi, 2'sinde geçti).
+- Bir işin sonucu veritabanına yazılamazsa (bağlantı kopması gibi) düğüm normal kurala döner ve iş `store_retry_s` sonra yeniden denenir; aynı düğümün sonucu art arda `store_retries` kez yazılamazsa düğüm `failed` olur. Böylece kalıcı bir depo hatası sınırsız model çağrısına dönüşmez (paket 5 incelemesi).
 - İlk sürümde kuyruk, iş kayıtları Postgres'te duran bir asyncio işçi havuzudur. Tek GPU için Redis ya da Celery gerekmez.
 
 ### Beklenen süreler (tahmin, ölçülecek)
@@ -297,7 +298,7 @@ Her projenin bilgisi iki katmanda tutulur: her prompt'a giren kısa bir proje ka
 ### İndeks
 
 - Belgeler başlık yolu korunarak 300–500 token'lık parçalara bölünür ve yüklemede bir kez embed edilir.
-- Depo Postgres ve pgvector'dür; projeler `project_id` ile ayrılır. Ayrı bir vektör veritabanı kurulmaz.
+- Depo Postgres ve pgvector'dür; projeler `project_id` ile ayrılır. Ayrı bir vektör veritabanı kurulmaz. İndeks bir arayüzün arkasındadır: geliştirme, test ve ölçüm bellek içi gerçeklemeyle (numpy, BM25) koşar, üretim pgvector'le (paket 7; geliştirme ortamında uzantı yok).
 - Arama hibrittir: yoğun vektör ve anahtar kelime sonuçları sıra birleştirmeyle (RRF) tek listeye iner, ilk 6–8 parça alınır.
 - Arama birimi öbektir. Sorgu üye gereksinimlerin metnidir; gereksinim başına değil öbek başına bir arama yapılır. Öbek adı sorguya girmez: girseydi yeniden adlandırma arama sonucunu ve test setini bayatlatabilirdi (paket 2'de netleşti). Adın faydası D9'da ölçülebilir.
 - Yeniden sıralayıcı (reranker) ilk sürümde yoktur; altın set ölçümü gerektirirse eklenir.
@@ -305,6 +306,8 @@ Her projenin bilgisi iki katmanda tutulur: her prompt'a giren kısa bir proje ka
 ### Örnek havuzu
 
 Kullanıcının onayladığı ya da düzelttiği test durumları projeye özel örnek havuzuna yazılır. Yeni bir öbek için en benzer 2–3 örnek prompt'a eklenir. Sistem böylece ince ayar yapılmadan projenin üslubunu öğrenir.
+
+Uygulama (paket 7): örnek seçimi arama düğümüne yazılır. `RetrievalContent` parça kimliklerinin yanında `example_keys` taşır; böylece test setinin hash kuralı değişmez (parça kimlikleri ve örnek anahtarları hash'e girer, indeks ve havuz sürümü girmez). Anahtar örneğin metin özetini içerir (`<test durumu anahtarı>@<özet>`): kullanıcı bir örneği düzeltirse anahtar değişir ve set bayatlar; havuz değişse de seçilen örnekler aynıysa set bayatlamaz. Örnekler prompt'un 4. katmanında parçalardan sonra `# Project examples` bölümüyle girer; bölüm yalnızca örnek varsa yazılır, `kb.examples: 0` iken prompt değişmez. Parça kimliği de aynı nedenle metnin kısa özetini taşır (`<belge>#<sıra>@<özet>`): belge yeniden parçalanırsa aynı sıradaki farklı metin aynı kimlikle prompt'a girmez.
 
 ### Yalıtım
 
@@ -353,7 +356,7 @@ Sonuçlar `WS /projects/{id}/events` üzerinden gelir: `node_created`, `node_upd
 - Komut tek veritabanı işleminde işlenir: olay günlüğe yazılır, grafik güncellenir, bayatlayanlar işaretlenir, aşama otomatik moddaysa işler kuyruğa girer, olaylar yayınlanır.
 - Ön yüz iyimser güncelleme yapar ve olayla teyit eder; çelişkide sunucu kazanır.
 - Sekme kapansa da pipeline çalışmaya devam eder.
-- İlk sürümde erişim şirket içi ağ, kullanıcı girişi ve proje bazlı yetkiyle sınırlıdır.
+- İlk sürümde erişim şirket içi ağla sınırlıdır; komutun sahibi `X-User` başlığından okunur. Kullanıcı girişi ve proje bazlı yetki sonraki sürümdür (23 Kasım 2026, süre kararı; `docs/paketler/durum.md`).
 
 ### Çok kullanıcılı çalışma
 
@@ -448,13 +451,13 @@ Aynı yöntemlerin geliştirme sürecine uygulanışı deponun `CLAUDE.md` dosya
 | 2 | Çekirdek: veri modeli, hash, bağımlılık grafiği, geçersiz kılma ([plan](paketler/paket-2-plan.md)) | Opus | Bayatlama tablosundaki her satırın birim testi geçiyor |
 | 3 | Aşamalar ve prompt'lar: öbekleme, test üretimi (artımlı dahil), doğrulama yöntemi ([plan](paketler/paket-3-plan.md); ek iş [3b](paketler/paket-3b-plan.md)) | Opus | Altın sette belirlenen eşikler aşılıyor. Yorum (kullanıcı kararı, 20 Kasım 2026): yeni aşama koduyla, referans öbek ve yöntemlerle v0 ve v1'de katman 1 eşikleri geçer; check_recall paket 1 tabanından gürültüden fazla düşmez (aynı gereksinimler üzerinde yeni − taban farkının eşleştirilmiş bootstrap %95 aralığının alt sınırı ≥ −0,05; kullanıcı onayı, 21 Kasım 2026); uçtan uca koşu raporlanır ve orada kapsama tahmin edilen yöntemlere göre %100'dür |
 | 4 | İçe alma, matris görünümü, xlsx dışa aktarım | Sonnet | Örnek set uçtan uca matrise dönüşüyor |
-| 5 | Orkestratör ve kuyruk: komut işleme, öncelik, bekleme, iptal, aşama kapıları | Opus | Taşıma senaryosu iki çağrıyla bitiyor, diğer öbekler cache'ten geliyor |
+| 5 | Orkestratör ve kuyruk: komut işleme, öncelik, bekleme, iptal, aşama kapıları | Opus | Taşıma senaryosu bir artımlı test ve iki ad çağrısıyla bitiyor (çıkılan set çağrısız budanır, D8), diğer öbekler cache'ten geliyor; geri alma cache'ten dönüyor |
 | 6 | API ve olay akışı: REST komutları, WebSocket, snapshot ve tekrar oynatma | Sonnet | Bağlantı kopup gelince istemci durumu sunucuyla aynı; iki kullanıcının çakışan komutu doğru reddediliyor |
 | 7 | Bilgi havuzu: parçalama, indeks, hibrit arama, proje kartı, örnek havuzu | Sonnet; kart çıkarımı ve örnek seçimi Opus | Yalıtım testi geçiyor, altın sette kalite düşmüyor |
 | 8 | Ön yüz: öbek görünümü, denetçi, aşama çubuğu, matris görünümü, fark ekranı, geri alma | Sonnet; tuval etkileşimi Opus | Kullanıcı bir seti yükleyip düzenleyerek matrisi dışa aktarabiliyor |
 | 9 | Ön yüz: 3B katman görünümü | Opus | 2.000 gereksinimde akıcı gezinme |
 
-Sıra bağımlılığı izler: 0 → 1 → 2 → 3 → 5 → 6 → 8 → 9. Paket 4 ve 7, paket 2 bittikten sonra paralel yürür.
+Sıra bağımlılığı izler: 0 → 1 → 2 → 3 → 5 → 6 → 8 → 9. Paket 4 ve 7, paket 2 bittikten sonra paralel yürür. Paketler arası sözleşme (komutlar, olaylar, snapshot, düğüm görünümü, proje servisi arayüzü) `worker/contracts.py` içindedir ve paket 4–9 başlamadan dondurulur; paket 6 ve 8 ona göre yazılır (23 Kasım 2026).
 
 Modellerle çalışma kuralları:
 

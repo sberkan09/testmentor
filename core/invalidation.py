@@ -267,12 +267,19 @@ def apply(
             merges[_ref(NodeKind.TEST_SET, new)] = tuple(
                 _ref(NodeKind.TEST_SET, c) for c in sources
             )
-        case MembershipChanged(clusters=clusters):
+        case MembershipChanged(clusters=clusters, pinned=exact):
             placed = sorted(m for ms in clusters.values() for m in ms)
             if placed != sorted(state.keys_of(NodeKind.REQUIREMENT)):
                 raise ValueError("membership must place every requirement exactly once")
-            was_pinned = {m for c in state.keys_of(NodeKind.CLUSTER) for m in _pinned(state, c)}
-            mem = {c: (set(ms), set(ms) & was_pinned) for c, ms in clusters.items()}
+            if exact is None:
+                was_pinned = {m for c in state.keys_of(NodeKind.CLUSTER) for m in _pinned(state, c)}
+                mem = {c: (set(ms), set(ms) & was_pinned) for c, ms in clusters.items()}
+            else:
+                if any(
+                    c not in clusters or not set(p) <= set(clusters[c]) for c, p in exact.items()
+                ):
+                    raise ValueError("pinned assignments must be members of their cluster")
+                mem = {c: (set(ms), set(exact.get(c, ()))) for c, ms in clusters.items()}
             _write_membership(state, nodes, mem, mode="algorithm")
         case ClusterRenamed(cluster=c, name=name, rationale=why):
             _edit(
@@ -357,6 +364,17 @@ def mark_running(state: ProjectState, ref: NodeRef) -> ProjectState:
     if node.status not in (Status.STALE, Status.FAILED) or node.pinned:
         raise ValueError(f"{ref} is not waiting for production ({node.status})")
     return _with_statuses(state, {ref: Status.RUNNING})
+
+
+def release(state: ProjectState, ref: NodeRef) -> ProjectState:
+    """The job of a running node ended without writing a result (cancelled, result rejected,
+    process restarted): the node returns to the normal rule, fresh if its recorded hash equals
+    the expected one, otherwise stale. Not running: unchanged."""
+    node = state.get(ref)
+    if node is None or node.status != Status.RUNNING:
+        return state
+    fresh = node.content is not None and node.input_hash == expected_hash(state, ref)
+    return _with_statuses(state, {ref: Status.FRESH if fresh else Status.STALE})
 
 
 def mark_failed(state: ProjectState, ref: NodeRef) -> ProjectState:

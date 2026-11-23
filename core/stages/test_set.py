@@ -99,7 +99,8 @@ async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
        part (each part's own layers 5, same tails), concurrently; cases concatenated in part
        order then `renumber`ed.
        Layer 4: `ctx.passages(retrieval passage ids)`; passage ids without `ctx.passages`
-       fail the node (no silent "(none)").
+       fail the node (no silent "(none)"). Then, only when the retrieval has example keys, the
+       `# Project examples` section from `ctx.example_texts(keys)` (same rule, D10).
        Incremental: `prune_removed` first; when the delta is only removals the call still
        happens (design call count) unless `settings.prune_removals` (D8 arm: no call).
        `settings.regeneration == "full"` (D8 arm) never chooses incremental.
@@ -199,6 +200,15 @@ class _SetJob:
             raise _NodeFailed("retrieval has passage ids but no passage source was given")
         return list(self.ctx.passages(ids))
 
+    def _examples(self) -> list[str]:
+        ret = self.state.node(NodeRef(kind=NodeKind.RETRIEVAL, key=self.cluster)).content
+        keys = ret.example_keys if isinstance(ret, RetrievalContent) else ()
+        if not keys:
+            return []
+        if self.ctx.example_texts is None:
+            raise _NodeFailed("retrieval has example keys but no example source was given")
+        return list(self.ctx.example_texts(keys))
+
     def _base(self, reqs: Sequence[str]) -> list[dict[str, str]]:
         """Layers 1–5 for `reqs` (paket 1 `generation_messages`) and the pinned section."""
         state = self.state
@@ -225,6 +235,7 @@ class _SetJob:
             types=self.settings.test_types,
             priorities=self.settings.priorities,
             passages=self.passages,
+            project_examples=self.examples,
         )
         return append_tail(msgs, pinned_section(self.pinned))
 
@@ -252,6 +263,7 @@ class _SetJob:
 
     async def run(self):
         self.passages = self._passages()
+        self.examples = self._examples()
         self.mode = choose_mode(
             self.state,
             self.cluster,

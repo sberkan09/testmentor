@@ -6,6 +6,7 @@ from core.events import (
     ClusterDeleted,
     ClusterRenamed,
     ClustersMerged,
+    KbDocumentAdded,
     MembershipChanged,
     MethodEdited,
     NodeKept,
@@ -16,7 +17,7 @@ from core.events import (
     TestCaseEdited,
 )
 from core.graph import cache_key, expected_hash
-from core.invalidation import analyze, apply, mark_failed, mark_running, settle
+from core.invalidation import analyze, apply, mark_failed, mark_running, release, settle
 from core.nodes import NodeKind, Origin, Status, ref
 from tests.core.helpers import (
     CL,
@@ -439,3 +440,62 @@ def test_membership_change_must_place_every_requirement(project):
     state, _ = project
     with pytest.raises(ValueError):
         apply(state, MembershipChanged(clusters={"A": ("R1", "R2"), "B": ("R3",)}))
+
+
+def test_membership_change_with_exact_pins_restores_a_move(project):
+    """Undo (paket 5): the membership is written back with its pinned assignments, so the
+    cluster nodes equal their content before the move and every derived node hits the cache."""
+    state, cache = project
+    before = {r: n.content for r, n in state.nodes.items()}
+    moved, _ = apply(state, RequirementMoved(requirement="R2", to_cluster="B"))
+    moved = produce_all(moved, cache)
+    assert moved.node(CL("B")).content.pinned_members == ("R2",)
+
+    back, inv = apply(
+        moved,
+        MembershipChanged(
+            clusters={"A": ("R1", "R2"), "B": ("R3", "R4"), "C": ("R5", "R6")},
+            pinned={"A": (), "B": ()},
+        ),
+        cache=cache,
+    )
+    assert back.node(CL("A")).content.pinned_members == ()
+    assert back.node(CL("B")).content.pinned_members == ()
+    assert analyze(back).stale == frozenset()
+    assert {r: n.content for r, n in back.nodes.items()} == before
+    assert inv.llm_calls == 0
+
+
+def test_membership_change_rejects_pins_outside_the_cluster(project):
+    import pytest
+
+    state, _ = project
+    with pytest.raises(ValueError):
+        apply(
+            state,
+            MembershipChanged(
+                clusters={"A": ("R1", "R2"), "B": ("R3", "R4"), "C": ("R5", "R6")},
+                pinned={"A": ("R3",)},
+            ),
+        )
+
+
+def test_release_returns_running_node_to_the_normal_rule(project):
+    """A running node whose job ended without a written result: stale when its inputs changed,
+    fresh when its stored hash is still the expected one; other nodes are left as they are."""
+    state, _ = project
+    edited, _ = apply(state, RequirementTextChanged(requirement="R1", text="Yeni metin"))
+    running = mark_running(edited, SET("A"))
+    assert release(running, SET("A")).node(SET("A")).status == Status.STALE
+
+    # The retrieval goes stale without changing the set's hash: the set keeps running, its
+    # result is rejected (pending input) and release puts it back to fresh, waiting.
+    old = state.node(SET("A")).model_copy(update={"status": Status.RUNNING})
+    busy = state.model_copy(update={"nodes": state.nodes | {SET("A"): old}})
+    busy, _ = apply(busy, KbDocumentAdded(document_id="d2", index_version="v2"))
+    assert busy.node(SET("A")).status == Status.RUNNING
+    assert not settle(busy, SET("A"), fake_result(state, SET("A"))).accepted
+    released = release(busy, SET("A"))
+    assert released.node(SET("A")).status == Status.FRESH
+    assert SET("A") in analyze(released).to_verify
+    assert release(released, SET("A")) is released

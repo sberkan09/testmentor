@@ -1,0 +1,1223 @@
+{
+  "$defs": {
+    "ApproveStage": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "approve_stage",
+          "default": "approve_stage",
+          "title": "Type",
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/NodeKind"
+        }
+      },
+      "required": [
+        "stage"
+      ],
+      "title": "ApproveStage",
+      "type": "object"
+    },
+    "ColumnMapping": {
+      "additionalProperties": false,
+      "description": "Which source columns hold what. Only `text` is required; a missing id gets `REQ-<n>`.",
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "ColumnMapping",
+      "type": "object"
+    },
+    "CommandRequest": {
+      "additionalProperties": false,
+      "description": "`POST /projects/{id}/commands` body. The actor comes from the `X-User` header.",
+      "properties": {
+        "command": {
+          "discriminator": {
+            "mapping": {
+              "approve_stage": "#/$defs/ApproveStage",
+              "create_cluster": "#/$defs/CreateCluster",
+              "delete_cluster": "#/$defs/DeleteCluster",
+              "edit_method": "#/$defs/EditMethod",
+              "edit_project_card": "#/$defs/EditProjectCard",
+              "edit_requirement": "#/$defs/EditRequirement",
+              "edit_test_case": "#/$defs/EditTestCase",
+              "focus": "#/$defs/Focus",
+              "keep_mine": "#/$defs/KeepMine",
+              "merge_clusters": "#/$defs/MergeClusters",
+              "move_requirement": "#/$defs/MoveRequirement",
+              "pin": "#/$defs/Pin",
+              "regenerate": "#/$defs/Regenerate",
+              "rename_cluster": "#/$defs/RenameCluster",
+              "set_granularity": "#/$defs/SetGranularity",
+              "set_stage_mode": "#/$defs/SetStageMode",
+              "undo": "#/$defs/Undo",
+              "unpin": "#/$defs/Unpin"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/MoveRequirement"
+            },
+            {
+              "$ref": "#/$defs/CreateCluster"
+            },
+            {
+              "$ref": "#/$defs/DeleteCluster"
+            },
+            {
+              "$ref": "#/$defs/MergeClusters"
+            },
+            {
+              "$ref": "#/$defs/RenameCluster"
+            },
+            {
+              "$ref": "#/$defs/SetGranularity"
+            },
+            {
+              "$ref": "#/$defs/EditRequirement"
+            },
+            {
+              "$ref": "#/$defs/EditTestCase"
+            },
+            {
+              "$ref": "#/$defs/EditMethod"
+            },
+            {
+              "$ref": "#/$defs/EditProjectCard"
+            },
+            {
+              "$ref": "#/$defs/Pin"
+            },
+            {
+              "$ref": "#/$defs/Unpin"
+            },
+            {
+              "$ref": "#/$defs/KeepMine"
+            },
+            {
+              "$ref": "#/$defs/SetStageMode"
+            },
+            {
+              "$ref": "#/$defs/ApproveStage"
+            },
+            {
+              "$ref": "#/$defs/Regenerate"
+            },
+            {
+              "$ref": "#/$defs/Undo"
+            },
+            {
+              "$ref": "#/$defs/Focus"
+            }
+          ],
+          "title": "Command"
+        },
+        "expected_versions": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Expected Versions",
+          "type": "object"
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "title": "CommandRequest",
+      "type": "object"
+    },
+    "CommandResult": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "title": "Accepted",
+          "type": "boolean"
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "current_versions": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Current Versions",
+          "type": "object"
+        }
+      },
+      "required": [
+        "accepted",
+        "seq"
+      ],
+      "title": "CommandResult",
+      "type": "object"
+    },
+    "CreateCluster": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "create_cluster",
+          "default": "create_cluster",
+          "title": "Type",
+          "type": "string"
+        },
+        "members": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Members",
+          "type": "array"
+        },
+        "cluster": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cluster"
+        }
+      },
+      "required": [
+        "members"
+      ],
+      "title": "CreateCluster",
+      "type": "object"
+    },
+    "DeleteCluster": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "delete_cluster",
+          "default": "delete_cluster",
+          "title": "Type",
+          "type": "string"
+        },
+        "cluster": {
+          "title": "Cluster",
+          "type": "string"
+        },
+        "destinations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Destinations",
+          "type": "object"
+        }
+      },
+      "required": [
+        "cluster",
+        "destinations"
+      ],
+      "title": "DeleteCluster",
+      "type": "object"
+    },
+    "EditMethod": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "edit_method",
+          "default": "edit_method",
+          "title": "Type",
+          "type": "string"
+        },
+        "requirement": {
+          "title": "Requirement",
+          "type": "string"
+        },
+        "methods": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Methods",
+          "type": "array"
+        }
+      },
+      "required": [
+        "requirement",
+        "methods"
+      ],
+      "title": "EditMethod",
+      "type": "object"
+    },
+    "EditProjectCard": {
+      "additionalProperties": false,
+      "description": "Stales every model output; the regeneration waits for approval (`APPROVAL_EVENTS`).",
+      "properties": {
+        "type": {
+          "const": "edit_project_card",
+          "default": "edit_project_card",
+          "title": "Type",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "methods": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MethodDef"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Methods"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "EditProjectCard",
+      "type": "object"
+    },
+    "EditRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "edit_requirement",
+          "default": "edit_requirement",
+          "title": "Type",
+          "type": "string"
+        },
+        "requirement": {
+          "title": "Requirement",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement",
+        "text"
+      ],
+      "title": "EditRequirement",
+      "type": "object"
+    },
+    "EditTestCase": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "edit_test_case",
+          "default": "edit_test_case",
+          "title": "Type",
+          "type": "string"
+        },
+        "case": {
+          "title": "Case",
+          "type": "string"
+        },
+        "content": {
+          "$ref": "#/$defs/TestCaseContent"
+        }
+      },
+      "required": [
+        "case",
+        "content"
+      ],
+      "title": "EditTestCase",
+      "type": "object"
+    },
+    "Focus": {
+      "additionalProperties": false,
+      "description": "The nodes the actor is looking at; their jobs get P0. Not an undoable command.",
+      "properties": {
+        "type": {
+          "const": "focus",
+          "default": "focus",
+          "title": "Type",
+          "type": "string"
+        },
+        "nodes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/NodeRef"
+          },
+          "title": "Nodes",
+          "type": "array"
+        }
+      },
+      "title": "Focus",
+      "type": "object"
+    },
+    "ImportRequest": {
+      "additionalProperties": false,
+      "description": "`POST /projects` body (multipart: this as JSON field `meta` plus the file).",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "key": {
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "card_text": {
+          "default": "",
+          "title": "Card Text",
+          "type": "string"
+        },
+        "methods": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/MethodDef"
+          },
+          "title": "Methods",
+          "type": "array"
+        },
+        "mapping": {
+          "$ref": "#/$defs/ColumnMapping"
+        },
+        "sheet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet"
+        }
+      },
+      "required": [
+        "name",
+        "key",
+        "mapping"
+      ],
+      "title": "ImportRequest",
+      "type": "object"
+    },
+    "JobView": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/$defs/NodeRef"
+        },
+        "priority": {
+          "enum": [
+            "P0",
+            "P1",
+            "P2"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "queued",
+            "waiting_approval",
+            "running"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "node",
+        "priority",
+        "state"
+      ],
+      "title": "JobView",
+      "type": "object"
+    },
+    "KeepMine": {
+      "additionalProperties": false,
+      "description": "Fark ekranı \"benimkini koru\" (`core.events.NodeKept`).",
+      "properties": {
+        "type": {
+          "const": "keep_mine",
+          "default": "keep_mine",
+          "title": "Type",
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/$defs/NodeRef"
+        }
+      },
+      "required": [
+        "node"
+      ],
+      "title": "KeepMine",
+      "type": "object"
+    },
+    "MatrixRowView": {
+      "additionalProperties": false,
+      "description": "One row of the matrix view (paket 4, `core.matrix_view`).",
+      "properties": {
+        "requirement_id": {
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "language": {
+          "title": "Language",
+          "type": "string"
+        },
+        "cluster": {
+          "title": "Cluster",
+          "type": "string"
+        },
+        "cluster_name": {
+          "title": "Cluster Name",
+          "type": "string"
+        },
+        "methods": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Methods",
+          "type": "array"
+        },
+        "test_case_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Test Case Keys",
+          "type": "array"
+        },
+        "covered": {
+          "title": "Covered",
+          "type": "boolean"
+        },
+        "warning": {
+          "default": "",
+          "enum": [
+            "",
+            "test_without_case",
+            "case_without_test_method"
+          ],
+          "title": "Warning",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "text",
+        "language",
+        "cluster",
+        "cluster_name",
+        "methods",
+        "test_case_keys",
+        "covered"
+      ],
+      "title": "MatrixRowView",
+      "type": "object"
+    },
+    "MergeClusters": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "merge_clusters",
+          "default": "merge_clusters",
+          "title": "Type",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Sources",
+          "type": "array"
+        },
+        "new_cluster": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Cluster"
+        }
+      },
+      "required": [
+        "sources"
+      ],
+      "title": "MergeClusters",
+      "type": "object"
+    },
+    "MethodDef": {
+      "additionalProperties": false,
+      "description": "One verification method of the project and its criterion (docs/tasarim.md, Proje kartı).",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "criterion": {
+          "default": "",
+          "title": "Criterion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "MethodDef",
+      "type": "object"
+    },
+    "MoveRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "move_requirement",
+          "default": "move_requirement",
+          "title": "Type",
+          "type": "string"
+        },
+        "requirement": {
+          "title": "Requirement",
+          "type": "string"
+        },
+        "to_cluster": {
+          "title": "To Cluster",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement",
+        "to_cluster"
+      ],
+      "title": "MoveRequirement",
+      "type": "object"
+    },
+    "NodeKind": {
+      "description": "Declared in topological order: every kind depends only on kinds listed before it.",
+      "enum": [
+        "requirement",
+        "project_card",
+        "kb_index",
+        "cluster",
+        "embedding",
+        "clustering",
+        "method",
+        "cluster_label",
+        "retrieval",
+        "test_set",
+        "test_case",
+        "matrix_row"
+      ],
+      "title": "NodeKind",
+      "type": "string"
+    },
+    "NodeRef": {
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/NodeKind"
+        },
+        "key": {
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "key"
+      ],
+      "title": "NodeRef",
+      "type": "object"
+    },
+    "NodeView": {
+      "additionalProperties": false,
+      "description": "One node as clients see it (`core.nodes.Node` without hashes).",
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/NodeRef"
+        },
+        "status": {
+          "enum": [
+            "fresh",
+            "stale",
+            "running",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "pinned": {
+          "title": "Pinned",
+          "type": "boolean"
+        },
+        "origin": {
+          "enum": [
+            "generated",
+            "edited"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Content"
+        },
+        "produced_by": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Produced By"
+        },
+        "waiting": {
+          "default": false,
+          "title": "Waiting",
+          "type": "boolean"
+        },
+        "pinned_warning": {
+          "default": false,
+          "title": "Pinned Warning",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ref",
+        "status",
+        "pinned",
+        "origin",
+        "version",
+        "content"
+      ],
+      "title": "NodeView",
+      "type": "object"
+    },
+    "Pin": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "pin",
+          "default": "pin",
+          "title": "Type",
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/$defs/NodeRef"
+        }
+      },
+      "required": [
+        "node"
+      ],
+      "title": "Pin",
+      "type": "object"
+    },
+    "Regenerate": {
+      "additionalProperties": false,
+      "description": "Retry a failed node, or produce a stale node now (priority P0).",
+      "properties": {
+        "type": {
+          "const": "regenerate",
+          "default": "regenerate",
+          "title": "Type",
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/$defs/NodeRef"
+        }
+      },
+      "required": [
+        "node"
+      ],
+      "title": "Regenerate",
+      "type": "object"
+    },
+    "RenameCluster": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "rename_cluster",
+          "default": "rename_cluster",
+          "title": "Type",
+          "type": "string"
+        },
+        "cluster": {
+          "title": "Cluster",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cluster",
+        "name"
+      ],
+      "title": "RenameCluster",
+      "type": "object"
+    },
+    "ServerEvent": {
+      "additionalProperties": false,
+      "description": "`WS /projects/{id}/events` message. `seq` grows by one per event within a project; a\nreconnecting client sends its last `seq` and receives the missed events, or a `snapshot`\nmessage when they are no longer kept.",
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "command_applied",
+            "command_rejected",
+            "node_created",
+            "node_updated",
+            "node_removed",
+            "node_stale",
+            "job_started",
+            "job_progress",
+            "job_done",
+            "job_failed",
+            "stage_waiting_approval",
+            "lock_changed"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "actor": {
+          "default": "",
+          "title": "Actor",
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        }
+      },
+      "required": [
+        "seq",
+        "project_id",
+        "type"
+      ],
+      "title": "ServerEvent",
+      "type": "object"
+    },
+    "SetGranularity": {
+      "additionalProperties": false,
+      "description": "Re-cut the clustering tree (`core.stages.clustering.recut`); pinned assignments stay.",
+      "properties": {
+        "type": {
+          "const": "set_granularity",
+          "default": "set_granularity",
+          "title": "Type",
+          "type": "string"
+        },
+        "distance_threshold": {
+          "exclusiveMaximum": 2,
+          "exclusiveMinimum": 0,
+          "title": "Distance Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "distance_threshold"
+      ],
+      "title": "SetGranularity",
+      "type": "object"
+    },
+    "SetStageMode": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "set_stage_mode",
+          "default": "set_stage_mode",
+          "title": "Type",
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/NodeKind"
+        },
+        "mode": {
+          "enum": [
+            "auto",
+            "approval"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "mode"
+      ],
+      "title": "SetStageMode",
+      "type": "object"
+    },
+    "Snapshot": {
+      "additionalProperties": false,
+      "description": "`GET /projects/{id}/snapshot`: the whole project at event `seq`.",
+      "properties": {
+        "project_id": {
+          "title": "Project Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/NodeView"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "stages": {
+          "items": {
+            "$ref": "#/$defs/StageView"
+          },
+          "title": "Stages",
+          "type": "array"
+        },
+        "jobs": {
+          "items": {
+            "$ref": "#/$defs/JobView"
+          },
+          "title": "Jobs",
+          "type": "array"
+        },
+        "matrix": {
+          "items": {
+            "$ref": "#/$defs/MatrixRowView"
+          },
+          "title": "Matrix",
+          "type": "array"
+        },
+        "locks": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Locks",
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "name",
+        "seq",
+        "nodes",
+        "stages",
+        "jobs",
+        "matrix"
+      ],
+      "title": "Snapshot",
+      "type": "object"
+    },
+    "StageView": {
+      "additionalProperties": false,
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/NodeKind"
+        },
+        "mode": {
+          "enum": [
+            "auto",
+            "approval"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "fresh": {
+          "title": "Fresh",
+          "type": "integer"
+        },
+        "stale": {
+          "title": "Stale",
+          "type": "integer"
+        },
+        "running": {
+          "title": "Running",
+          "type": "integer"
+        },
+        "failed": {
+          "title": "Failed",
+          "type": "integer"
+        },
+        "waiting_approval": {
+          "title": "Waiting Approval",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "stage",
+        "mode",
+        "fresh",
+        "stale",
+        "running",
+        "failed",
+        "waiting_approval"
+      ],
+      "title": "StageView",
+      "type": "object"
+    },
+    "Step": {
+      "additionalProperties": false,
+      "properties": {
+        "no": {
+          "minimum": 1,
+          "title": "No",
+          "type": "integer"
+        },
+        "action": {
+          "minLength": 1,
+          "title": "Action",
+          "type": "string"
+        },
+        "expected": {
+          "minLength": 1,
+          "title": "Expected",
+          "type": "string"
+        }
+      },
+      "required": [
+        "no",
+        "action",
+        "expected"
+      ],
+      "title": "Step",
+      "type": "object"
+    },
+    "TestCaseContent": {
+      "additionalProperties": false,
+      "description": "Same fields as the generation schema (`core.schemas.case_set_model`); labels are plain\nstrings here because the label lists come from project configuration.",
+      "properties": {
+        "kind": {
+          "const": "test_case",
+          "default": "test_case",
+          "title": "Kind",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "covers": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Covers",
+          "type": "array"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "priority": {
+          "title": "Priority",
+          "type": "string"
+        },
+        "preconditions": {
+          "default": "",
+          "title": "Preconditions",
+          "type": "string"
+        },
+        "test_inputs": {
+          "default": "",
+          "title": "Test Inputs",
+          "type": "string"
+        },
+        "assumptions": {
+          "default": "",
+          "title": "Assumptions",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "covers",
+        "type",
+        "priority",
+        "steps"
+      ],
+      "title": "TestCaseContent",
+      "type": "object"
+    },
+    "Undo": {
+      "additionalProperties": false,
+      "description": "Undo the actor's own last undoable command (per user, docs/tasarim.md).",
+      "properties": {
+        "type": {
+          "const": "undo",
+          "default": "undo",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "title": "Undo",
+      "type": "object"
+    },
+    "Unpin": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "unpin",
+          "default": "unpin",
+          "title": "Type",
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/$defs/NodeRef"
+        }
+      },
+      "required": [
+        "node"
+      ],
+      "title": "Unpin",
+      "type": "object"
+    }
+  },
+  "description": "Container so that every model lands in one schema with shared `$defs`.",
+  "properties": {
+    "import_request": {
+      "$ref": "#/$defs/ImportRequest"
+    },
+    "command_request": {
+      "$ref": "#/$defs/CommandRequest"
+    },
+    "command_result": {
+      "$ref": "#/$defs/CommandResult"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/Snapshot"
+    },
+    "server_event": {
+      "$ref": "#/$defs/ServerEvent"
+    },
+    "node_view": {
+      "$ref": "#/$defs/NodeView"
+    },
+    "matrix_row": {
+      "$ref": "#/$defs/MatrixRowView"
+    }
+  },
+  "required": [
+    "import_request",
+    "command_request",
+    "command_result",
+    "snapshot",
+    "server_event",
+    "node_view",
+    "matrix_row"
+  ],
+  "title": "ApiContract",
+  "type": "object"
+}

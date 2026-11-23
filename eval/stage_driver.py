@@ -21,7 +21,15 @@ from core.invalidation import Hint, analyze, mark_failed, settle_many
 from core.llm import Complete
 from core.nodes import NodeKind, NodeRef, Result, TestCaseContent
 from core.settings import StageSettings
-from core.stages.base import Embed, PassageSource, ProduceContext, ProduceOutcome, Retrieve
+from core.stages.base import (
+    Embed,
+    ExampleSource,
+    PassageSource,
+    ProduceContext,
+    ProduceOutcome,
+    Retrieve,
+    SelectExamples,
+)
 
 
 @dataclass
@@ -47,6 +55,8 @@ async def drive(
     embed: Embed | None = None,
     retrieve: Retrieve | None = None,
     passages: PassageSource | None = None,
+    select_examples: SelectExamples | None = None,
+    example_texts: ExampleSource | None = None,
     max_waves: int = 50,
 ) -> Driven:
     """Produce every ready node (kinds in `skip` are left stale) until nothing is ready."""
@@ -77,6 +87,8 @@ async def drive(
                     embed=embed,
                     retrieve=retrieve,
                     passages=passages,
+                    select_examples=select_examples,
+                    example_texts=example_texts,
                 )
                 jobs.append((g, spec.produce(ctx, complete)))
         done = await asyncio.gather(*(_guard(refs, job) for refs, job in jobs))

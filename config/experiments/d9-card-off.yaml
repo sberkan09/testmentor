@@ -1,0 +1,9 @@
+name: d9-card-off
+question: "D9 proje kartı: kart metni yok (yalnızca doğrulama yöntemi listesi kalır; taban kartında proje adı ve alan satırı var). Altın setin kartı yalnızca ad ve alandır, sistem tanımı, sözlük ve yazım kuralları yoktur: bu kol yalnızca o iki satırın etkisini ölçer. Kartın asıl değeri (belgelerden çıkarılan taslak) ayrı bir kol ister."
+variable: card=methods_only
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  card: methods_only
+quality: true

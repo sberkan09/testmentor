@@ -1,0 +1,15 @@
+# Paket 7: bilgi havuzu, D9 kolları (docs/paketler/paket-7-plan.md). Pod sonunda her durumda silinir (eval/batch.py).
+# Önce `python -m eval.corpus fetch --project kdh` ve `--project etc` (ağ gerekir, GPU gerekmez): `passages: index`
+# derlem önbelleği yoksa koşu ilk model çağrısından önce hata verir. Parça vektörleri `eval/cache/kb/` altına
+# yazılır (git dışı), her parça boyu için bir kez gömülür.
+# Kesme sırası (süre yetmezse sondan): d9-chunk500, d9-card-off, d9-top12, d9-top4, d9-chunk800, d9-chunk300.
+# Her kol ~7 dk (d9-pilot: 411 sn) + parça gömme; yedi kol ~1 saat. Bekçi kapatılmaz (make extend HOURS=1).
+max_hours: 1.5
+steps:
+  - {experiment: d9-index-base}
+  - {experiment: d9-chunk300}
+  - {experiment: d9-chunk800}
+  - {experiment: d9-top4}
+  - {experiment: d9-top12}
+  - {experiment: d9-card-off}
+  - {experiment: d9-chunk500}

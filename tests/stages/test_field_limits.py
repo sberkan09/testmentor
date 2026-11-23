@@ -71,7 +71,7 @@ def test_limits_and_rule_change_only_the_test_set_version():
     assert after[NodeKind.TEST_SET] != before[NodeKind.TEST_SET]
     assert after[NodeKind.METHOD] == before[NodeKind.METHOD]
     assert after[NodeKind.CLUSTER_LABEL] == before[NodeKind.CLUSTER_LABEL]
-    assert prompts.STAGE_VERSIONS[NodeKind.TEST_SET] == "g4"
+    assert prompts.STAGE_VERSIONS[NodeKind.TEST_SET] == "g5"
     assert (
         "describe" in GENERATION_INSTRUCTION and "129-character password" in GENERATION_INSTRUCTION
     )

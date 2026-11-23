@@ -6,7 +6,7 @@ PY := uv run python
 UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o))
 MAX_ARGS := $(if $(MAX_HOURS),--max-hours $(MAX_HOURS))
 
-.PHONY: up down smoke test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down
+.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
 	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) $(MAX_ARGS) && $(PY) scripts/runpod.py wait
@@ -19,6 +19,9 @@ smoke:         ## 16 eşzamanlı şemaya bağlı istek + önek cache ölçümü
 
 test:          ## Birim testleri (model çağrısı yok)
 	uv run pytest -q --tb=short
+
+pg-test:       ## Postgres depo testleri (geçici küme ya da TESTMENTOR_PG_DSN; sunucu yoksa atlanır)
+	uv run pytest -q --tb=short -rs tests/core/test_store_contract.py tests/worker/test_store.py
 
 lint:
 	uv run ruff check . && uv run ruff format --check .
@@ -61,3 +64,18 @@ local-up:      ## Yerel/üretim sunucusu: docker compose (ENGINE=vllm|sglang)
 
 local-down:
 	docker compose -f infra/compose.yaml --env-file .env --profile $(or $(ENGINE),vllm) down
+
+# Paket 8: ön yüz (web/)
+.PHONY: web-install web-build web-test web-e2e
+
+web-install:   ## npm bağımlılıkları (package-lock.json ile)
+	cd web && npm ci
+
+web-build:     ## tip üretimi denetimi, tsc ve vite derlemesi (web/dist)
+	cd web && npm run build
+
+web-test:      ## vitest birim testleri + lint (arka uç gerekmez)
+	cd web && npm run lint && npm test
+
+web-e2e:       ## Playwright uçtan uca testi: TESTMENTOR_FAKE_LLM=1 API + vite önizleme (web/e2e/README.md)
+	cd web && npm run e2e

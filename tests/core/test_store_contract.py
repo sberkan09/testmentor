@@ -6,7 +6,16 @@ from core.events import ClusterRenamed, RequirementMoved
 from core.nodes import ClusterLabelContent, Node, NodeKind, ProducedBy, Result, Status, ref
 from core.store import InMemoryStore, VersionConflict
 
-STORES = [pytest.param(InMemoryStore, id="memory")]
+
+def _postgres(request):
+    """worker.store_pg.PostgresStore on the test cluster (tests/conftest.py `pg_store`)."""
+    return request.getfixturevalue("pg_store")
+
+
+STORES = [
+    pytest.param(lambda request: InMemoryStore(), id="memory"),
+    pytest.param(_postgres, id="postgres"),
+]
 
 LBL = ref(NodeKind.CLUSTER_LABEL, "A")
 
@@ -17,7 +26,7 @@ def label(name: str, version: int) -> Node:
 
 @pytest.fixture(params=STORES)
 def store(request):
-    return request.param()
+    return request.param(request)
 
 
 def test_put_and_get(store):
