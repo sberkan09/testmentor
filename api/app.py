@@ -7,14 +7,13 @@ the reason: `version_conflict` and `nothing_to_undo` 409, `locked` 423, `invalid
 
 from __future__ import annotations
 
-from urllib.parse import unquote
-
 import asyncio
 import contextlib
 import json
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Annotated, Any
+from urllib.parse import unquote
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile, WebSocket
 from fastapi.responses import JSONResponse, Response
