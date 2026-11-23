@@ -71,6 +71,9 @@ class MembershipChanged(BaseModel):
     model_config = _FROZEN
     type: Literal["membership_changed"] = "membership_changed"
     clusters: dict[str, tuple[str, ...]]
+    pinned: dict[str, tuple[str, ...]] | None = None
+    """None: a requirement stays pinned if it was pinned anywhere before (re-cut). Given (undo,
+    paket 5): exactly these pinned assignments, each a subset of its cluster's members."""
 
 
 class RequirementTextChanged(BaseModel):
