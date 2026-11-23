@@ -108,10 +108,13 @@ async def exercise(index: KbIndex, pool: ExamplePool) -> dict[str, dict]:
         own[pid] = []
         for doc_id, text in documents(marker).items():
             own[pid] += await ingest_document(index, pid, doc_id, text, embed, KB)
-        # one pooled example per project, covering the first requirement
-        case = _case(marker)
-        entry = await build_entry(f"{pid}:TC-1", case, [REQS["R1"][1]], embed)
-        pool.add(pid, [entry])
+        # two pooled examples per project (R1 in cluster A, R3 in cluster B): a cluster never
+        # gets an example covering one of its members, so every cluster still has one to take
+        entries = [
+            await build_entry(f"{pid}:{cid}", _case(marker, rid, cid), [REQS[rid][1]], embed)
+            for rid, cid in (("R1", "TC-1"), ("R3", "TC-2"))
+        ]
+        pool.add(pid, entries)
     for pid in MARKERS:
         retrieve, passages = build_retrieval(index, pid, embed, KB)
         complete = FakeComplete()
@@ -138,10 +141,10 @@ async def exercise(index: KbIndex, pool: ExamplePool) -> dict[str, dict]:
     return out
 
 
-def _case(marker: str):
+def _case(marker: str, rid: str = "R1", cid: str = "TC-1"):
     from core.nodes import TestCaseContent
 
-    d = case_json("R1", cid="TC-1")
+    d = case_json(rid, cid=cid)
     d["title"] = f"{marker} kilitleme örneği"
     return TestCaseContent.model_validate(d)
 
@@ -157,6 +160,8 @@ def assert_isolated(result: dict[str, dict], index: KbIndex, pool: ExamplePool) 
             assert ret.passage_ids, f"{pid}/{cluster}: nothing retrieved (the test would be empty)"
             assert set(ret.passage_ids) <= own_ids, f"{pid}/{cluster} got another project's chunk"
             assert ret.example_keys and all(k.startswith(f"{pid}:") for k in ret.example_keys)
+            covering = {"A": f"{pid}:TC-1@", "B": f"{pid}:TC-2@"}.get(cluster)
+            assert covering is None or not any(k.startswith(covering) for k in ret.example_keys)
         assert len(data["prompts"]) == len(CLUSTERS)
         for prompt in data["prompts"]:
             layer4 = prompt[prompt.index("# Retrieved passages") : prompt.index("# Requirements")]

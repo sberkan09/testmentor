@@ -194,3 +194,46 @@ async def test_select_examples_wiring():
     assert select is not None
     keys = await select([RequirementContent(id="R1", text="x")])
     assert make_example_source(pool, "P")(keys) == ["örnek TC-1"]
+
+
+def test_pool_skips_examples_covering_a_member():
+    """An example covering a cluster member is already a fixed test there (paket 11)."""
+    pool = ExamplePool()
+    near = ExampleEntry(
+        key="TC-1",
+        requirement_text="a",
+        text="örnek TC-1",
+        vector=(1.0, 0.0),
+        excluded_with=frozenset({"R1"}),
+    )
+    pool.add("P", [near, entry("TC-2", "b", [0.6, 0.8])])
+    assert [k.split("@")[0] for k in pool.select("P", [1.0, 0.0], 2)] == ["TC-1", "TC-2"]
+    assert [k.split("@")[0] for k in pool.select("P", [1.0, 0.0], 2, exclude=["R1"])] == ["TC-2"]
+    assert pool.select("P", [1.0, 0.0], 2, exclude=["R1", "R9"]) == pool.select(
+        "P", [1.0, 0.0], 2, exclude=["R1"]
+    )
+
+
+async def test_build_entry_excludes_covered_and_extra_ids_and_selection_uses_members():
+    from core.nodes import Step, TestCaseContent
+    from services.kb_examples import build_entry
+
+    async def embed(texts):
+        return [[1.0, 0.0] for _ in texts]
+
+    case = TestCaseContent(
+        id="TC-1",
+        title="t",
+        covers=("R1",),
+        type="Normal",
+        priority="Orta",
+        steps=(Step(no=1, action="a", expected="b"),),
+    )
+    e = await build_entry("TC-1", case, ["metin"], embed, excluded_with=["R7"])
+    assert e.excluded_with == frozenset({"R1", "R7"})
+    pool = ExamplePool()
+    pool.add("P", [e])
+    select = make_select_examples(pool, "P", embed, 1)
+    assert select is not None
+    assert await select([RequirementContent(id="R7", text="x")]) == []
+    assert len(await select([RequirementContent(id="R2", text="x")])) == 1

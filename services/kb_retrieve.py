@@ -99,7 +99,7 @@ def make_select_examples(
         if not members:
             return []
         vector = await query_vector([m.text for m in members], embed)
-        return pool.select(project_id, vector, n)
+        return pool.select(project_id, vector, n, exclude=[m.id for m in members])
 
     return select
 
