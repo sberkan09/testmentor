@@ -19,6 +19,11 @@ embedding:
   request_timeout_s: 120
   dim: 1024                             # vektör boyutu; kb_chunks.embedding bu boyutla kurulur
 
+kb_postgres:                # PgIndex (Postgres bilgi havuzu) anahtar kelime araması; ölçek testi eval/kb_scale.py
+  keyword_max_df: 0.2       # sorguya yalnızca projenin parçalarının en çok %20'sinde geçen terimler girer
+  keyword_max_terms: 32     # en nadir 32 terim; aday kümesini bunlar seçer
+  keyword_candidates: 400   # BM25 bu kadar aday üzerinde hesaplanır (bellek içi BM25 ile ilk 20'de %95–96 örtüşme)
+
 kb_upload:                  # paket 10: bilgi havuzuna belge yükleme (POST /projects/{id}/kb/documents)
   max_mb: 20
   extensions: [.txt, .md, .markdown, .pdf]   # PDF yalnızca metin katmanlıysa (taranmış PDF reddedilir)

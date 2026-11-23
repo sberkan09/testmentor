@@ -115,15 +115,8 @@ def measure(
             dense = [r[0] for r in cur.fetchall()]
             dense_ms.append((time.perf_counter() - t) * 1000)
             first_ok += dense[0] == chunks[target].passage_id
-            terms = " | ".join(dict.fromkeys(tokenize(" ".join(members))))
             t = time.perf_counter()
-            cur.execute(
-                "SELECT passage_id FROM kb_chunks WHERE project_id = %s "
-                "AND tsv @@ to_tsquery('simple', %s) "
-                "ORDER BY ts_rank_cd(tsv, to_tsquery('simple', %s)) DESC, passage_id LIMIT %s",
-                (project, terms, terms, index.settings.rrf_depth),
-            )
-            cur.fetchall()
+            index._bm25(cur, project, tokenize(" ".join(members)), index.settings.rrf_depth)
             keyword_ms.append((time.perf_counter() - t) * 1000)
     ms = sorted(x * 1000 for x in latencies)
     return {
@@ -162,7 +155,10 @@ def main() -> int:
     base = corpus_chunks(settings)
     clusters = cluster_queries()
     print(f"derlem: {len(base)} parça; sorgu öbekleri: {len(clusters)}", flush=True)
-    index = PgIndex(conn, settings, dim=args.dim)
+    from services.settings import load_runtime
+
+    pg_kb = load_runtime().get("kb_postgres") or {}
+    index = PgIndex(conn, settings, dim=args.dim, **pg_kb)
     index.ensure_schema()
     result: dict[str, Any] = {
         "params": vars(args) | {"out": str(args.out)},
