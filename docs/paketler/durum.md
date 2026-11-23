@@ -7,7 +7,7 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | Paket | Plan | Kol | Durum |
 | --- | --- | --- | --- |
 | 3, 3b | `paket-3-plan.md`, `paket-3b-plan.md` | – | birleşti (#5) |
-| 4 | `paket-4-plan.md` | A (Sonnet) | yazılıyor (23.11) |
+| 4 | `paket-4-plan.md` | A (Sonnet) | **birleşti** (23.11): bitti testi (altın set v0 csv ve xlsx → matris → xlsx) geçti; 316 test |
 | 5 | `paket-5-plan.md` | B (Opus) | yazılıyor (23.11) |
 | 6 | `paket-6-plan.md` | B (5'ten sonra) | planlandı |
 | 7 | `paket-7-plan.md` | C (Sonnet) | kod yazılıyor (23.11); GPU ölçümü bu oturumda |
@@ -35,4 +35,5 @@ Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC 
 | 23.11 | Kullanıcı Runpod'a kredi yükledi (bakiye 21,03 USD) | – |
 | 23.11 | Hedef PoC/demo sürümüne indi; paket 9 kesildi; ön yüzde öncelik demo akışı (yükleme → öbekler → düzenleme → matris → xlsx) | kullanıcı talimatı |
 | 23.11 | Demo videosu gerçek model çıktılarıyla çekilir (kısa GPU koşusu, ~1–1,5 USD); sahte modelin metinleri demoda yapay görünür | demo inandırıcılığı |
+| 23.11 | Paket 4: `core/importing.py` ve `core/matrix_view.py` `worker.contracts` içindeki saf pydantic modelleri içe aktarıyor (katman yönü ters); PoC için kabul, sözleşme modelleri ileride `core/` altına taşınabilir | süre; dosya, HTTP ya da veritabanı bağımlılığı yok |
 
