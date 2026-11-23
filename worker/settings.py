@@ -22,6 +22,8 @@ class OrchestratorSettings(BaseModel):
     """Server events kept per project for replay; older ones need a snapshot."""
     lock_s: float = Field(default=60.0, gt=0)
     """Edit lock lifetime without a refresh."""
+    undo_limit: int = Field(default=100, ge=1)
+    """Undo entries kept per user and project."""
 
 
 def load_orchestrator_settings(config_dir: str | Path = "config") -> OrchestratorSettings:

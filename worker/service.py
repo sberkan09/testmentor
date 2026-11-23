@@ -23,6 +23,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 
+from core.events import KbDocumentAdded
 from core.graph import ProjectState
 from core.llm import Complete
 from core.matrix_view import matrix_rows
@@ -153,6 +154,14 @@ class OrchestratorService:
     def matrix_xlsx(self, project_id: str) -> bytes:
         rt = self._projects[project_id]
         return matrix_xlsx(rt.state, self.deps.settings.test_method)
+
+    def kb_document_added(
+        self, project_id: str, document_id: str, index_version: str, actor: str = "system"
+    ) -> int:
+        """After a knowledge base upload (paket 7; not part of the frozen `ProjectService`):
+        every retrieval re-checks; test sets whose passages are unchanged stay fresh."""
+        event = KbDocumentAdded(document_id=document_id, index_version=index_version)
+        return self._projects[project_id].system_event(event, actor)
 
     def projects(self) -> list[tuple[str, str]]:
         return sorted((pid, rt.record.name) for pid, rt in self._projects.items())

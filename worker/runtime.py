@@ -150,9 +150,6 @@ from worker.store import JobRecord, ProjectRecord, ProjectStore, UndoEntry, Undo
 
 log = logging.getLogger(__name__)
 
-UNDO_LIMIT = 100
-"""Undo entries kept per user."""
-
 _PROGRESS: contextvars.ContextVar[Callable[[str], None] | None] = contextvars.ContextVar(
     "testmentor_job_progress", default=None
 )
@@ -455,27 +452,20 @@ class ProjectRuntime:
         )
 
     def job_views(self) -> list[JobView]:
-        views: list[JobView] = []
-        for job in sorted(self._jobs.values(), key=lambda j: j.job_id):
-            for r in job.refs:
-                if self._owner.get(r) == job.job_id:
-                    views.append(
-                        JobView(
-                            id=job.record.job_id, node=r, priority=job.priority, state="running"
-                        )
-                    )
+        """One view per job with a unique `id`, the same view the job events carry (first node;
+        the snapshot's node statuses show every node of a batch); one per node held by a gate."""
+        views = [job.view() for job in sorted(self._jobs.values(), key=lambda j: j.job_id)]
         prefix = f"{self.pid}|"
         for p in self.queue.pending():
-            if p.key.startswith(prefix):
-                for r in self._collect(p.key):
-                    views.append(
-                        JobView(
-                            id=f"q:{p.key[len(prefix) :]}",
-                            node=r,
-                            priority=p.priority,
-                            state="queued",
-                        )
+            if p.key.startswith(prefix) and (refs := self._collect(p.key)):
+                views.append(
+                    JobView(
+                        id=f"q:{p.key[len(prefix) :]}",
+                        node=refs[0],
+                        priority=p.priority,
+                        state="queued",
                     )
+                )
         for kind in sorted(self._waiting, key=lambda k: list(NodeKind).index(k)):
             for r in sorted(self._waiting[kind], key=NodeRef.sort_key):
                 views.append(
@@ -540,6 +530,17 @@ class ProjectRuntime:
             return self._reject(cmd, actor, exc.reason, exc.current_versions)
         except (ValueError, KeyError) as exc:
             return self._reject(cmd, actor, f"invalid: {exc}", {})
+
+    def system_event(self, event: Event, actor: str = "system") -> int:
+        """Apply a core event that is not a user command (`KbDocumentAdded` after a knowledge base
+        upload, paket 7): same commit path, not undoable, approval events gated. Returns the last
+        event number."""
+        tx = _Tx(self.state)
+        tx.apply(event)
+        tx.resolve(self.store)
+        touched = self._touched(self.state, tx.state)
+        approval = any(inv.requires_approval for inv in tx.invs)
+        return self._commit(tx.state, tx=tx, actor=actor, touched=touched, approval=approval)
 
     def _check_versions(self, expected: Mapping[str, int]) -> None:
         current = {}
@@ -643,7 +644,7 @@ class ProjectRuntime:
             if entry is not None:
                 stack = rec.undo.setdefault(actor, [])
                 stack.append(entry)
-                del stack[:-UNDO_LIMIT]
+                del stack[: -self.deps.orchestrator.undo_limit]
 
         return self._applied(cmd, actor, tx, mutate=push, approval=approval)
 
@@ -838,7 +839,8 @@ class ProjectRuntime:
         def pop(rec: ProjectRecord) -> None:
             rec.undo[actor] = rec.undo[actor][:-1]
 
-        return self._applied(cmd, actor, tx, mutate=pop)
+        approval = any(inv.requires_approval for inv in tx.invs)
+        return self._applied(cmd, actor, tx, mutate=pop, approval=approval)
 
     def _check_undo(self, entry: UndoEntry) -> None:
         """Each node the undo writes back must be as the command left it: same version, or the

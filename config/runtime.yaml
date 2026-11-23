@@ -27,4 +27,5 @@ orchestrator:               # paket 5 (docs/tasarim.md, İş kuyruğu)
   p2_share: 0.7             # otomatik işlerin yuva payı (D11)
   event_buffer: 10000       # proje başına tekrar oynatılabilir olay sayısı
   lock_s: 60                # düzenleme kilidi
+  undo_limit: 100           # kullanıcı başına geri alma kaydı
 

@@ -5,6 +5,7 @@ versions, locks, undo, merge and delete, failures, restart."""
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 from collections.abc import Callable
 
 import pytest
@@ -13,6 +14,7 @@ from core.invalidation import analyze
 from core.llm import LLMRequest
 from core.nodes import NodeKind, Status, TestCaseContent
 from services.fake_llm import FakeComplete
+from tests.worker import helpers
 from tests.worker.helpers import FAST, Clock, calls, hashes, produced, project, ref, service
 from worker.contracts import (
     ApproveStage,
@@ -468,3 +470,68 @@ async def test_bad_expected_version_key_is_invalid(bad):
     await produced(svc)
     result = await svc.command("P", CommandRequest(command=Undo(), expected_versions={bad: 1}), "a")
     assert not result.accepted and result.reason.startswith("invalid")
+
+
+async def test_changed_stage_config_on_restart_waits_for_approval():
+    store = MemoryProjectStore()
+    svc = service(store)
+    await produced(svc)
+    await svc.close()
+
+    configs = dict(helpers.CONFIGS)
+    configs[LABEL] = configs[LABEL].model_copy(update={"prompt_version": "new-label-prompt"})
+    complete = FakeComplete()
+    again = service(store, complete=complete)
+    again.deps = dataclasses.replace(again.deps, stage_configs=configs)
+    await again.start()
+    await again.wait_idle()
+    assert complete.requests == []
+    snap = again.snapshot("P")
+    label_stage = next(s for s in snap.stages if s.stage == LABEL)
+    assert label_stage.stale == 3 and label_stage.waiting_approval
+    assert store.get_project("P").stage_configs[LABEL].prompt_version == "new-label-prompt"
+    assert [e.event.type for e in store.events("P")] == ["stage_config_changed"]
+    await again.command("P", cmd(ApproveStage(stage=LABEL)), "lead")
+    await again.wait_idle()
+    assert schemas(complete.requests) == {"ClusterLabel": 3}
+    assert not analyze(again.runtime("P").state).stale
+
+
+async def test_undo_of_a_card_edit_stays_gated():
+    complete = FakeComplete()
+    svc = service(complete=complete)
+    await produced(svc)
+    await svc.command("P", cmd(EditProjectCard(text="Project: Yeni (P)")), "lead")
+    await svc.command("P", cmd(EditProjectCard(text="Project: Daha yeni (P)")), "lead")
+    n0 = len(complete.requests)
+    assert (await svc.command("P", cmd(Undo()), "lead")).accepted  # back to a never-produced card
+    await svc.wait_idle()
+    assert complete.requests[n0:] == []
+    assert any(s.waiting_approval for s in svc.snapshot("P").stages)
+
+
+async def test_kb_document_added_rechecks_retrievals_with_early_cutoff():
+    complete = FakeComplete()
+    svc = service(complete=complete)
+    before = await produced(svc)
+    n0 = len(complete.requests)
+    svc.kb_document_added("P", "doc-1", "v2", actor="ayse")
+    await svc.wait_idle()
+    state = svc.runtime("P").state
+    assert complete.requests[n0:] == []  # passages unchanged: sets stay fresh
+    assert not analyze(state).stale
+    assert state.node(ref(NodeKind.KB_INDEX, "index")).content.version == "v2"
+    assert state.node(ref(SET, "A")) == before.node(ref(SET, "A"))
+
+
+async def test_snapshot_job_ids_are_unique():
+    complete = FakeComplete(delay_s=0.2)
+    svc = service(complete=complete)
+    await svc.add_project(project(), "P")
+    await until(lambda: any(j.state == "running" for j in svc.snapshot("P").jobs))
+    for _ in range(20):
+        ids = [j.id for j in svc.snapshot("P").jobs]
+        assert len(ids) == len(set(ids))
+        await asyncio.sleep(0.02)
+    await svc.wait_idle()
+    assert svc.runtime("P").idle()
