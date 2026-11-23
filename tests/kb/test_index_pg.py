@@ -228,3 +228,95 @@ def test_server_on_postgres_upload_reaches_retrieval(schema_dsn, monkeypatch, tm
         assert conn.execute("SELECT count(*) FROM kb_chunks").fetchone()[0] >= 1
         assert conn.execute("SELECT count(*) FROM tm_projects").fetchone()[0] == 1
         assert conn.execute("SELECT name FROM kb_documents").fetchone()[0] == "politika.md"
+
+
+# Scale changes (pilot hazırlığı, eval/kb_scale.py) ------------------------------------------
+
+
+def _corpus() -> list[Chunk]:
+    words = (
+        "hesap parola kilit oturum rapor belge imza kayit sorgu bildirim guvenlik erisim "
+        "veri yedek arsiv form alan hata mesaj sure"
+    ).split()
+    import random
+
+    rng = random.Random(3)
+    out: list[Chunk] = []
+    for d in range(6):
+        paras = [" ".join(rng.choices(words, k=rng.randint(8, 30))) for _ in range(25)]
+        out += chunks(f"D{d}.md", *paras)
+    return out
+
+
+def test_keyword_ranking_is_the_in_memory_bm25_when_unbounded(schema_dsn):
+    """No term or candidate limit: the Postgres keyword ranking is exactly `Bm25Index`."""
+    from core.kb.ranking import Bm25Index
+    from services.kb_index_pg import PgIndex
+
+    conn = psycopg.connect(schema_dsn, autocommit=True)
+    index = PgIndex(
+        conn,
+        KB,
+        dim=EMBED.dim,
+        keyword_max_df=1.0,
+        keyword_max_terms=10**6,
+        keyword_candidates=10**6,
+    )
+    index.ensure_schema()
+    corpus = _corpus()
+    for doc in sorted({c.document_id for c in corpus}):
+        index.add("P", [c for c in corpus if c.document_id == doc])
+    bm = Bm25Index(KB.bm25_k1, KB.bm25_b)
+    for c in corpus:
+        bm.add(c.passage_id, c.text)
+    with conn.cursor() as cur:
+        for query in ("hesap kilit parola", "rapor imza arsiv yedek", "oturum sure hata mesaj"):
+            from core.kb.ranking import tokenize
+
+            ref = [d for d, _ in bm.search(query, 20)]
+            assert index._bm25(cur, "P", tokenize(query), 20) == ref, query
+    conn.close()
+
+
+def test_term_frequencies_follow_adds_replacements_and_removals(schema_dsn):
+    """`kb_terms` equals a recount after every change, and is backfilled for chunks indexed
+    before it existed."""
+    from services.kb_index_pg import PgIndex
+
+    conn = psycopg.connect(schema_dsn, autocommit=True)
+    index = PgIndex(conn, KB, dim=EMBED.dim)
+    index.ensure_schema()
+
+    def recount() -> dict[str, int]:
+        rows = conn.execute(
+            "SELECT term, count(*) FROM (SELECT DISTINCT passage_id, "
+            "unnest(string_to_array(fts, ' ')) AS term FROM kb_chunks WHERE project_id = 'P') t "
+            "GROUP BY term"
+        ).fetchall()
+        return {t: int(n) for t, n in rows}
+
+    def stored() -> dict[str, int]:
+        rows = conn.execute("SELECT term, df FROM kb_terms WHERE project_id = 'P'").fetchall()
+        return {t: int(n) for t, n in rows}
+
+    index.add("P", chunks("a.md", "hesap kilit hesap", "parola sifirlama"))
+    index.add("P", chunks("b.md", "rapor hesap"))
+    assert stored() == recount() and stored()["hesap"] == 2
+    index.add("P", chunks("a.md", "oturum suresi"))  # replaced
+    assert stored() == recount() and stored()["hesap"] == 1 and "kilit" not in stored()
+    index.remove_document("P", "b.md")
+    assert stored() == recount() == {"oturum": 1, "suresi": 1}
+    conn.execute("DELETE FROM kb_terms")
+    conn.execute("UPDATE kb_chunks SET fts_len = NULL")
+    index.ensure_schema()  # backfill
+    assert stored() == recount()
+    assert conn.execute("SELECT count(*) FROM kb_chunks WHERE fts_len IS NULL").fetchone()[0] == 0
+    conn.close()
+
+
+def test_dense_search_has_no_approximate_index(pg):
+    """Exact per-project dense search: the HNSW index is dropped by `ensure_schema`."""
+    rows = pg._conn.execute(
+        "SELECT indexname FROM pg_indexes WHERE tablename = 'kb_chunks'"
+    ).fetchall()
+    assert "kb_chunks_embedding" not in {r[0] for r in rows}

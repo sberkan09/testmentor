@@ -153,3 +153,7 @@ Günlükler: `docker compose -f infra/compose.yaml --env-file .env --profile <pr
 ## Doğrulama durumu (23 Kasım 2026)
 
 Bu depoda (GPU'suz geliştirme ortamı) doğrulanan: `harici` profili sahte modelle (`TESTMENTOR_FAKE_LLM=1`) ve pgvector'lü Postgres'le kuruldu; Playwright testleri (yükleme, öbekler, düzenleme, matris ve xlsx, iki kullanıcı ve kilit, belge yükleme ve arama düğümü, parolalı giriş) derlenmiş uygulamaya karşı geçti; uygulama yeniden başlatıldıktan sonra projeler ve belge listesi Postgres'ten geldi; `pg_dump` yedeği alındı ve `pg_restore --clean --if-exists` ile geri yüklendi. `make local-up`, `make app-image` ve `make users-add` hedefleri yalnızca kuru koşuyla (`make -n`) denetlendi; aynı komutlar elle çalıştırıldı. Doğrulanamayan: `vllm`, `sglang` ve `embedding` servisleri (GPU yok, imajlar çok büyük); tek sunucu biçimi ve gerçek modelle `harici` biçimi pilot sunucusunda ilk kurulumda denenmelidir: `make local-up`, `make users-add`, küçük bir gereksinim seti ve bir belge.
+
+## Bilgi havuzu kapasitesi
+
+Ölçek testi: [docs/deneyler/pgindex-olcek.md](deneyler/pgindex-olcek.md). 120.000 parçalık bir tabloda öbek araması 2.000 parçalık projede p50 94 ms, 20.000 parçalık projede p50 541 ms (p95 1,2 sn). Belge yükleme saniyede ~900 parça. 400 token'lık bir parça kabaca yarım sayfadır; 20.000 parça yaklaşık 10.000 sayfa eder.

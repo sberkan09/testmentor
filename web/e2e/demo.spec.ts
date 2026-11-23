@@ -1,16 +1,30 @@
-import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
+import { login } from "./helpers";
 
-/** Demo videosu senaryosu (PoC). Altın set v1 KDH "Vatandaş Başvuru Portalı" (60 TR + 60 EN).
- *  Ekranın altında Türkçe açıklama şeridi çizilir. Uzun beklemelerin başlangıç ve bitişi
- *  `DEMO_MARKS` dosyasına yazılır; `demo/make_video.sh` bu aralıkları hızlandırır.
+/** Demo videosu senaryosu. Altın set v1 KDH "Vatandaş Başvuru Portalı" (60 TR + 60 EN) ve
+ *  sistemin iki belgesi (altın set için yazılmış kurgusal belgeler). Ekranın altında Türkçe açıklama
+ *  şeridi çizilir. Uzun beklemelerin başlangıç ve bitişi `DEMO_MARKS` dosyasına yazılır;
+ *  `demo/make_video.py` bu aralıkları hızlandırır.
  *
- *  Koşu: DEMO=1 [DEMO_SHOTS=dizin] [DEMO_MARKS=dosya] npx playwright test e2e/demo.spec.ts --trace off
- *  (video için E2E_VIDEO=on). Gerçek modelle API ayrıca açılır (demo/README.md). */
+ *  Koşu: `bash demo/run.sh record ÇIKTI` (pod, API, parolalı giriş; E2E_BASE_URL ve E2E_PASSWORD
+ *  betikten gelir) ya da DEMO=1 [DEMO_FRAMES=dizin] [DEMO_MARKS=dosya] npx playwright test
+ *  e2e/demo.spec.ts --trace off. 3B görünüm için yazılımla WebGL (SwiftShader). */
 
 test.skip(process.env["DEMO"] !== "1", "yalnızca DEMO=1 ile");
-test.setTimeout(45 * 60_000);
+test.setTimeout(60 * 60_000);
+const SOFTWARE_GL = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"];
+const fallbackChrome = "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome";
+test.use({
+  launchOptions: {
+    ...(process.env["PW_CHROMIUM_PATH"] || existsSync(fallbackChrome)
+      ? { executablePath: process.env["PW_CHROMIUM_PATH"] ?? fallbackChrome }
+      : {}),
+    args: SOFTWARE_GL,
+  },
+});
+const DOCS = ["kavramsal-isletim.md", "tasarim.md"];
 
 const SHOTS = process.env["DEMO_SHOTS"];
 /** Frame directory: Chromium screencast (CDP) frames with timestamps; demo/make_video.py builds
@@ -21,6 +35,10 @@ const KEY = process.env["DEMO_KEY"] ?? `KDH${Date.now().toString(36).slice(-4).t
 let started = Date.now(); // reset when the test (and its video) starts
 const marks: { name: string; start: number; end?: number; t0: number; t1?: number }[] = [];
 let shot = 0;
+
+function systemDoc(name: string): Buffer {
+  return readFileSync(fileURLToPath(new URL(`../../eval/corpus/kdh/system/${name}`, import.meta.url)));
+}
 
 function kdhCsv(): string {
   const path = fileURLToPath(new URL("../../eval/golden/v1/kdh.json", import.meta.url));
@@ -83,7 +101,10 @@ async function waitIdle(page: Page, name: string, timeoutS = 30 * 60) {
   marks.push(mark);
   const deadline = Date.now() + timeoutS * 1000;
   for (;;) {
-    const res = await page.request.get(`/projects/${KEY}/snapshot`);
+    const token = await page.evaluate(() => sessionStorage.getItem("testmentor.token"));
+    const res = await page.request.get(`/projects/${KEY}/snapshot`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (res.ok()) {
       const snap = (await res.json()) as { stages: { stale: number; running: number }[]; jobs: unknown[] };
       const busy = snap.stages.some((s) => s.stale + s.running > 0) || snap.jobs.length > 0;
@@ -118,12 +139,18 @@ test("demo: Vatandaş Başvuru Portalı", async ({ page }) => {
       writeFileSync(`${FRAMES}/frames.json`, JSON.stringify({ frames, end: Date.now() / 1000 }));
     };
   }
-  await test.step("Açılış", async () => {
+  await test.step("Açılış ve giriş", async () => {
     await page.goto("/");
     await caption(page, "testmentor: gereksinim setinden test durumlarına ve izlenebilirlik matrisine, yerel modelle", 4000);
-    await page.getByTestId("user-name").fill("Ayşe");
-    await page.getByTestId("user-submit").click();
-    await expect(page.getByTestId("projects-page")).toBeVisible();
+    await page.getByTestId("user-name").fill("ayse");
+    if (await page.getByTestId("user-password").isVisible()) {
+      await page.getByTestId("user-password").fill(process.env["E2E_PASSWORD"] ?? "");
+      await caption(page, "Kurum içi kurulumda kullanıcı adı ve parolayla giriş", 2500);
+      await page.getByTestId("user-submit").click();
+      await expect(page.getByTestId("projects-page")).toBeVisible();
+    } else {
+      await login(page, "ayse");
+    }
   });
 
   await test.step("İçe alma", async () => {
@@ -140,12 +167,26 @@ test("demo: Vatandaş Başvuru Portalı", async ({ page }) => {
     await expect(page.getByTestId("studio")).toBeVisible({ timeout: 120_000 });
   });
 
+  await test.step("Bilgi havuzu", async () => {
+    await page.getByTestId("view-documents").click();
+    await caption(page, "Sistemin kendi belgeleri bilgi havuzuna yüklenir: başlıklarına göre parçalanır ve gömülür", 2500);
+    for (const name of DOCS) {
+      await page.getByTestId("document-file").setInputFiles({ name, mimeType: "text/markdown", buffer: systemDoc(name) });
+      await expect(page.getByTestId(`document-${name}`)).toBeVisible({ timeout: 120_000 });
+    }
+    await caption(page, "Kavramsal İşletim ve Yazılım Tasarım Belgesi yüklendi; her öbek için ilgili parçalar aranır", 4000);
+  });
+
   await test.step("Öbekleme ve üretim", async () => {
+    await page.getByTestId("view-clusters").click();
     await expect(page.getByTestId("cluster-grid")).toBeVisible();
     await caption(page, "Gereksinimler embedding ile anlamına göre öbeklenir; öbekler kullanıcı düzenlemesine açıktır", 4500);
     await caption(page, "Yerel model her öbeğe ad ve gerekçe, her gereksinime doğrulama yöntemi ve öbek başına test durumları yazar", 1500);
     await waitIdle(page, "ilk üretim");
-    await caption(page, "Üretim bitti: her öbeğin adı, gerekçesi ve test durumları hazır", 4000);
+    await caption(page, "Üretim bitti: her öbeğin adı, gerekçesi ve test durumları hazır", 3500);
+    await page.locator('[data-testid^="cluster-name-"]').first().click();
+    await expect(page.getByTestId("passage-id").first()).toBeVisible();
+    await caption(page, "Öbeğin testleri, belgelerden getirilen bu parçalara dayanarak yazıldı", 4500);
   });
 
   let caseTestId = "";
@@ -163,7 +204,7 @@ test("demo: Vatandaş Başvuru Portalı", async ({ page }) => {
     await page.getByTestId("save").click();
     if (await page.getByTestId("pin").isVisible()) await page.getByTestId("pin").click();
     await expect(page.getByTestId("pinned-pill")).toBeVisible();
-    await caption(page, "Elle düzeltilen test sabitlenir: yeniden üretimde ezilmez, prompt'a değiştirilemez olarak girer", 4500);
+    await caption(page, "Elle düzeltilen test sabitlenir: yeniden üretimde ezilmez ve projenin örnek havuzuna girer", 4500);
   });
 
   await test.step("Gereksinimi başka öbeğe taşı", async () => {
@@ -192,7 +233,7 @@ test("demo: Vatandaş Başvuru Portalı", async ({ page }) => {
     await page.mouse.up();
     await caption(page, "Yalnızca etkilenen iki öbeğin seti ve adı yeniden üretilir: biri artımlı çağrıyla, diğeri çağrısız budanır; geri kalanı cache'ten gelir", 1500);
     await waitIdle(page, "taşıma");
-    await caption(page, "Taşıma birkaç saniyede yansıdı; öbeğin mevcut test durumları korunarak yeni gereksinim için test eklendi", 4500);
+    await caption(page, "Taşıma birkaç saniyede yansıdı: mevcut testler korundu, yalnızca yeni gereksinim için test yazıldı", 4500);
   });
 
   await test.step("Matris ve dışa aktarım", async () => {
@@ -203,6 +244,24 @@ test("demo: Vatandaş Başvuru Portalı", async ({ page }) => {
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("matrix-download").click()]);
     expect(statSync(await download.path()).size).toBeGreaterThan(0);
     await caption(page, "Matris ve test durumları xlsx olarak dışa aktarılır", 4000);
+  });
+
+  await test.step("3B katman görünümü", async () => {
+    await page.getByTestId("view-layers").click();
+    const stage = page.getByTestId("layers-stage");
+    await expect(stage.locator("canvas")).toBeVisible({ timeout: 60_000 });
+    await caption(page, "Katmanlar: öbekler, test durumları ve matris üst üste; iplikler izlenebilirliği gösterir", 3000);
+    const box = await stage.boundingBox();
+    if (box) {
+      const cx = box.x + box.width / 2;
+      const cy = box.y + box.height / 2;
+      await page.mouse.move(cx, cy);
+      await page.mouse.down();
+      await page.mouse.move(cx + 260, cy + 40, { steps: 60 });
+      await page.mouse.move(cx - 120, cy - 30, { steps: 60 });
+      await page.mouse.up();
+    }
+    await caption(page, "Turuncu noktalar testi olmayan gereksinimler; bir noktaya tıklamak ilgili 2B görünümü açar", 4500);
     await caption(page, "Tüm üretim tek GPU'lu yerel sunucuda; veri kurum dışına çıkmaz", 4500);
   });
 

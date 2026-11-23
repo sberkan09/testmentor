@@ -6,7 +6,7 @@ PY := uv run python
 UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o))
 MAX_ARGS := $(if $(MAX_HOURS),--max-hours $(MAX_HOURS))
 
-.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down app-image users-add
+.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down app-image users-add demo demo-video
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
 	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) $(MAX_ARGS) && $(PY) scripts/runpod.py wait
@@ -92,3 +92,9 @@ web-test:      ## vitest birim testleri + lint (arka uç gerekmez)
 
 web-e2e:       ## Playwright uçtan uca testi: TESTMENTOR_FAKE_LLM=1 API + vite önizleme (web/e2e/README.md)
 	cd web && npm run e2e
+
+demo:          ## Canlı demo: pod (bekçili) + bu makinede uygulama, proje ve belgeler hazır; Ctrl-C ile pod silinir (HOURS=2)
+	bash demo/run.sh live $(OUT)
+
+demo-video:    ## Demo videosu: pod + uygulama + Playwright kaydı + MP4 (OUT=dizin, zorunlu); sonunda pod silinir
+	bash demo/run.sh record $(or $(OUT),$(error OUT=dizin gerekli))

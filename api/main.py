@@ -144,7 +144,10 @@ def build_server(deps: ServiceDeps | None = None) -> Server:
         assert deps.pg_dsn is not None
         store = PostgresStore.connect(deps.pg_dsn)
         kb_conn = psycopg.connect(deps.pg_dsn, autocommit=True)
-        index = PgIndex(kb_conn, kb_settings, dim=deps.embedding_dim)
+        from services.settings import load_runtime
+
+        pg_kb = load_runtime().get("kb_postgres") or {}
+        index = PgIndex(kb_conn, kb_settings, dim=deps.embedding_dim, **pg_kb)
         index.ensure_schema()
         registry = PgRegistry(kb_conn)
         registry.ensure_schema()
