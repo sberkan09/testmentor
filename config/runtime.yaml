@@ -20,3 +20,11 @@ embedding:
 
 database:
   url_env: DATABASE_URL                 # postgresql://testmentor:...@localhost:5432/testmentor
+
+orchestrator:               # paket 5 (docs/tasarim.md, İş kuyruğu)
+  debounce_s: 1.5           # D11 çalışma varsayımı
+  concurrency: 16           # sunucunun dizi sınırı 64; ölçüm koşucusuyla aynı
+  p2_share: 0.7             # otomatik işlerin yuva payı (D11)
+  event_buffer: 10000       # proje başına tekrar oynatılabilir olay sayısı
+  lock_s: 60                # düzenleme kilidi
+
