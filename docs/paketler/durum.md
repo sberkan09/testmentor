@@ -8,10 +8,10 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | --- | --- | --- | --- |
 | 3, 3b | `paket-3-plan.md`, `paket-3b-plan.md` | – | birleşti (#5) |
 | 4 | `paket-4-plan.md` | A (Sonnet) | **birleşti** (23.11): bitti testi (altın set v0 csv ve xlsx → matris → xlsx) geçti; 316 test |
-| 5 | `paket-5-plan.md` | B (Opus) | yazılıyor (23.11) |
+| 5 | `paket-5-plan.md` | B (Opus) | **birleşti** (23.11): bitti testi (taşıma 1 TestCaseDelta + 2 ClusterLabel, geri alma 0 çağrı) geçti; 450 test, Postgres 24/24; bağımsız Opus incelemesi sürüyor |
 | 6 | `paket-6-plan.md` | E (Sonnet) | **birleşti** (23.11): iki bitti testi sahte servisle geçti, 388 test; gerçek servise bağlantı (`api/main.build_service`) paket 5 birleşince |
 | 7 | `paket-7-plan.md` | C (Sonnet) | **kod birleşti** (23.11): yalıtım testi geçti, 374 test; D9 batch koşuyor (ayrı çalışma ağacından) |
-| 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; e2e yalnızca sahte API'ye karşı geçti, gerçek API ile paket 6'dan sonra |
+| 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; **bitti testi (Playwright) gerçek API'ye karşı geçti** (sahte modelle) |
 | 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
 | Demo | – | bu oturum | gerçek model çıktılarıyla demo videosu (Playwright kaydı + ffmpeg alt yazı, MP4) |
 
@@ -39,4 +39,6 @@ Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC 
 | 23.11 | D9'da reranker kolu koşulmadı: tasarım ilk sürümde reranker'sız, kod hazır (`kb.reranker`), model seçimi ve CPU çapraz kodlama PoC'ye değer katmıyor | süre, kesme sırası |
 | 23.11 | D10 kesildi: örnek havuzu kodu hazır (varsayılan kapalı), ama altın setin referans testlerinden kurulan havuz cevap anahtarını sızdırır; sızıntısız havuz ayrı iş | ölçüm geçerliliği, kesme sırası |
 | 23.11 | GPU batch'leri ayrı bir çalışma ağacından (`/home/user/testmentor-batch`, sabit commit) koşar; ana dala birleştirmeler koşan batch'in kodunu değiştirmez | paralel birleştirme ile ölçümün yalıtımı |
+| 23.11 | Sahte embedding kelime yerine karakter üçlüleriyle: kelime torbası küçük projelerde her gereksinimi tek öbek bırakıyordu (e2e taşıma adımı öbek bulamadı) | e2e ve geliştirme kipinde anlamlı öbekler |
+| 23.11 | Demo veri seti: altın set v1 KDH "Vatandaş Başvuru Portalı" (60 TR + 60 EN; gerçek BGE-M3 ile 23 öbek). v0'ın 40 gereksinimi 0,35'te 33 öbeğe dağılıyor (27 tek üyeli) | ekranda anlamlı öbekler, Türkçe kamu hizmeti konusu |
 

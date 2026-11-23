@@ -116,10 +116,11 @@ class FakeComplete:
 
 
 class FakeEmbed:
-    """`core.stages.base.Embed`: bag-of-words hashed into `dim` buckets, L2-normalised, so that
-    texts sharing words are close (clustering behaves plausibly)."""
+    """`core.stages.base.Embed`: character trigrams of the words hashed into `dim` buckets,
+    L2-normalised. Texts sharing words or word stems are close, so the first cut forms
+    multi-member clusters (a bag of whole words left 8-requirement projects as singletons)."""
 
-    def __init__(self, dim: int = 64) -> None:
+    def __init__(self, dim: int = 48) -> None:
         self.dim = dim
         self.calls = 0
 
@@ -128,8 +129,9 @@ class FakeEmbed:
         for w in re.findall(r"\w+", text.lower()):
             if len(w) < 3:
                 continue
-            h = int(hashlib.sha256(w.encode()).hexdigest()[:8], 16)
-            v[h % self.dim] += 1.0
+            for i in range(len(w) - 2):
+                h = int(hashlib.sha256(w[i : i + 3].encode()).hexdigest()[:8], 16)
+                v[h % self.dim] += 1.0
         norm = sum(x * x for x in v) ** 0.5 or 1.0
         return [x / norm for x in v]
 
