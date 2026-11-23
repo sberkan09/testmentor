@@ -161,8 +161,8 @@ def test_retrieval_stage_config_follows_the_kb_settings():
 
     base = configs()[NodeKind.RETRIEVAL]
     assert base.prompt_version == RETRIEVAL_VERSION == "r2"
-    assert base.params["top_k"] == 8 and base.params["examples"] == 0
-    assert configs(top_k=4)[NodeKind.RETRIEVAL] != base
+    assert base.params["top_k"] == CFG["kb"]["top_k"] and base.params["examples"] == 0
+    assert configs(top_k=CFG["kb"]["top_k"] + 4)[NodeKind.RETRIEVAL] != base
     assert configs(chunk_tokens=300)[NodeKind.RETRIEVAL] != base
     assert configs(reranker="some-model")[NodeKind.RETRIEVAL] != base
     # the card draft settings do not stale retrievals; the test set config is untouched by kb

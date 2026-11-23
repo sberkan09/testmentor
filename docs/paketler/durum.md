@@ -10,7 +10,7 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 4 | `paket-4-plan.md` | A (Sonnet) | **birleşti** (23.11): bitti testi (altın set v0 csv ve xlsx → matris → xlsx) geçti; 316 test |
 | 5 | `paket-5-plan.md` | B (Opus) | **birleşti** (23.11): bitti testi (taşıma 1 TestCaseDelta + 2 ClusterLabel, geri alma 0 çağrı) geçti; 450 test, Postgres 24/24; bağımsız Opus incelemesi 8 bulgu (1 kritik) → hepsi testle düzeltildi; 475 test, Postgres 27/27, e2e geçti |
 | 6 | `paket-6-plan.md` | E (Sonnet) | **birleşti** (23.11): iki bitti testi sahte servisle geçti, 388 test; gerçek servise bağlantı (`api/main.build_service`) paket 5 birleşince |
-| 7 | `paket-7-plan.md` | C (Sonnet) | **kod birleşti** (23.11): yalıtım testi geçti, 374 test; D9 batch koşuyor (ayrı çalışma ağacından) |
+| 7 | `paket-7-plan.md` | C (Sonnet) | **bitti** (23.11): yalıtım testi geçti; D9: gerçek hibrit arama +0,073 [+0,035, +0,114], 400 token, ilk 4 (`kb.top_k`), kart var |
 | 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; **bitti testi (Playwright) gerçek API'ye karşı geçti** (sahte modelle) |
 | 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
 | Demo | – | bu oturum | gerçek model çıktılarıyla demo videosu (Playwright kaydı + ffmpeg alt yazı, MP4) |
@@ -42,4 +42,5 @@ Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC 
 | 23.11 | Sahte embedding kelime yerine karakter üçlüleriyle: kelime torbası küçük projelerde her gereksinimi tek öbek bırakıyordu (e2e taşıma adımı öbek bulamadı) | e2e ve geliştirme kipinde anlamlı öbekler |
 | 23.11 | Demo veri seti: altın set v1 KDH "Vatandaş Başvuru Portalı" (60 TR + 60 EN; gerçek BGE-M3 ile 23 öbek). v0'ın 40 gereksinimi 0,35'te 33 öbeğe dağılıyor (27 tek üyeli) | ekranda anlamlı öbekler, Türkçe kamu hizmeti konusu |
 | 23.11 | Paket 5 incelemesi: 7. bulgu kararı, reddedilen geri alma kaydı yığından düşer; düzeltme kolu onay kuralında çalışan düğümün onayını korudu (depo hatasından sonra yeniden onay istenmesin), kabul edildi | inceleme bulguları |
+| 23.11 | D9: `kb.top_k` 8 → 4 (4/8/12 arasında ölçülebilir fark yok, 4 en kısa prompt); parça boyu 400 ve kart kalır | planın kuralı: fark yoksa basit ve ucuz olan |
 

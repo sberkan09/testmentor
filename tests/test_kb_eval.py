@@ -189,7 +189,8 @@ async def test_golden_v1_kdh_runs_in_index_mode_over_the_committed_documents(tmp
     project = next(r for r in res.records if r.get("type") == "project")
     assert not project["errors"]
     retrieved = [ids for ids in project["retrieval"].values()]
-    assert retrieved and all(len(ids) == 8 for ids in retrieved)  # kb.top_k at the default
+    top_k = pipe.settings.kb.top_k
+    assert retrieved and all(len(ids) == top_k for ids in retrieved)  # kb.top_k from config
     prompts = [
         r.messages[-1]["content"] for r in fake.requests if r.schema.__name__ == "TestCaseSet"
     ]

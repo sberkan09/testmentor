@@ -72,7 +72,7 @@ kb:                         # paket 7: bilgi havuzu (D9 çalışma varsayımı: 
   chunk_tokens: 400
   chunk_overlap_tokens: 40
   chars_per_token: 4        # token tahmini: karakter / 4 (çekirdekte belirteç yok)
-  top_k: 8
+  top_k: 4                  # D9 (paket 7): 4 / 8 / 12 arasında ölçülebilir fark yok; 4 en kısa prompt (−%31 token)
   rrf_k: 60
   rrf_depth: 50             # yoğun ve anahtar kelime sıralamalarından her birinin birleşmeye giren uzunluğu
   bm25_k1: 1.2

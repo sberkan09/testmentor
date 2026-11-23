@@ -1,0 +1,316 @@
+{
+  "meta": {
+    "run_id": "20261123-071542-d9-top4",
+    "experiment": {
+      "name": "d9-top4",
+      "question": "D9 parça sayısı: ilk 4 parça (taban 8); belge gerektiren denetimlerde check_recall ve uydurma içerik d9-index-base ile karşılaştırılır.",
+      "variable": "kb.top_k=4",
+      "server": {
+        "engine": "vllm",
+        "model": "qwen3.8-27b",
+        "overrides": {}
+      },
+      "golden": "v1",
+      "pipeline": {
+        "passages": "index",
+        "kb": {
+          "top_k": 4
+        }
+      },
+      "quality": true
+    },
+    "config_file": "config/experiments/d9-top4.yaml",
+    "pipeline_config": {
+      "generation_inputs": "reference",
+      "unit_packing": false,
+      "passages": "index",
+      "card": "full",
+      "methods": [
+        {
+          "name": "Test",
+          "criterion": "Davranış sistem çalıştırılarak ve girdi verilerek gözlenebiliyorsa."
+        },
+        {
+          "name": "Analiz",
+          "criterion": "Doğrulama hesap, model, benzetim ya da istatistik gerektiriyorsa."
+        },
+        {
+          "name": "İnceleme",
+          "criterion": "Belge, kod, yapılandırma ya da fiziksel ürün gözle denetlenerek doğrulanıyorsa."
+        },
+        {
+          "name": "Gösterim",
+          "criterion": "İşlev ölçüm yapılmadan, çalıştırılıp gözlemlenerek gösteriliyorsa."
+        }
+      ],
+      "test_method": "Test",
+      "test_types": [
+        "Normal",
+        "Sınır",
+        "Hata"
+      ],
+      "priorities": [
+        "Yüksek",
+        "Orta",
+        "Düşük"
+      ],
+      "clustering": {
+        "method": "agglomerative",
+        "linkage": "average",
+        "distance_threshold": 0.35,
+        "max_cluster_size": 25
+      },
+      "classification": {
+        "batch_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 4096
+      },
+      "cluster_label": {
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 512
+      },
+      "generation": {
+        "max_unit_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 16384,
+        "repair": true,
+        "field_max_chars": {
+          "title": 300,
+          "preconditions": 1000,
+          "test_inputs": 1000,
+          "assumptions": 4000,
+          "action": 1000,
+          "expected": 4000
+        },
+        "regeneration": "incremental",
+        "prune_removals": true
+      },
+      "concurrency": 16,
+      "prefix_warmup": false,
+      "examples_file": "config/prompts/examples-generation.yaml",
+      "thresholds": {
+        "schema_valid_rate": 0.99,
+        "coverage_rate": 1.0,
+        "step_structure_rate": 1.0,
+        "no_test_violations": 0
+      },
+      "import": {
+        "id_prefix": "REQ-",
+        "max_requirements": 2000,
+        "encodings": [
+          "utf-8-sig",
+          "utf-8",
+          "cp1254"
+        ]
+      },
+      "kb": {
+        "chunk_tokens": 400,
+        "chunk_overlap_tokens": 40,
+        "chars_per_token": 4,
+        "top_k": 4,
+        "rrf_k": 60,
+        "rrf_depth": 50,
+        "bm25_k1": 1.2,
+        "bm25_b": 0.75,
+        "reranker": "none",
+        "rerank_candidates": 3,
+        "card_tokens": 1500,
+        "card_draft_input_tokens": 12000,
+        "card_draft_max_tokens": 4096,
+        "examples": 0
+      }
+    },
+    "golden_version": "v1",
+    "server": {
+      "pod": "14b0czatogi5id",
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "overrides": {}
+    },
+    "model_spec": {
+      "repo_id": "Qwen/Qwen3.8-27B-FP8",
+      "served_name": "qwen3.8-27b",
+      "precision": "fp8",
+      "context_length": 32768,
+      "max_num_seqs": 64,
+      "engine_args": {
+        "vllm": [
+          "--reasoning-parser",
+          "qwen3",
+          "--language-model-only"
+        ],
+        "sglang": [
+          "--reasoning-parser",
+          "qwen3"
+        ]
+      },
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "gated": false,
+      "gpu_memory_utilization": null,
+      "download_ignore": [],
+      "approx_size_gb": 30.0,
+      "notes": "Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık. Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek."
+    },
+    "started_at": "2026-11-23T07:15:42Z",
+    "served_model": "qwen3.8-27b",
+    "engine_settings": {
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "base_url": "https://14b0czatogi5id-8000.proxy.runpod.net/v1",
+      "served_model_name": "qwen3.8-27b",
+      "api_key_env": "LLM_API_KEY",
+      "request_timeout_s": 900.0,
+      "connect_timeout_s": 15.0,
+      "default_max_tokens": 4096,
+      "default_temperature": null,
+      "extra_body": {},
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    "prompt_versions": {
+      "embedding": "BAAI/bge-m3",
+      "clustering": "c1",
+      "method": "s1.m1+5d9f798bd379",
+      "cluster_label": "s1.l1+7f6b859095cb",
+      "retrieval": "r2",
+      "test_set": "s1.g5+1d644a8e20b3",
+      "matrix_row": "x1"
+    }
+  },
+  "runs": [
+    {
+      "all": {
+        "requirements": 229,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 0.9951,
+        "coverage_rate_before_repair": 0.9912,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 520,
+        "method_exact_match": 0.6769,
+        "method_jaccard": 0.8035,
+        "duplicate_pairs": 48,
+        "duplicate_test_rate": 0.1,
+        "no_test_violations_raw": 0
+      },
+      "by_language": {
+        "en": {
+          "requirements": 169,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 0.9937,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 401,
+          "method_exact_match": 0.8047,
+          "method_jaccard": 0.8817
+        },
+        "tr": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 0.9667,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 119,
+          "method_exact_match": 0.3167,
+          "method_jaccard": 0.5833
+        }
+      },
+      "traps": {
+        "requirements": 1,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 4,
+        "method_exact_match": 1.0,
+        "method_jaccard": 1.0
+      },
+      "cluster_ari": 0.3284,
+      "cluster_ari_by_project": {
+        "ETC": 0.3213,
+        "KDH": 0.3355
+      },
+      "calls": {
+        "calls": 110,
+        "errors": 0,
+        "schema_valid_rate": 1.0,
+        "schema_valid_rate_generation": 1.0,
+        "tokens_total": 485132,
+        "prompt_tokens": 320206,
+        "completion_tokens": 164926,
+        "cached_tokens": 89856,
+        "prefix_cache_hit_rate": 0.2806,
+        "wall_s": 403.56,
+        "seconds_per_cluster": 9.61,
+        "tokens_per_second": 408.7
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": true,
+        "step_structure_rate": true,
+        "no_test_violations": true
+      }
+    }
+  ],
+  "throughput": null,
+  "judge": {
+    "by_project": {
+      "ETC": 0.5202,
+      "KDH": 0.5171
+    },
+    "by_split": {
+      "dev": 0.5149,
+      "holdout": 0.551
+    },
+    "by_stratum": {
+      "control": 0.5238,
+      "core": 0.5172,
+      "non_testable": 0.5455
+    },
+    "checks_needing_documents": 0.4226,
+    "checks_not_needing_documents": 0.5641,
+    "check_recall": 0.5183,
+    "by_language": {
+      "en": 0.5572,
+      "tr": 0.4492
+    },
+    "traps": 1.0,
+    "invented_per_requirement": 1.477,
+    "boundary_ok_rate": 0.2,
+    "ambiguity_flagged_rate": 0.4136,
+    "unscored": 0,
+    "by_repeat": {
+      "0": 0.5183
+    },
+    "rubric_version": "r1",
+    "model": "claude-sonnet-5-5",
+    "stats": {
+      "cached": 1,
+      "called": 219,
+      "refused": 0
+    }
+  }
+}
