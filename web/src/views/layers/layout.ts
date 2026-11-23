@@ -41,6 +41,8 @@ export interface MatrixCell {
   id: string;
   x: number;
   z: number;
+  /** Edge length of the cell. */
+  size: number;
   covered: boolean;
   warning: boolean;
 }
@@ -50,9 +52,13 @@ export interface LayerLayout {
   reqs: ReqPoint[];
   cases: CasePoint[];
   matrix: MatrixCell[];
-  matrixCell: number;
   /** Thread segments as xyz pairs: requirement → test case and test case → matrix row. */
   threads: Float32Array;
+  /** First segment of each island's threads (length islands + 1). */
+  threadStarts: number[];
+  /** Far view threads: covered requirement → its island's test case hub, hub → matrix block. */
+  bundles: Float32Array;
+  bundleStarts: number[];
   levels: { clusters: number; cases: number; matrix: number };
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   uncovered: number;
@@ -109,8 +115,10 @@ function packIslands(sizes: number[]): { x: number; z: number; r: number }[] {
   return out;
 }
 
-export function buildLayout(state: ProjectState): LayerLayout {
-  const list = clusters(state);
+/** Reads only nodes and matrix warnings, so the caller can memoize on those two. */
+export function buildLayout(state: Pick<ProjectState, "nodes" | "warnings">): LayerLayout {
+  // The cluster selector reads only `nodes`.
+  const list = clusters(state as ProjectState);
   const levels = { clusters: 0, cases: LEVEL_GAP, matrix: 2 * LEVEL_GAP };
 
   // Requirements and the cluster each belongs to; the rest form a trailing "no cluster" island.
@@ -192,56 +200,101 @@ export function buildLayout(state: ProjectState): LayerLayout {
     caseCovers.push(cov);
   }
 
-  // Matrix rows in requirement id order on a grid with the cluster plane's footprint.
-  const rows = [...reqs].sort((a, b) => collator.compare(a.id, b.id));
-  const w = Math.max(maxX - minX, 1);
-  const d = Math.max(maxZ - minZ, 1);
-  const cols = Math.max(1, Math.round(Math.sqrt((rows.length * w) / d)));
-  const nRows = Math.max(1, Math.ceil(rows.length / cols));
-  const sx = w / cols;
-  const sz = d / nRows;
+  // Matrix rows in blocks above their cluster's island (the matrix view's cluster column), in id
+  // order inside a block: up-threads stay short on screen, which keeps software rendering fast.
   const matrix: MatrixCell[] = [];
   const cellById = new Map<string, MatrixCell>();
-  rows.forEach((r, i) => {
-    const cell: MatrixCell = {
-      key: r.key,
-      id: r.id,
-      x: minX + ((i % cols) + 0.5) * sx,
-      z: minZ + (Math.floor(i / cols) + 0.5) * sz,
-      covered: r.covered,
-      warning: !!state.warnings[r.id],
-    };
-    matrix.push(cell);
-    cellById.set(r.id, cell);
+  groups.forEach((g, gi) => {
+    const isl = islands[gi]!;
+    const rows = g.members.map((m) => reqById.get(m.id)!).sort((a, b) => collator.compare(a.id, b.id));
+    const cols = Math.max(1, Math.ceil(Math.sqrt(rows.length)));
+    const side = isl.radius * Math.SQRT2;
+    const size = side / cols;
+    const x0 = isl.x - side / 2;
+    const z0 = isl.z - (Math.ceil(rows.length / cols) * size) / 2;
+    rows.forEach((r, i) => {
+      const cell: MatrixCell = {
+        key: r.key,
+        id: r.id,
+        x: x0 + ((i % cols) + 0.5) * size,
+        z: z0 + (Math.floor(i / cols) + 0.5) * size,
+        size,
+        covered: r.covered,
+        warning: !!state.warnings[r.id],
+      };
+      matrix.push(cell);
+      cellById.set(r.id, cell);
+    });
   });
 
-  // Threads: requirement → covering case, case → that requirement's matrix row.
-  let segs = 0;
-  for (const cov of caseCovers) segs += cov.length * 2;
-  const threads = new Float32Array(segs * 6);
-  let o = 0;
-  const put = (x: number, y: number, z: number) => {
-    threads[o++] = x;
-    threads[o++] = y;
-    threads[o++] = z;
-  };
+  // Exact threads: requirement → covering case, case → that requirement's matrix row. Grouped by
+  // the requirement's island so the view can draw the threads of a few islands only.
+  const islandIndex = new Map(islands.map((isl, i) => [isl.key, i]));
+  const pairs: { r: ReqPoint; tc: CasePoint }[][] = islands.map(() => []);
   cases.forEach((tc, i) => {
-    for (const r of caseCovers[i]!) {
-      put(r.x, levels.clusters, r.z);
-      put(tc.x, levels.cases, tc.z);
-      const cell = cellById.get(r.id)!;
-      put(tc.x, levels.cases, tc.z);
-      put(cell.x, levels.matrix, cell.z);
-    }
+    for (const r of caseCovers[i]!) pairs[islandIndex.get(r.cluster)!]!.push({ r, tc });
   });
+  const threads = new Float32Array(pairs.reduce((n, p) => n + p.length, 0) * 12);
+  const threadStarts: number[] = [];
+  let o = 0;
+  const put = (arr: Float32Array, x: number, y: number, z: number) => {
+    arr[o++] = x;
+    arr[o++] = y;
+    arr[o++] = z;
+  };
+  for (const list of pairs) {
+    threadStarts.push(o / 6);
+    for (const { r, tc } of list) {
+      const cell = cellById.get(r.id)!;
+      put(threads, r.x, levels.clusters, r.z);
+      put(threads, tc.x, levels.cases, tc.z);
+      put(threads, tc.x, levels.cases, tc.z);
+      put(threads, cell.x, levels.matrix, cell.z);
+    }
+  }
+  threadStarts.push(o / 6);
+
+  // Bundled threads for the far view: every covered requirement sends one thread to its island's
+  // test case hub (centroid of the island's cases), the hub one thread to the island's matrix
+  // block. An uncovered requirement has no thread in either form.
+  const hubs = islands.map(() => ({ x: 0, z: 0, n: 0 }));
+  for (const c of cases) {
+    const i = islandIndex.get(c.cluster);
+    if (i === undefined) continue;
+    const h = hubs[i]!;
+    h.x += c.x;
+    h.z += c.z;
+    h.n++;
+  }
+  const coveredBy = islands.map((isl) => reqs.filter((r) => r.cluster === isl.key && r.covered));
+  const bundles = new Float32Array(coveredBy.reduce((n, l) => n + (l.length ? l.length + 1 : 0), 0) * 6);
+  const bundleStarts: number[] = [];
+  o = 0;
+  islands.forEach((isl, i) => {
+    bundleStarts.push(o / 6);
+    const list = coveredBy[i]!;
+    if (!list.length) return;
+    const h = hubs[i]!;
+    const hx = h.n ? h.x / h.n : isl.x;
+    const hz = h.n ? h.z / h.n : isl.z;
+    for (const r of list) {
+      put(bundles, r.x, levels.clusters, r.z);
+      put(bundles, hx, levels.cases, hz);
+    }
+    put(bundles, hx, levels.cases, hz);
+    put(bundles, isl.x, levels.matrix, isl.z);
+  });
+  bundleStarts.push(o / 6);
 
   return {
     islands,
     reqs,
     cases,
     matrix,
-    matrixCell: Math.min(sx, sz),
     threads,
+    threadStarts,
+    bundles,
+    bundleStarts,
     levels,
     bounds: { minX, maxX, minZ, maxZ },
     uncovered: reqs.filter((r) => !r.covered).length,

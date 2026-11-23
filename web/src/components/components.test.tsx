@@ -128,3 +128,18 @@ describe("kilit", () => {
     expect(screen.getByTestId("tc-title")).toBeDisabled();
   });
 });
+
+describe("katman görünümü", () => {
+  it("Katmanlar sekmesi 3B görünümü tembel yükler; çizim açılamazsa açıklama gösterir, 2B görünümler çalışır", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    await openProject();
+    await userEvent.click(screen.getByTestId("view-layers"));
+    expect(screen.getByTestId("view-layers")).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByTestId("layers-view", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(screen.getByTestId("layers-uncovered")).toHaveTextContent("2");
+    expect(await screen.findByTestId("layers-unsupported")).toBeInTheDocument();
+    await userEvent.click(screen.getByTestId("view-clusters"));
+    expect(await screen.findByTestId("cluster-A")).toBeInTheDocument();
+    vi.restoreAllMocks();
+  });
+});

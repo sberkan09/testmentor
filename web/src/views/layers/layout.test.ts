@@ -53,6 +53,30 @@ describe("katman düzeni", () => {
     expect(islandRadius(100)).toBeGreaterThan(islandRadius(10));
   });
 
+  it("matris satırı kendi adasının üstünde; ipler adaya göre gruplu, demetler yalnızca kapsanmışlardan", () => {
+    const layout = buildLayout(fromSnapshot(syntheticSnapshot({ requirements: 400, clusters: 20 })));
+    const islandOf = new Map(layout.reqs.map((r) => [r.key, layout.islands.find((i) => i.key === r.cluster)!]));
+    for (const m of layout.matrix) {
+      const isl = islandOf.get(m.key)!;
+      expect(Math.hypot(m.x - isl.x, m.z - isl.z)).toBeLessThanOrEqual(isl.radius);
+    }
+    expect(layout.threadStarts).toHaveLength(layout.islands.length + 1);
+    expect(layout.threadStarts.at(-1)).toBe(layout.threads.length / 6);
+    expect(layout.bundleStarts.at(-1)).toBe(layout.bundles.length / 6);
+    // Her adanın gerçek ipleri o adadaki gereksinimlerden başlar.
+    layout.islands.forEach((isl, i) => {
+      for (let s = layout.threadStarts[i]!; s < layout.threadStarts[i + 1]!; s += 2) {
+        const x = layout.threads[s * 6]!;
+        const z = layout.threads[s * 6 + 2]!;
+        expect(Math.hypot(x - isl.x, z - isl.z)).toBeLessThanOrEqual(isl.radius);
+      }
+    });
+    // Demet: kapsanmış gereksinim başına bir ip, ada başına bir hub → matris bloğu ipi.
+    const covered = layout.reqs.filter((r) => r.covered).length;
+    const withCovered = layout.islands.filter((i) => i.count > i.uncovered).length;
+    expect(layout.bundles.length / 6).toBe(covered + withCovered);
+  });
+
   it("öbeksiz gereksinimler ayrı bir adada durur", () => {
     const snap = snapshot();
     snap.nodes.push({ ref: { kind: "requirement", key: "R9" }, status: "fresh", pinned: false, origin: "generated", version: 1, content: { id: "R9", text: "x" } });

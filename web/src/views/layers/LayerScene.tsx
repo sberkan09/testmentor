@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, type MutableRefObject, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Raycaster, Vector2, Vector3, type InstancedMesh } from "three";
+import { Raycaster, Vector2, Vector3, type Intersection, type PerspectiveCamera } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { LayerKind, LayerLayout } from "./layout";
-import { buildObjects } from "./objects";
+import { ISLAND_SEGMENTS, POINT_SIZE, buildObjects } from "./objects";
+import { EXACT_SEGMENT_BUDGET, EXACT_THREADS_BELOW, type ThreadTier } from "./tiers";
 
 export interface LayerPick {
   kind: LayerKind;
@@ -23,8 +24,12 @@ export interface SceneHandle {
 export interface LayersTestHook {
   ready: boolean;
   frames: number[];
-  counts: { requirements: number; testCases: number; matrix: number; threads: number; uncovered: number };
+  counts: { requirements: number; testCases: number; matrix: number; threads: number; bundled: number; uncovered: number };
   renderer: string;
+  /** Thread tier of the last rendered frame and the segments it drew in each form. */
+  view(): { tier: ThreadTier; exactSegments: number; bundledSegments: number; focusIslands: number; distanceRatio: number };
+  /** Moves the camera to `ratio` × the framing distance, keeping the direction. */
+  setDistanceRatio(ratio: number): void;
   screenPoint(kind: LayerKind, key: string): { x: number; y: number } | null;
   pickAt(x: number, y: number): LayerPick | null;
 }
@@ -89,11 +94,23 @@ export function LayerScene({
     const d = bounds.maxZ - bounds.minZ;
     const radius = Math.hypot(w, d, levels.matrix) / 2 + 2;
     const fov = ((camera as { fov?: number }).fov ?? 45) * (Math.PI / 180);
-    const dist = radius / Math.sin(fov / 2);
+    // The stack is flat: its bounding sphere is a loose fit, so come in closer than that.
+    const dist = (radius / Math.sin(fov / 2)) * 0.72;
     const target = new Vector3(0, levels.cases, 0);
     const dir = new Vector3(0, 0.62, 1).normalize();
     return { dist, target, position: target.clone().addScaledVector(dir, dist) };
   }, [layout, camera]);
+
+  // Clip planes and zoom limits follow the layout; the camera itself is placed only on the first
+  // mount and on "reset", so a layout rebuild after a server event does not move the view.
+  useEffect(() => {
+    camera.near = Math.max(fit.dist / 500, 0.05);
+    camera.far = fit.dist * 6;
+    camera.updateProjectionMatrix();
+    controls.maxDistance = fit.dist * 2.5;
+    controls.minDistance = 2;
+    invalidate();
+  }, [camera, controls, fit, invalidate]);
 
   const reset = useMemo(
     () => () => {
@@ -101,11 +118,6 @@ export function LayerScene({
       controls.enabled = true;
       camera.position.copy(fit.position);
       controls.target.copy(fit.target);
-      camera.near = Math.max(fit.dist / 500, 0.05);
-      camera.far = fit.dist * 6;
-      camera.updateProjectionMatrix();
-      controls.maxDistance = fit.dist * 2.5;
-      controls.minDistance = 2;
       controls.update();
       invalidate();
     },
@@ -124,12 +136,16 @@ export function LayerScene({
     };
   }, [controls, invalidate]);
 
+  const placed = useRef<OrbitControls | null>(null);
   useEffect(() => {
-    reset();
     handleRef.current = { reset };
-  }, [reset, handleRef]);
+    if (placed.current !== controls) {
+      placed.current = controls;
+      reset();
+    }
+  }, [reset, handleRef, controls]);
 
-  // Picking: a ray against the instanced points first, then the nearest point on screen within a
+  // Picking: a ray against the points and matrix cells first, then the nearest point on screen within a
   // few pixels (points are small from afar), then the island under the cursor.
   const picker = useMemo(() => {
     const ray = new Raycaster();
@@ -172,14 +188,22 @@ export function LayerScene({
       const rect = gl.domElement.getBoundingClientRect();
       ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
-      const hits = ray.intersectObjects(
-        objects.pickable.map((p) => p.mesh),
-        false,
-      );
-      const hit = hits.find((h) => h.instanceId !== undefined);
-      if (hit && hit.instanceId !== undefined) {
-        const kind = objects.pickable.find((p) => p.mesh === (hit.object as InstancedMesh))?.kind;
-        if (kind) return itemOf(kind, hit.instanceId);
+      ray.params.Points = { threshold: POINT_SIZE.requirement };
+      const hits: (Intersection & { kind: LayerKind })[] = [];
+      for (const [obj, kind] of [
+        [objects.reqs, "requirement"],
+        [objects.cases, "test_case"],
+        [objects.matrix, "matrix"],
+      ] as const) {
+        for (const h of ray.intersectObject(obj, false)) hits.push({ ...h, kind });
+      }
+      hits.sort((a, b) => a.distance - b.distance);
+      const hit = hits[0];
+      if (hit) {
+        // Points report the vertex index, the merged matrix mesh the triangle (two per cell).
+        const i = hit.kind === "matrix" ? Math.floor((hit.faceIndex ?? 0) / 2) : (hit.index ?? -1);
+        const item = itemOf(hit.kind, i);
+        if (item) return item;
       }
       let best: { kind: LayerKind; i: number; d: number } | null = null;
       for (const { kind, items } of lists) {
@@ -193,8 +217,8 @@ export function LayerScene({
       }
       const found = best as { kind: LayerKind; i: number } | null;
       if (found) return itemOf(found.kind, found.i);
-      const isl = ray.intersectObject(objects.islands, false).find((h) => h.instanceId !== undefined);
-      return isl && isl.instanceId !== undefined ? itemOf("cluster", isl.instanceId) : null;
+      const isl = ray.intersectObject(objects.islands, false)[0];
+      return isl ? itemOf("cluster", Math.floor((isl.faceIndex ?? 0) / ISLAND_SEGMENTS)) : null;
     };
     const screenPoint = (kind: LayerKind, key: string) => {
       const list = kind === "requirement" ? layout.reqs : kind === "test_case" ? layout.cases : kind === "matrix" ? layout.matrix : layout.islands;
@@ -263,6 +287,12 @@ export function LayerScene({
   }, [labelsRef, invalidate]);
 
   const scratch = useMemo(() => new Vector3(), []);
+  const lastRatio = useRef(1);
+  const focus = useRef({ tier: "bundled" as ThreadTier, x: 0, z: 0, islands: 0, exact: 0, bundled: 0, ratio: 1, stale: true });
+  useEffect(() => {
+    // New objects (layout changed): recompute the focus on the next frame.
+    focus.current = { ...focus.current, stale: true };
+  }, [objects]);
   useFrame(({ size }) => {
     const now = performance.now();
     const hook = window.__testmentorLayers;
@@ -286,6 +316,34 @@ export function LayerScene({
     } else {
       controls.update();
     }
+
+    // Thread tier by camera distance; the focus follows the target in steps (an island set change
+    // rewrites the index buffers, so it is not done on every frame).
+    const ratio = camera.position.distanceTo(controls.target) / fit.dist;
+    lastRatio.current = ratio;
+    const t = controls.target;
+    const exact = ratio < EXACT_THREADS_BELOW;
+    const f = focus.current;
+    const moved = exact && (Math.hypot(t.x - f.x, t.z - f.z) > 1.5 || Math.abs(ratio - f.ratio) > 0.05);
+    if (f.stale || exact !== (f.tier === "exact") || moved) {
+      const chosen = new Set<number>();
+      if (exact) {
+        const order = layout.islands.map((isl, i) => ({ i, d: Math.hypot(isl.x - t.x, isl.z - t.z) })).sort((a, b) => a.d - b.d);
+        // Closer means longer threads on screen: the budget shrinks with the distance.
+        const budget = EXACT_SEGMENT_BUDGET * Math.min(1, Math.max(0.5, ratio / EXACT_THREADS_BELOW));
+        let used = 0;
+        for (const { i } of order) {
+          const n = layout.threadStarts[i + 1]! - layout.threadStarts[i]!;
+          if (used + n > budget && chosen.size > 0) break;
+          chosen.add(i);
+          used += n;
+        }
+      }
+      const counts = objects.setFocus(exact ? chosen : null);
+      focus.current = { tier: exact ? "exact" : "bundled", x: t.x, z: t.z, islands: chosen.size, ratio, stale: false, ...counts };
+    }
+    const fov = (camera as PerspectiveCamera).fov * (Math.PI / 180);
+    objects.setPointScale(size.height / (2 * Math.tan(fov / 2)));
 
     const lab = labels.current;
     if (!lab) return;
@@ -328,10 +386,17 @@ export function LayerScene({
     }
     items.sort((a, b) => a.d - b.d);
     let n = 0;
+    // Nearer labels first; a label that would overlap one already placed is skipped. The box is
+    // estimated from the text length (no layout reads in the frame loop).
+    const boxes: { x0: number; x1: number; y0: number; y1: number }[] = [];
     for (const it of items) {
       if (n >= LABEL_POOL) break;
       const p = local(it.x, it.y, it.z);
       if (!p) continue;
+      const half = it.text.length * 3.3 + 6;
+      const box = { x0: p.x - half, x1: p.x + half, y0: p.y - 22, y1: p.y - 4 };
+      if (boxes.some((b) => b.x0 < box.x1 && box.x0 < b.x1 && b.y0 < box.y1 && box.y0 < b.y1)) continue;
+      boxes.push(box);
       const s = lab.pool[n]!;
       if (s.textContent !== it.text) s.textContent = it.text;
       const cls = `layer-label ${it.cls}`;
@@ -358,7 +423,18 @@ export function LayerScene({
         testCases: layout.cases.length,
         matrix: layout.matrix.length,
         threads: layout.threads.length / 6,
+        bundled: layout.bundles.length / 6,
         uncovered: layout.uncovered,
+      },
+      view: () => {
+        const f = focus.current;
+        return { tier: f.tier, exactSegments: f.exact, bundledSegments: f.bundled, focusIslands: f.islands, distanceRatio: lastRatio.current };
+      },
+      setDistanceRatio: (r) => {
+        const dir = camera.position.clone().sub(controls.target).normalize();
+        camera.position.copy(controls.target).addScaledVector(dir, r * fit.dist);
+        controls.update();
+        invalidate();
       },
       screenPoint: picker.screenPoint,
       pickAt: (x, y) => {
@@ -370,7 +446,7 @@ export function LayerScene({
     return () => {
       if (window.__testmentorLayers) window.__testmentorLayers.ready = false;
     };
-  }, [gl, layout, picker, invalidate]);
+  }, [gl, layout, picker, invalidate, camera, controls, fit]);
 
   return <primitive object={objects.group} />;
 }

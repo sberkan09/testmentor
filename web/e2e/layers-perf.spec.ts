@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { syntheticSnapshot } from "../src/test/synthetic";
+import { EXACT_THREADS_BELOW } from "../src/views/layers/tiers";
 
 /** Paket 9 bitti testi: 2.000 gereksinim ve ~5.000 test durumlu sentetik snapshot (API'siz, sabit
  *  veri; istekler ve WebSocket Playwright içinde karşılanır) ile katman görünümü açılır. 5 sn fareyle
@@ -38,6 +39,39 @@ async function openLayers(page: Page) {
 
 const nextFrame = (page: Page) => page.evaluate(() => new Promise<number>((r) => requestAnimationFrame(() => r(performance.now()))));
 
+/** Drags the camera around for ORBIT_MS (one mouse step per animation frame) and checks the mean
+ *  time between rendered frames. */
+async function orbit(page: Page, label: string) {
+  const box = await page.getByTestId("layers-stage").boundingBox();
+  if (!box) throw new Error("tuval yok");
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  const t0 = await nextFrame(page);
+  let now = t0;
+  while (now - t0 < ORBIT_MS) {
+    const t = (now - t0) / 1000;
+    await page.mouse.move(cx + 260 * Math.sin((2 * Math.PI * t) / 2.5), cy + 70 * Math.sin((2 * Math.PI * t) / 5));
+    now = await nextFrame(page);
+  }
+  await page.mouse.up();
+  const frames = await page.evaluate(([a, b]) => window.__testmentorLayers!.frames.filter((f) => f >= a! && f <= b!), [t0, now]);
+  const n = frames.length;
+  const mean = n > 1 ? (frames[n - 1]! - frames[0]!) / (n - 1) : Infinity;
+  const deltas = frames.slice(1).map((f, i) => f - frames[i]!);
+  const sorted = [...deltas].sort((a, b) => a - b);
+  const pct = (q: number) => +(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))] ?? Infinity).toFixed(1);
+  // Kare aralıklarının dağılımı (16,7 ms'lik dilimlere göre): ≤17, ≤34, ≤50, daha uzun.
+  const hist = [17, 34, 50, Infinity].map((lim, i, a) => deltas.filter((d) => d <= lim && d > (a[i - 1] ?? 0)).length);
+  const result = { label, frames: n, windowMs: Math.round(now - t0), meanMs: +mean.toFixed(2), p50Ms: pct(0.5), p95Ms: pct(0.95), maxMs: pct(1), hist };
+  console.log(`[layers] orbit: ${JSON.stringify(result)}`);
+  test.info().annotations.push({ type: "frame-time", description: JSON.stringify(result) });
+  // Sahne gerçekten çizildi mi: 5 sn'de en az 100 kare (30 fps'in 2/3'ü).
+  expect(n, `${label}: yörüngede çizilen kare sayısı`).toBeGreaterThanOrEqual(100);
+  expect(mean, `${label}: ortalama kare süresi (ms)`).toBeLessThanOrEqual(MAX_MEAN_MS);
+}
+
 /** A point where a click selects exactly this item (nothing in front of it). */
 async function clickable(page: Page, kind: "requirement" | "matrix", keys: string[]) {
   return page.evaluate(
@@ -72,33 +106,23 @@ test("katman görünümü: 2.000 gereksinimde akıcı yörünge, seçim 2B gör�
     await expect(page.getByTestId("layers-uncovered")).toHaveText(String(info.counts.uncovered));
   });
 
-  await test.step("5 sn yörünge: ortalama kare süresi ≤ 33 ms", async () => {
-    const box = await page.getByTestId("layers-stage").boundingBox();
-    if (!box) throw new Error("tuval yok");
-    const cx = box.x + box.width / 2;
-    const cy = box.y + box.height / 2;
-    await page.mouse.move(cx, cy);
-    await page.mouse.down();
-    const t0 = await nextFrame(page);
-    let now = t0;
-    while (now - t0 < ORBIT_MS) {
-      const t = (now - t0) / 1000;
-      await page.mouse.move(cx + 260 * Math.sin((2 * Math.PI * t) / 2.5), cy + 70 * Math.sin((2 * Math.PI * t) / 5));
-      now = await nextFrame(page);
-    }
-    await page.mouse.up();
-    const frames = await page.evaluate(([a, b]) => window.__testmentorLayers!.frames.filter((f) => f >= a! && f <= b!), [t0, now]);
-    const n = frames.length;
-    const mean = n > 1 ? (frames[n - 1]! - frames[0]!) / (n - 1) : Infinity;
-    const deltas = frames.slice(1).map((f, i) => f - frames[i]!);
-    const sorted = [...deltas].sort((a, b) => a - b);
-    const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? Infinity;
-    const result = { frames: n, windowMs: Math.round(now - t0), meanMs: +mean.toFixed(2), p95Ms: +p95.toFixed(2), maxMs: +(sorted.at(-1) ?? 0).toFixed(2) };
-    console.log(`[layers] orbit: ${JSON.stringify(result)}`);
-    test.info().annotations.push({ type: "frame-time", description: JSON.stringify(result) });
-    // Sahne gerçekten çizildi mi: 5 sn'de en az 100 kare (30 fps'in 2/3'ü).
-    expect(n, "yörüngede çizilen kare sayısı").toBeGreaterThanOrEqual(100);
-    expect(mean, "ortalama kare süresi (ms)").toBeLessThanOrEqual(MAX_MEAN_MS);
+  await test.step("5 sn yörünge, tüm görünüm (demet ipler): ortalama kare süresi ≤ 33 ms", async () => {
+    const view = await page.evaluate(() => window.__testmentorLayers!.view());
+    expect(view.tier).toBe("bundled");
+    expect(view.bundledSegments).toBeGreaterThan(REQUIREMENTS * 0.9);
+    await orbit(page, "uzak");
+  });
+
+  await test.step("5 sn yörünge, eşiğin hemen içinde (gerçek ipler): ortalama kare süresi ≤ 33 ms", async () => {
+    await page.evaluate((r) => window.__testmentorLayers!.setDistanceRatio(r), EXACT_THREADS_BELOW * 0.95);
+    await nextFrame(page);
+    await nextFrame(page);
+    const view = await page.evaluate(() => window.__testmentorLayers!.view());
+    console.log(`[layers] near view: ${JSON.stringify(view)}`);
+    expect(view.tier).toBe("exact");
+    expect(view.exactSegments).toBeGreaterThan(500);
+    await orbit(page, "eşik içi");
+    expect((await page.evaluate(() => window.__testmentorLayers!.view())).tier).toBe("exact");
   });
 
   const reqKeys = SNAP.nodes.filter((n) => n.ref.kind === "requirement").map((n) => n.ref.key).slice(0, 300);

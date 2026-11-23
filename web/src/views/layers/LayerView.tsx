@@ -1,5 +1,6 @@
-import { Component, useCallback, useMemo, useRef, type ReactNode } from "react";
+import { Component, memo, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
+import { LinearSRGBColorSpace } from "three";
 import { useActions, useView } from "../../context";
 import { buildLayout } from "./layout";
 import { COLORS } from "./objects";
@@ -39,10 +40,17 @@ function reveal(testId: string) {
   requestAnimationFrame(tick);
 }
 
-export default function LayerView() {
+// Stable props: a new object on every render would make the canvas reconfigure its camera.
+const CAMERA = { fov: 45, near: 0.5, far: 2000, position: [0, 60, 90] as [number, number, number] };
+const GL = { antialias: false, alpha: false, powerPreference: "high-performance" as const };
+
+function LayerView() {
   const state = useView();
   const { select, setView } = useActions();
-  const layout = useMemo(() => (state ? buildLayout(state) : null), [state]);
+  // Rebuild only when nodes or matrix warnings change (not on streamed text or job events).
+  const nodes = state?.nodes;
+  const warnings = state?.warnings;
+  const layout = useMemo(() => (nodes && warnings ? buildLayout({ nodes, warnings }) : null), [nodes, warnings]);
   const labelsRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<SceneHandle | null>(null);
 
@@ -108,8 +116,13 @@ export default function LayerView() {
             frameloop="demand"
             dpr={1}
             flat
-            gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
-            camera={{ fov: 45, near: 0.5, far: 2000, position: [0, 60, 90] }}
+            legacy
+            onCreated={({ gl }) => {
+              // Colors are authored in sRGB and written as is: no per-fragment conversion.
+              gl.outputColorSpace = LinearSRGBColorSpace;
+            }}
+            gl={GL}
+            camera={CAMERA}
             aria-label="3B katman görünümü"
           >
             <color attach="background" args={[COLORS.background]} />
@@ -122,3 +135,5 @@ export default function LayerView() {
     </div>
   );
 }
+
+export default memo(LayerView);
