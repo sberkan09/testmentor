@@ -19,8 +19,8 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
 from core.llm import LLMParams
-from core.nodes import NodeKind, StageConfig
-from core.settings import ClusteringSettings, StageSettings
+from core.nodes import MethodDef, NodeKind, StageConfig
+from core.settings import ClusteringSettings, ImportSettings, StageSettings
 
 
 class ModelSpec(BaseModel):
@@ -181,6 +181,19 @@ def stage_settings_from(cfg: dict[str, Any], examples: dict[str, Any]) -> StageS
         field_max_chars=dict(generation.get("field_max_chars") or {}),
         clustering=ClusteringSettings(**(cfg.get("clustering") or {})),
     )
+
+
+def load_import_settings(config_dir: str | Path = "config") -> ImportSettings:
+    """`import:` section of config/pipeline.yaml (paket 4)."""
+    return ImportSettings.model_validate(
+        _read(Path(config_dir), "pipeline.yaml").get("import") or {}
+    )
+
+
+def load_default_methods(config_dir: str | Path = "config") -> tuple[MethodDef, ...]:
+    """The default verification method list (`methods:` of config/pipeline.yaml)."""
+    raw = _read(Path(config_dir), "pipeline.yaml").get("methods") or []
+    return tuple(MethodDef.model_validate(m) for m in raw)
 
 
 LLM_PARAM_KEYS = ("temperature", "thinking", "max_tokens")

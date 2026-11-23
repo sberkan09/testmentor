@@ -22,3 +22,12 @@ Dışında: API ve kuyruk (paket 5, 6), arayüz (paket 8).
 ## Kurallar
 
 `core/` dosya, HTTP ya da veritabanı içe aktarmaz. Model çağrısı yok. Ücretli kaynak ve hakem yok. `make test`, `make lint` yeşil. Ayarlar `config/pipeline.yaml` `import:` bölümünden (`services.settings` üzerinden okunur).
+
+## Uygulamada netleşenler
+
+- `ImportError` alt sınıfı yerine `core.importing.RequirementImportError(ValueError)` (`row` alanı elektronik tablo satırı: başlık 1, ilk veri satırı 2); yerleşik `ImportError`'ı gölgelemez ve "modül içe aktarılamadı" anlamı taşımaz.
+- `import:` ayarı için `core.settings.ImportSettings` ve `services.settings.load_import_settings` / `load_default_methods` eklendi; `build_project` bunları `import_settings` ve `default_methods` anahtar sözcükleriyle alır (verilmezse config'ten okur) ve `async`'tir (`embed` async).
+- csv'de `csv.Sniffer` yalnızca ayırıcı için kullanılır; tırnak karakteri tahmini içinde tırnaklı sözcük olan hücrede (altın set KK-004) satırı bozduğu için tırnak `"` sabittir.
+- Tohum dalında `worker/contracts.py`, bu plan ve `fake_llm` yoktu; ana oturumun dalıyla birleştirildi.
+- `core/importing.py` `worker.contracts.ColumnMapping` içe aktarır (sözleşme modeli saf pydantic; dosya, HTTP ya da veritabanı yok).
+- Matris satırları `matrix_rows` içinde düğüm durumundan canlı hesaplanır (`MATRIX_ROW` düğümü bayatken de görünüm doğru); xlsx metin hücreleri formül sayılmasın diye açıkça metin türünde yazılır.

@@ -29,6 +29,18 @@ class ClusteringSettings(BaseModel):
     """HDBSCAN only."""
 
 
+class ImportSettings(BaseModel):
+    """config/pipeline.yaml `import:` (paket 4)."""
+
+    model_config = _FROZEN
+
+    id_prefix: str = "REQ-"
+    """Prefix of the id given to a requirement without one (`REQ-1`, `REQ-2`, ...)."""
+    max_requirements: int = Field(default=2000, ge=1)
+    encodings: tuple[str, ...] = ("utf-8-sig", "utf-8", "cp1254")
+    """csv: tried in this order."""
+
+
 class StageSettings(BaseModel):
     model_config = _FROZEN
 
