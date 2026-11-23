@@ -181,3 +181,22 @@ def plain(obj: Any) -> Any:
     if isinstance(obj, BaseModel):
         return obj.model_dump(mode="json")
     return obj
+
+
+class CardMethod(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=60)
+    criterion: str = Field(min_length=1)
+
+
+@lru_cache(maxsize=8)
+def card_draft_model(max_text_chars: int) -> type[BaseModel]:
+    """Output of the card draft call (paket 7): the card text, at most `max_text_chars`
+    characters (card tokens x characters per token), and the verification method list."""
+    return create_model(
+        "CardDraft",
+        __config__=ConfigDict(extra="forbid"),
+        text=(str, Field(min_length=1, max_length=max_text_chars)),
+        methods=(list[CardMethod], Field(min_length=1, max_length=12)),
+    )

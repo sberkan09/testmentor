@@ -1,0 +1,10 @@
+name: d9-top12
+question: "D9 parça sayısı: ilk 12 parça (taban 8); 12 x 400 token ~4.800 token eder. Belge gerektiren denetimlerde check_recall ve uydurma içerik d9-index-base ile karşılaştırılır."
+variable: kb.top_k=12
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  kb:
+    top_k: 12
+quality: true

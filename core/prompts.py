@@ -4,7 +4,7 @@ Layer order (CLAUDE.md, prompt rules), most stable first so the engine's prefix 
 1. system instruction (shared by every stage and project)
 2. project card (per project)
 3. stage instruction, output schema and examples (per stage)
-4. retrieved passages (per cluster; none yet)
+4. retrieved passages, then project examples when there are any (per cluster)
 5. requirements (per call)
 Corrections, pinned items and extra instructions are appended after layer 5, never inserted
 into the prefix. Nothing variable (dates, counters, user names, unsorted lists) goes into
@@ -37,7 +37,8 @@ SHARED_VERSION = "s1"
 STAGE_VERSIONS: dict[NodeKind, str] = {
     NodeKind.METHOD: "m1",
     NodeKind.CLUSTER_LABEL: "l1",
-    NodeKind.TEST_SET: "g4",  # g4: describe long inputs + field maxLength (paket 3b, KDH-030)
+    NodeKind.TEST_SET: "g5",  # g5: `# Project examples` in layer 4 (paket 7, D10); g4: describe
+    # long inputs + field maxLength (paket 3b, KDH-030). Without examples g5 renders as g4.
 }
 """Template version per model stage. Bump when the dynamic rendering (requirement block, tails)
 changes; tests/stages/test_prompts.py pins a rendering hash per version."""
@@ -192,6 +193,7 @@ def generation_messages(
     priorities: Sequence[str],
     passages: Sequence[str] = (),
     only_ids: Sequence[str] = (),
+    project_examples: Sequence[str] = (),
 ) -> list[dict[str, str]]:
     layer3 = _generation_layer3(
         schema=schema,
@@ -201,6 +203,8 @@ def generation_messages(
         priorities=priorities,
     )
     layer4 = "# Retrieved passages\n" + ("\n\n".join(passages) if passages else "(none)")
+    if project_examples:  # no section, not an empty one, when examples are off (byte-stable)
+        layer4 += "\n\n" + examples_section(project_examples)
     layer5 = "# Requirements\n" + _requirements_block(reqs, methods)
     tail = "\n\n" + repair_section(only_ids) if only_ids else ""
     return [
@@ -277,6 +281,27 @@ def label_messages(
     """Layers 1–2 shared with every stage, layer 3 `LABEL_INSTRUCTION` and the schema, layer 5
     the member requirements (no methods tag). No passages layer."""
     return _short_messages(card, f"{LABEL_INSTRUCTION}\n\n# Output schema\n{_json(schema)}", reqs)
+
+
+EXAMPLES_HEADER = (
+    "# Project examples\n"
+    "Test cases the project's engineers wrote or approved for similar requirements. Follow "
+    "their wording, level of detail and structure; do not copy their content into tests for "
+    "other requirements."
+)
+
+
+def render_example(requirement_texts: Sequence[str], case: TestCaseContent) -> str:
+    """One pooled example: the requirement text(s) it covers, then the test case as one compact
+    JSON line (`case_block` layout)."""
+    reqs = "\n".join(f"Requirement: {t}" for t in requirement_texts)
+    return f"{reqs}\nTest case: {case_block([case])}"
+
+
+def examples_section(texts: Sequence[str]) -> str:
+    """`EXAMPLES_HEADER` and the rendered examples in the given (similarity) order; only called
+    with at least one example."""
+    return EXAMPLES_HEADER + "\n\n" + "\n\n".join(texts)
 
 
 def append_tail(messages: Sequence[dict[str, str]], *sections: str) -> list[dict[str, str]]:
@@ -391,3 +416,48 @@ def prompt_version(stage: NodeKind, settings: StageSettings) -> str:
     text = f"{SYSTEM}\n\n{layer3(stage, settings)}"
     fingerprint = hashlib.sha256(text.encode("utf-8")).hexdigest()[:FINGERPRINT_LENGTH]
     return f"{SHARED_VERSION}.{stage_version}+{fingerprint}"
+
+
+# Project card draft (paket 7) --------------------------------------------------------------------
+
+CARD_DRAFT_VERSION = "k1"
+"""Template version of the card draft call. Not a node stage: the draft is a suggestion the user
+edits, so it has no `input_hash`; the version is recorded with the draft."""
+
+CARD_DRAFT_INSTRUCTION = (
+    "# Task: project card draft\n"
+    "Write the project card from the documents below. The card is read before every "
+    "test-writing request of this project, so keep it short and stable.\n"
+    "- text: at most {max_tokens} tokens. What the system is, the glossary and abbreviations "
+    "the documents use, and the rules for writing tests that the documents state (naming, "
+    "level of detail, forbidden content). Write only what the documents state; do not invent "
+    "rules.\n"
+    "- methods: the project's verification methods, each with the criterion for choosing it. "
+    "Start from the list below, keep its names, and adjust the criteria to the documents.\n"
+    "- Write the text in the language of the documents."
+)
+
+
+def card_draft_messages(
+    documents: Sequence[tuple[str, str]],
+    methods: Sequence[tuple[str, str]],
+    *,
+    max_tokens: int,
+    schema: Mapping[str, Any],
+) -> list[dict[str, str]]:
+    """Layer 1 (the shared system instruction), then the task with the starting method list
+    and the output schema, then the documents (id order; `## <id>` and the excerpt text).
+    There is no card yet, so no card layer."""
+    method_lines = "\n".join(f"- {name}: {criterion}" for name, criterion in methods)
+    task = CARD_DRAFT_INSTRUCTION.format(max_tokens=max_tokens)
+    docs = "\n\n".join(f"## {doc_id}\n{text}" for doc_id, text in sorted(documents))
+    return [
+        {"role": "system", "content": SYSTEM},
+        {
+            "role": "user",
+            "content": (
+                f"{task}\n\n{METHODS_HEADER}\n{method_lines}\n\n"
+                f"# Output schema\n{_json(schema)}\n\n# Documents\n{docs}"
+            ),
+        },
+    ]

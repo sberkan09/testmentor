@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.kb.settings import KbSettings
 from core.llm import LLMParams
 from core.nodes import NodeKind
 
@@ -68,6 +69,9 @@ class StageSettings(BaseModel):
     """D8: when members only left, drop and trim their cases without a model call (`False`: the
     incremental call, as in the design's call count)."""
     clustering: ClusteringSettings = ClusteringSettings()
+    kb: KbSettings = KbSettings()
+    """Knowledge base (paket 7). The retrieval stage's parameters come from here
+    (`KbSettings.retrieval_params`)."""
 
     @property
     def field_limits(self) -> tuple[tuple[str, int], ...]:

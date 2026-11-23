@@ -306,6 +306,8 @@ Her projenin bilgisi iki katmanda tutulur: her prompt'a giren kısa bir proje ka
 
 Kullanıcının onayladığı ya da düzelttiği test durumları projeye özel örnek havuzuna yazılır. Yeni bir öbek için en benzer 2–3 örnek prompt'a eklenir. Sistem böylece ince ayar yapılmadan projenin üslubunu öğrenir.
 
+Uygulama (paket 7): örnek seçimi arama düğümüne yazılır. `RetrievalContent` parça kimliklerinin yanında `example_keys` taşır; böylece test setinin hash kuralı değişmez (parça kimlikleri ve örnek anahtarları hash'e girer, indeks ve havuz sürümü girmez). Anahtar örneğin metin özetini içerir (`<test durumu anahtarı>@<özet>`): kullanıcı bir örneği düzeltirse anahtar değişir ve set bayatlar; havuz değişse de seçilen örnekler aynıysa set bayatlamaz. Örnekler prompt'un 4. katmanında parçalardan sonra `# Project examples` bölümüyle girer; bölüm yalnızca örnek varsa yazılır, `kb.examples: 0` iken prompt değişmez. Parça kimliği de aynı nedenle metnin kısa özetini taşır (`<belge>#<sıra>@<özet>`): belge yeniden parçalanırsa aynı sıradaki farklı metin aynı kimlikle prompt'a girmez.
+
 ### Yalıtım
 
 Her sorgu `project_id` filtresi taşır. Bir projenin parçasının başka projenin prompt'una girmediği otomatik testle doğrulanır.

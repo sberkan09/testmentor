@@ -89,6 +89,11 @@ class FakeComplete:
                     for rid, _ in _rows(req)
                 ]
             }
+        if name == "CardDraft":
+            return {
+                "text": "Sistem: örnek proje. Kısaltmalar belgelerde tanımlıdır.",
+                "methods": [{"name": self.test_method, "criterion": "Davranış gözlenebiliyorsa."}],
+            }
         raise ValueError(f"no fake reply for schema {name}")
 
     async def __call__(self, request: LLMRequest) -> LLMReply:

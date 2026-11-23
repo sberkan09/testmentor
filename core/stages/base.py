@@ -53,6 +53,19 @@ class PassageSource(Protocol):
     def __call__(self, ids: Sequence[str]) -> list[str]: ...
 
 
+class SelectExamples(Protocol):
+    """Example pool selection for one cluster (paket 7, D10): the example keys most similar to
+    the member texts, most similar first; empty when the pool is empty or examples are off."""
+
+    async def __call__(self, members: Sequence[RequirementContent]) -> list[str]: ...
+
+
+class ExampleSource(Protocol):
+    """Example keys to their prompt texts, same order (paket 7, D10)."""
+
+    def __call__(self, keys: Sequence[str]) -> list[str]: ...
+
+
 @dataclass(frozen=True)
 class ProduceContext:
     """Everything a producer reads. `state` is the snapshot the job started from: results carry
@@ -70,6 +83,11 @@ class ProduceContext:
     embed: Embed | None = None
     retrieve: Retrieve | None = None
     passages: PassageSource | None = None
+    select_examples: SelectExamples | None = None
+    """Retrieval stage: choose project examples for a cluster (D10); None leaves `example_keys`
+    empty."""
+    example_texts: ExampleSource | None = None
+    """Test set stage: texts of the retrieval's `example_keys` for the prompt."""
 
 
 @dataclass(frozen=True)
