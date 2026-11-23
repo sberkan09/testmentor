@@ -149,7 +149,7 @@ def build_server(deps: ServiceDeps | None = None) -> Server:
         registry = PgRegistry(kb_conn)
         registry.ensure_schema()
     pool = ExamplePool()
-    reranker = make_reranker(kb_settings.reranker)
+    reranker = make_reranker(kb_settings.reranker, kb_settings.rerank_max_tokens)
     embed = deps.embed
 
     def tools(project_id: str) -> ProjectTools:
