@@ -13,10 +13,13 @@ test.skip(process.env["DEMO"] !== "1", "yalnızca DEMO=1 ile");
 test.setTimeout(45 * 60_000);
 
 const SHOTS = process.env["DEMO_SHOTS"];
+/** Frame directory: Chromium screencast (CDP) frames with timestamps; demo/make_video.py builds
+ *  the MP4 from them (Playwright's own video recorder needs an ffmpeg build not installed here). */
+const FRAMES = process.env["DEMO_FRAMES"];
 const MARKS = process.env["DEMO_MARKS"];
 const KEY = process.env["DEMO_KEY"] ?? `KDH${Date.now().toString(36).slice(-4).toUpperCase()}`;
-const started = Date.now();
-const marks: { name: string; start: number; end?: number }[] = [];
+let started = Date.now(); // reset when the test (and its video) starts
+const marks: { name: string; start: number; end?: number; t0: number; t1?: number }[] = [];
 let shot = 0;
 
 function kdhCsv(): string {
@@ -54,9 +57,29 @@ async function caption(page: Page, text: string, hold = 3500) {
 
 const seconds = () => (Date.now() - started) / 1000;
 
-/** Wait until every stage is fresh (no stale, running or queued work); recorded as a mark. */
+async function banner(page: Page, text: string) {
+  await page.evaluate((t) => {
+    let el = document.getElementById("demo-fast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "demo-fast";
+      Object.assign(el.style, {
+        position: "fixed", left: "50%", top: "70px", transform: "translateX(-50%)", zIndex: "99999",
+        padding: "10px 18px", borderRadius: "10px", background: "rgba(79,70,229,0.92)", color: "#fff",
+        font: "600 19px/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif", pointerEvents: "none",
+      });
+      document.body.appendChild(el);
+    }
+    el.textContent = t;
+    el.style.display = t ? "block" : "none";
+  }, text);
+}
+
+/** Wait until every stage is fresh (no stale, running or queued work); recorded as a mark (the
+ *  video compresses it) and shown with a "sped up" banner. */
 async function waitIdle(page: Page, name: string, timeoutS = 30 * 60) {
-  const mark = { name, start: seconds() } as { name: string; start: number; end?: number };
+  await banner(page, "⏩ Yerel model üretiyor — bu bölüm videoda hızlandırıldı");
+  const mark = { name, start: seconds(), t0: Date.now() / 1000 } as (typeof marks)[number];
   marks.push(mark);
   const deadline = Date.now() + timeoutS * 1000;
   for (;;) {
@@ -70,11 +93,31 @@ async function waitIdle(page: Page, name: string, timeoutS = 30 * 60) {
     await page.waitForTimeout(2000);
   }
   mark.end = seconds();
+  mark.t1 = Date.now() / 1000;
+  await banner(page, "");
 }
 
 const clusterSections = (page: Page) => page.locator('section[data-testid^="cluster-"]');
 
 test("demo: Vatandaş Başvuru Portalı", async ({ page }) => {
+  started = Date.now();
+  const frames: { file: string; t: number }[] = [];
+  let stopFrames = async () => {};
+  if (FRAMES) {
+    mkdirSync(FRAMES, { recursive: true });
+    const cdp = await page.context().newCDPSession(page);
+    cdp.on("Page.screencastFrame", (f: { data: string; sessionId: number; metadata: { timestamp?: number } }) => {
+      const file = `${String(frames.length).padStart(6, "0")}.jpg`;
+      writeFileSync(`${FRAMES}/${file}`, Buffer.from(f.data, "base64"));
+      frames.push({ file, t: f.metadata.timestamp ?? Date.now() / 1000 });
+      void cdp.send("Page.screencastFrameAck", { sessionId: f.sessionId }).catch(() => undefined);
+    });
+    await cdp.send("Page.startScreencast", { format: "jpeg", quality: 85, maxWidth: 1440, maxHeight: 900 });
+    stopFrames = async () => {
+      await cdp.send("Page.stopScreencast").catch(() => undefined);
+      writeFileSync(`${FRAMES}/frames.json`, JSON.stringify({ frames, end: Date.now() / 1000 }));
+    };
+  }
   await test.step("Açılış", async () => {
     await page.goto("/");
     await caption(page, "testmentor: gereksinim setinden test durumlarına ve izlenebilirlik matrisine, yerel modelle", 4000);
@@ -163,5 +206,6 @@ test("demo: Vatandaş Başvuru Portalı", async ({ page }) => {
     await caption(page, "Tüm üretim tek GPU'lu yerel sunucuda; veri kurum dışına çıkmaz", 4500);
   });
 
+  await stopFrames();
   if (MARKS) writeFileSync(MARKS, JSON.stringify({ marks, key: KEY, case: caseTestId }, null, 2));
 });
