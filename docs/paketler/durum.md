@@ -11,7 +11,7 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 5 | `paket-5-plan.md` | B (Opus) | yazılıyor (23.11) |
 | 6 | `paket-6-plan.md` | B (5'ten sonra) | planlandı |
 | 7 | `paket-7-plan.md` | C (Sonnet) | kod yazılıyor (23.11); GPU ölçümü bu oturumda |
-| 8 | `paket-8-plan.md` | D (Sonnet) | yazılıyor (23.11); sözleşme şemasına göre, e2e paket 6'dan sonra |
+| 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; e2e yalnızca sahte API'ye karşı geçti, gerçek API ile paket 6'dan sonra |
 | 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
 | Demo | – | bu oturum | gerçek model çıktılarıyla demo videosu (Playwright kaydı + ffmpeg alt yazı, MP4) |
 
