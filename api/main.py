@@ -8,6 +8,8 @@ Environment:
   the store is Postgres at `TESTMENTOR_PG_DSN`.
 - `TESTMENTOR_STORE=memory` forces the in-memory store in both cases (demo with a real model).
 - `web/dist`, when built, is served under `/` (see `create_app`).
+- login: `auth:` of config/runtime.yaml, `TESTMENTOR_AUTH_MODE`, `TESTMENTOR_AUTH_SECRET`
+  (`api/auth.py`).
 
 `build_server()` is the single place where the orchestrator of paket 5 (`worker/service.py`) and
 the knowledge base (paket 7, wired in paket 10) are put together; the dependencies are assembled
@@ -23,6 +25,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from api.app import create_app
+from api.auth import Authenticator
 from core.llm import Complete
 from core.stages.base import Embed
 from services.settings import StageSettings, load_stage_settings
@@ -187,4 +190,4 @@ def build_service() -> ProjectService:
 
 
 server = build_server()
-app = create_app(server.service, kb=server.kb)
+app = create_app(server.service, kb=server.kb, auth=Authenticator.from_config())

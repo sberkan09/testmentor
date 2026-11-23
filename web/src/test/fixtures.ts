@@ -88,6 +88,8 @@ export function fakeApi(overrides: Partial<StudioApi> = {}): StudioApi & { comma
   const commands: CommandRequest[] = [];
   const api: StudioApi & { commands: CommandRequest[] } = {
     commands,
+    authConfig: async () => ({ mode: "header" }),
+    login: async (user) => ({ token: "jeton", user, expires_at: 0 }),
     listProjects: async () => [{ id: "P", name: "Proje" }],
     createProject: async () => snapshot(),
     snapshot: async () => snapshot(),

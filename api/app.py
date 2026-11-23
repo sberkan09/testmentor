@@ -25,7 +25,14 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.websockets import WebSocketDisconnect
 
-from api.models import KbDocumentView, KbRemoveResult, KbUploadResult
+from api.models import (
+    AuthConfig,
+    KbDocumentView,
+    KbRemoveResult,
+    KbUploadResult,
+    LoginRequest,
+    LoginResult,
+)
 from core.nodes import NodeRef
 from worker.contracts import (
     CommandRequest,
@@ -37,6 +44,7 @@ from worker.contracts import (
 )
 
 if TYPE_CHECKING:
+    from api.auth import Authenticator
     from services.kb_documents import DocumentInfo, KbDocuments
 
 XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -85,12 +93,52 @@ def create_app(
     service: ProjectService,
     *,
     kb: KbDocuments | None = None,
+    auth: Authenticator | None = None,
     static_dir: Path | None = None,
     ping_interval_s: float = 20.0,
 ) -> FastAPI:
     """`kb`: the knowledge base uploads (paket 10); without it the `/kb/documents` endpoints
-    answer 404."""
+    answer 404. `auth`: login (paket 10, `api/auth.py`); None or mode `header` reads the actor
+    from `X-User`. In mode `password` every `/projects` request needs a valid token (401
+    otherwise): `Authorization: Bearer`, or `?token=` for the xlsx link and the WebSocket."""
     app = FastAPI(title="testmentor")
+    password_mode = auth is not None and auth.mode == "password"
+
+    if password_mode:
+        assert auth is not None
+
+        @app.middleware("http")
+        async def require_token(request: Request, call_next: Any) -> Response:
+            path = request.url.path
+            if path == "/projects" or path.startswith("/projects/"):
+                header = request.headers.get("authorization", "")
+                token = header[7:].strip() if header.lower().startswith("bearer ") else None
+                if token is None and path.endswith("/matrix.xlsx"):
+                    token = request.query_params.get("token")
+                user = auth.verify(token)
+                if user is None:
+                    return JSONResponse(
+                        {"detail": "login required"},
+                        status_code=401,
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
+                request.state.user = user
+            return await call_next(request)
+
+    @app.get("/auth/config")
+    async def auth_config() -> AuthConfig:
+        return AuthConfig(mode="password" if password_mode else "header")
+
+    @app.post("/auth/login")
+    async def login(body: LoginRequest) -> LoginResult:
+        if not password_mode or auth is None:
+            raise HTTPException(404, "password login is off (auth.mode: header)")
+        issued = await auth.login(body.user, body.password)
+        if issued is None:
+            raise HTTPException(401, "kullanıcı adı ya da parola yanlış")
+        token, expires = issued
+        return LoginResult(token=token, user=body.user.strip(), expires_at=expires)
+
     command_adapter: TypeAdapter[CommandRequest] = TypeAdapter(CommandRequest)
 
     def is_known(project_id: str) -> bool:
@@ -100,9 +148,12 @@ def create_app(
         if not is_known(project_id):
             raise HTTPException(404, f"unknown project {project_id}")
 
-    def actor_of(x_user: str | None) -> str:
-        """The `X-User` header is percent-encoded UTF-8 (HTTP headers carry Latin-1 only, and
-        user names like "Ayşe" do not fit); a plain ASCII name decodes to itself."""
+    def actor_of(request: Request, x_user: str | None) -> str:
+        """Password mode: the token's user (`X-User` is ignored). Header mode: the `X-User`
+        header, percent-encoded UTF-8 (HTTP headers carry Latin-1 only, and user names like
+        "Ayşe" do not fit); a plain ASCII name decodes to itself."""
+        if password_mode:
+            return str(request.state.user)
         name = unquote(x_user or "").strip()
         if not name:
             raise HTTPException(400, "X-User header is required")
@@ -135,7 +186,7 @@ def create_app(
     async def command(
         project_id: str, request: Request, x_user: str | None = Header(default=None)
     ) -> Response:
-        actor = actor_of(x_user)
+        actor = actor_of(request, x_user)
         known(project_id)
         try:
             body = command_adapter.validate_python(await request.json())
@@ -155,9 +206,12 @@ def create_app(
 
     @app.post("/projects/{project_id}/locks")
     async def lock(
-        project_id: str, body: LockBody, x_user: str | None = Header(default=None)
+        project_id: str,
+        body: LockBody,
+        request: Request,
+        x_user: str | None = Header(default=None),
     ) -> JSONResponse:
-        actor = actor_of(x_user)
+        actor = actor_of(request, x_user)
         known(project_id)
         ok = service.lock(project_id, body.ref, actor)
         return JSONResponse({"locked": ok}, status_code=200 if ok else 423)
@@ -186,11 +240,12 @@ def create_app(
     async def kb_upload(
         project_id: str,
         file: Annotated[UploadFile, File()],
+        request: Request,
         x_user: str | None = Header(default=None),
     ) -> KbUploadResult:
         from services.kb_documents import UploadRejected
 
-        actor = actor_of(x_user)
+        actor = actor_of(request, x_user)
         docs = kb_or_404()
         known(project_id)
         data = await file.read()
@@ -202,9 +257,12 @@ def create_app(
 
     @app.delete("/projects/{project_id}/kb/documents/{document_id}")
     async def kb_remove(
-        project_id: str, document_id: str, x_user: str | None = Header(default=None)
+        project_id: str,
+        document_id: str,
+        request: Request,
+        x_user: str | None = Header(default=None),
     ) -> KbRemoveResult:
-        actor = actor_of(x_user)
+        actor = actor_of(request, x_user)
         docs = kb_or_404()
         known(project_id)
         try:
@@ -215,8 +273,15 @@ def create_app(
 
     @app.websocket("/projects/{project_id}/events")
     async def events(
-        ws: WebSocket, project_id: str, after: int | None = None, user: str = ""
+        ws: WebSocket,
+        project_id: str,
+        after: int | None = None,
+        user: str = "",
+        token: str | None = None,
     ) -> None:
+        if password_mode and (auth is None or auth.verify(token) is None):
+            await ws.close(code=4401)
+            return
         if not is_known(project_id):
             await ws.close(code=4404)
             return

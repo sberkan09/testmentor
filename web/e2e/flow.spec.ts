@@ -1,6 +1,6 @@
-import { readFileSync, statSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { statSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
+import { goldenCsv, login } from "./helpers";
 
 /** Paket 8 bitti testi: yükle, öbekleri gör, taşı, test durumunu düzenle ve sabitle, matrisi gör,
  *  xlsx indir; iki sekmede çakışma. Her adım `test.step` ve `data-testid` ile adlandırılır, böylece
@@ -9,22 +9,7 @@ import { expect, test, type Page } from "@playwright/test";
 const VIDEO = process.env["E2E_VIDEO"] === "on";
 const pace = (page: Page, ms = 1200) => (VIDEO ? page.waitForTimeout(ms) : Promise.resolve());
 
-function goldenCsv(): string {
-  const path = fileURLToPath(new URL("../../eval/golden/altin-set-v0.json", import.meta.url));
-  const data = JSON.parse(readFileSync(path, "utf8")) as { projects: { requirements: { id: string; language: string; text: string }[] }[] };
-  const reqs = data.projects[0]?.requirements ?? [];
-  const esc = (s: string) => `"${s.replaceAll('"', '""')}"`;
-  return ["id,language,text", ...reqs.map((r) => [r.id, r.language, esc(r.text)].join(","))].join("\n");
-}
-
 const clusterSections = (page: Page) => page.locator('section[data-testid^="cluster-"]');
-
-async function login(page: Page, name: string) {
-  await page.goto("/");
-  await page.getByTestId("user-name").fill(name);
-  await page.getByTestId("user-submit").click();
-  await expect(page.getByTestId("projects-page")).toBeVisible();
-}
 
 test("yükle, öbekle, taşı, düzenle, sabitle, matrisi dışa aktar", async ({ page, browser }) => {
   const key = `E${Date.now().toString(36).toUpperCase()}`;
@@ -121,9 +106,8 @@ test("yükle, öbekle, taşı, düzenle, sabitle, matrisi dışa aktar", async (
 
   await test.step("İkinci sekme: güncel durum ve kilit görünür", async () => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-    await ctx.addInitScript(() => localStorage.setItem("testmentor.user", "mehmet"));
     const second = await ctx.newPage();
-    await second.goto("/");
+    await login(second, "mehmet"); // parolalı kipte parolayla (E2E_PASSWORD)
     await second.getByTestId(`project-${key}`).click();
     await expect(second.getByTestId("studio")).toBeVisible();
     // Birinci sekme: kümeleri göster, test durumunu seç, başlığı değiştirmeye başla (kilit alınır).

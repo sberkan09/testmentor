@@ -20,7 +20,8 @@ export function Studio() {
   const view = useStudio((s) => s.view);
   const status = useStudio((s) => s.status);
   const user = useStudio((s) => s.user) ?? "";
-  const { setView, closeProject, send } = useActions();
+  const passwordMode = useStudio((s) => s.authMode === "password");
+  const { setView, closeProject, send, logout } = useActions();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -63,6 +64,11 @@ export function Studio() {
           <span className="avatar">{initials(user)}</span>
           {user}
         </span>
+        {passwordMode && (
+          <button className="btn small ghost" data-testid="logout" onClick={() => logout()}>
+            Çıkış
+          </button>
+        )}
       </header>
       <div className="workspace">
         <main className="canvas">{view === "clusters" ? <ClusterView /> : view === "matrix" ? <MatrixView /> : <DocumentsView />}</main>

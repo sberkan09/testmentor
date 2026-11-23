@@ -23,6 +23,14 @@ kb_upload:                  # paket 10: bilgi havuzuna belge yükleme (POST /pro
   max_mb: 20
   extensions: [.txt, .md, .markdown, .pdf]   # PDF yalnızca metin katmanlıysa (taranmış PDF reddedilir)
 
+auth:                       # paket 10 (docs/tasarim.md, API → Kurallar)
+  mode: header              # header: X-User başlığı (geliştirme, testler) | password: parolalı giriş (pilot); TESTMENTOR_AUTH_MODE
+  users_file: data/users.yaml   # git dışı; python -m api.users add AD; TESTMENTOR_USERS_FILE
+  token_hours: 12           # jeton ömrü
+  secret_env: TESTMENTOR_AUTH_SECRET   # jeton imza anahtarı .env içinde (en az 32 karakter)
+  min_secret_chars: 32
+  min_password_chars: 8
+
 database:
   url_env: DATABASE_URL                 # postgresql://testmentor:...@localhost:5432/testmentor
 

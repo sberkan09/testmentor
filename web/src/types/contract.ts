@@ -175,6 +175,12 @@ export type AddedBy = string;
 export type AddedAt = number;
 export type Seq3 = number;
 export type Seq4 = number;
+export type Mode2 = "header" | "password";
+export type User = string;
+export type Password = string;
+export type Token = string;
+export type User1 = string;
+export type ExpiresAt = number;
 
 /**
  * Container so that every model lands in one schema with shared `$defs`.
@@ -190,6 +196,9 @@ export interface ApiContract {
   kb_document: KbDocumentView;
   kb_upload_result: KbUploadResult;
   kb_remove_result: KbRemoveResult;
+  auth_config: AuthConfig;
+  login_request: LoginRequest;
+  login_result: LoginResult;
 }
 /**
  * `POST /projects` body (multipart: this as JSON field `meta` plus the file).
@@ -451,4 +460,16 @@ export interface KbUploadResult {
 }
 export interface KbRemoveResult {
   seq: Seq4;
+}
+export interface AuthConfig {
+  mode: Mode2;
+}
+export interface LoginRequest {
+  user: User;
+  password: Password;
+}
+export interface LoginResult {
+  token: Token;
+  user: User1;
+  expires_at: ExpiresAt;
 }

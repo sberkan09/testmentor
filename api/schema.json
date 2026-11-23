@@ -19,6 +19,23 @@
       "title": "ApproveStage",
       "type": "object"
     },
+    "AuthConfig": {
+      "properties": {
+        "mode": {
+          "enum": [
+            "header",
+            "password"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "AuthConfig",
+      "type": "object"
+    },
     "ColumnMapping": {
       "additionalProperties": false,
       "description": "Which source columns hold what. Only `text` is required; a missing id gets `REQ-<n>`.",
@@ -573,6 +590,47 @@
         "node"
       ],
       "title": "KeepMine",
+      "type": "object"
+    },
+    "LoginRequest": {
+      "properties": {
+        "user": {
+          "title": "User",
+          "type": "string"
+        },
+        "password": {
+          "title": "Password",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user",
+        "password"
+      ],
+      "title": "LoginRequest",
+      "type": "object"
+    },
+    "LoginResult": {
+      "properties": {
+        "token": {
+          "title": "Token",
+          "type": "string"
+        },
+        "user": {
+          "title": "User",
+          "type": "string"
+        },
+        "expires_at": {
+          "title": "Expires At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "token",
+        "user",
+        "expires_at"
+      ],
+      "title": "LoginResult",
       "type": "object"
     },
     "MatrixRowView": {
@@ -1279,6 +1337,15 @@
     },
     "kb_remove_result": {
       "$ref": "#/$defs/KbRemoveResult"
+    },
+    "auth_config": {
+      "$ref": "#/$defs/AuthConfig"
+    },
+    "login_request": {
+      "$ref": "#/$defs/LoginRequest"
+    },
+    "login_result": {
+      "$ref": "#/$defs/LoginResult"
     }
   },
   "required": [
@@ -1291,7 +1358,10 @@
     "matrix_row",
     "kb_document",
     "kb_upload_result",
-    "kb_remove_result"
+    "kb_remove_result",
+    "auth_config",
+    "login_request",
+    "login_result"
   ],
   "title": "ApiContract",
   "type": "object"

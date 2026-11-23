@@ -1,7 +1,11 @@
-import type { CommandRequest, CommandResult, ImportRequest, KbDocumentView, KbRemoveResult, KbUploadResult, NodeRef, Snapshot } from "../types";
+import type { AuthConfig, CommandRequest, CommandResult, ImportRequest, KbDocumentView, KbRemoveResult, KbUploadResult, LoginResult, NodeRef, Snapshot } from "../types";
 
 /** REST surface used by the store; tests replace it with a fake. */
 export interface StudioApi {
+  /** Login mode of the server (paket 10); `header` when the server does not say. */
+  authConfig(): Promise<AuthConfig>;
+  /** Password login; rejects with `ApiError` (401) on a wrong name or password. */
+  login(user: string, password: string): Promise<LoginResult>;
   listProjects(): Promise<{ id: string; name: string }[]>;
   createProject(meta: ImportRequest, file: File): Promise<Snapshot>;
   snapshot(projectId: string): Promise<Snapshot>;
@@ -32,16 +36,49 @@ async function detail(res: Response): Promise<string> {
   }
 }
 
-export function createRestApi(getUser: () => string, fetchFn: typeof fetch = (...a) => fetch(...a)): StudioApi {
+export interface AuthHooks {
+  /** Token of password login; requests carry it instead of `X-User`. */
+  getToken?: () => string | null;
+  /** Called on a 401 answer (token missing, expired or forged). */
+  onUnauthorized?: () => void;
+}
+
+export function createRestApi(getUser: () => string, fetchFn: typeof fetch = (...a) => fetch(...a), hooks: AuthHooks = {}): StudioApi {
+  const token = () => hooks.getToken?.() ?? null;
   // HTTP headers carry Latin-1 only; the server decodes the percent-encoded UTF-8 name ("Ayşe").
-  const headers = (extra: Record<string, string> = {}) => ({ "X-User": encodeURIComponent(getUser()), ...extra });
+  const headers = (extra: Record<string, string> = {}): Record<string, string> => {
+    const t = token();
+    return t ? { Authorization: `Bearer ${t}`, ...extra } : { "X-User": encodeURIComponent(getUser()), ...extra };
+  };
 
   async function json<T>(res: Response): Promise<T> {
-    if (!res.ok) throw new ApiError(await detail(res), res.status);
+    if (!res.ok) {
+      if (res.status === 401) hooks.onUnauthorized?.();
+      throw new ApiError(await detail(res), res.status);
+    }
     return (await res.json()) as T;
   }
 
   return {
+    async authConfig() {
+      try {
+        const res = await fetchFn("/auth/config");
+        if (!res.ok) return { mode: "header" };
+        const body = (await res.json()) as Partial<AuthConfig>;
+        return { mode: body.mode === "password" ? "password" : "header" };
+      } catch {
+        return { mode: "header" };
+      }
+    },
+    async login(user, password) {
+      const res = await fetchFn("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user, password }),
+      });
+      if (!res.ok) throw new ApiError(await detail(res), res.status);
+      return (await res.json()) as LoginResult;
+    },
     async listProjects() {
       const raw = await json<unknown[]>(await fetchFn("/projects", { headers: headers() }));
       // Contract: `[{id, name}]`; tolerate `[[id, name]]` (ProjectService.projects tuples).
@@ -62,6 +99,10 @@ export function createRestApi(getUser: () => string, fetchFn: typeof fetch = (..
         headers: headers({ "Content-Type": "application/json" }),
         body: JSON.stringify(req),
       });
+      if (res.status === 401) {
+        hooks.onUnauthorized?.();
+        throw new ApiError("login required", 401);
+      }
       // 409, 422 and 423 carry a CommandResult with `accepted: false`.
       if (res.status === 409 || res.status === 422 || res.status === 423) {
         try {
@@ -83,11 +124,14 @@ export function createRestApi(getUser: () => string, fetchFn: typeof fetch = (..
         body: JSON.stringify({ ref }),
       });
       if (res.status === 423) return false;
+      if (res.status === 401) hooks.onUnauthorized?.();
       if (!res.ok) throw new ApiError(await detail(res), res.status);
       return true;
     },
     matrixUrl(projectId) {
-      return `/projects/${encodeURIComponent(projectId)}/matrix.xlsx`;
+      // A plain link cannot send a header: password mode passes the token in the query.
+      const t = token();
+      return `/projects/${encodeURIComponent(projectId)}/matrix.xlsx${t ? `?token=${encodeURIComponent(t)}` : ""}`;
     },
     async listDocuments(projectId) {
       return json<KbDocumentView[]>(await fetchFn(`/projects/${encodeURIComponent(projectId)}/kb/documents`, { headers: headers() }));

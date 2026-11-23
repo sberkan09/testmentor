@@ -1,8 +1,11 @@
-"""Bodies of the endpoints added after the contract froze (paket 10): knowledge base documents.
+"""Bodies of the endpoints added after the contract froze (paket 10): knowledge base documents
+and login.
 `worker/contracts.py` (`Snapshot` and the rest) is unchanged; these models go into
 `api/schema.json` next to it."""
 
 from __future__ import annotations
+
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -28,3 +31,19 @@ class KbUploadResult(BaseModel):
 
 class KbRemoveResult(BaseModel):
     seq: int
+
+
+class AuthConfig(BaseModel):
+    mode: Literal["header", "password"]
+
+
+class LoginRequest(BaseModel):
+    user: str
+    password: str
+
+
+class LoginResult(BaseModel):
+    token: str
+    user: str
+    expires_at: float
+    """Unix time."""

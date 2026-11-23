@@ -10,7 +10,14 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from api.models import KbDocumentView, KbRemoveResult, KbUploadResult
+from api.models import (
+    AuthConfig,
+    KbDocumentView,
+    KbRemoveResult,
+    KbUploadResult,
+    LoginRequest,
+    LoginResult,
+)
 from worker.contracts import (
     CommandRequest,
     CommandResult,
@@ -37,6 +44,9 @@ class ApiContract(BaseModel):
     kb_document: KbDocumentView
     kb_upload_result: KbUploadResult
     kb_remove_result: KbRemoveResult
+    auth_config: AuthConfig
+    login_request: LoginRequest
+    login_result: LoginResult
 
 
 def render() -> str:

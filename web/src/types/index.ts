@@ -1,4 +1,6 @@
 export type {
+  AuthConfig,
+  LoginResult,
   Command,
   CommandRequest,
   CommandResult,
