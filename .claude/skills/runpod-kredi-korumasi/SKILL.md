@@ -17,6 +17,8 @@ Bir pod'u silmek, onu açan oturumun ayakta kalmasına bağlı olamaz. 20 Kasım
    - Bekçi `RUNPOD_POD_ID` ve Runpod'un pod'a verdiği `RUNPOD_API_KEY` ile `DELETE /v2/pods/{id}` çağırır (20 Kasım 2026'da gerçek bir pod'da doğrulandı).
 4. Kullanıcıya saatlik fiyatı, son tarihi ve bakiyeyi yaz.
 
+Bekçi kapsayıcının içinde çalışır. Kapsayıcı hiç oluşmazsa (23 Kasım 2026: makine network volume'u bağlayamadı, pod RUNNING ve ücretliydi) bekçi de yoktur. Bu yüzden `wait` zaman aşımında pod'u siler. Pod açıldıktan sonra hazır olmuyorsa sistem günlüğüne bak (`stream-pod-logs`, `source: system`); "create container" hataları görürsen hemen `make down`.
+
 ## İş sürerken
 
 - Birden çok adımlı işler `make batch BATCH=<ad>` ile koşar (`config/batches/`). `eval/batch.py` son adımda, hata ya da sinyal olsa bile `make down` çalıştırır.

@@ -396,6 +396,14 @@ def cmd_wait(rp: Runpod, args: argparse.Namespace) -> int:
                 pass
             time.sleep(10)
     print("zaman aşımı: servis hazır olmadı")
+    if getattr(args, "keep_on_timeout", False):
+        print("uyarı: pod bırakıldı (--keep-on-timeout); işin sonunda make down")
+        return 1
+    # A pod that never became ready is useless, and if its container never started (e.g. the
+    # host could not mount the network volume, 23 Nov 2026) the watchdog inside it never ran
+    # either: nothing would delete it. Delete it here.
+    print("hazır olmayan pod siliniyor (bekçisi çalışmıyor olabilir)")
+    cmd_down(rp, args)
     return 1
 
 
@@ -541,6 +549,11 @@ def main() -> int:
     rc.add_argument("--override", action="append")
     w = sub.add_parser("wait")
     w.add_argument("--timeout", type=float, default=1800)
+    w.add_argument(
+        "--keep-on-timeout",
+        action="store_true",
+        help="hazır olmazsa pod'u silme (varsayılan: siler; bekçisi çalışmıyor olabilir)",
+    )
     sub.add_parser("status")
     sub.add_parser("down")
     dl = sub.add_parser("download")
