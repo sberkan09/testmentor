@@ -212,7 +212,7 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 | D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; birim sınırı 10 ve 25 (50 çıkarıldı: Test gereksinimi başına ~624 çıktı token'ıyla ~31 bin token eder, 32 bin bağlama sığmaz; paket 3) | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | **Öbek başına kalır** (paket 3; kullanıcı kararı, 21 Kasım 2026). Artış test sayısından geliyor: test sayısı iki kolda aynı olan 80 gereksinimde fark +0,011, gereksinim başına kolun daha çok test yazdığı 133 gereksinimde +0,110. Daha çok kapsama istenirse öbek bağlamını koruyan prompt deneyi (gereksinim başına daha çok sınır ve hata testi) daha ucuz yoldur. Hakem recall'ı: gereksinim başına çağrı 0,495, öbek başına 0,426, 10'luk paket 0,385, 25'lik paket 0,355. Gereksinim başına çağrı öbek başınadan ölçülebilir biçimde iyi (+0,069 [+0,028, +0,110]; ikinci öbek başına koşuya göre +0,046 [+0,012, +0,082]) ama uydurma içerik %48 (1,26 → 1,87), test sayısı %57, çıktı token'ı %55 artıyor; öbekleri paketlemek ölçülebilir biçimde kötü. [D7](deneyler/D7.md) |
 | D8 | Yeniden üretim biçimi | artımlı ve baştan (ekleme), artımlı çağrı ve modelsiz budama (çıkarma), birleştirme prompt'u ve baştan (birleştirme); kollar aynı taban üzerinde | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | **Ekleme: artımlı; çıkarma: modelsiz budama; birleştirme: birleştirme prompt'u** (paket 3). Eklemede artımlı önceki testlerin %100'ünü korudu (baştan %9), düzeltmeleri tekrarlamadı (baştan 7), token'ın dörtte birini harcadı; recall farkı yok (+0,029 [−0,020, +0,079]). Çıkarmada çağrı ile budama aynı seti verdi (fark +0,008 [0, +0,024]): daha basit olan budama (`generation.prune_removals: true`). Birleştirmede prompt 100 kat az token, 8 kat kısa; recall farkı yok. [D8](deneyler/D8.md) |
 | D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | **400 token, ilk 4, reranker yok, kart var** (paket 7, 23 Kasım 2026). Gerçek hibrit arama parçasız koşuya göre +0,073 [+0,035, +0,114], belge gerektiren denetimlerde 0,26 → 0,40 (kâhin 0,49). Parça boyu ve sayısı kolları arasında ölçülebilir fark yok; ilk 4 en kısa prompt (−%31). Reranker koşulmadı. Pilot (paket 1b): kâhin parçalarla belge gerektiren denetimlerde 0,28 → 0,49. [D9](deneyler/D9.md) |
-| D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | **Kesildi** (paket 7, 23 Kasım 2026): örnek havuzu kodu hazır, varsayılan kapalı (`kb.examples: 0`); altın setin referans testlerinden kurulan havuz cevap anahtarını sızdırır, sızıntısız havuz ayrı iş. |
+| D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | Paket 7'de kesildi (referans testlerinden kurulan havuz cevap anahtarını sızdırır). **Paket 11'de yeniden açıldı** (23 Kasım 2026): havuz sızıntısız kurulur (Örnek havuzu bölümü). Uzman yok; ölçüt altın set puanıdır (hakem, katman 2), üslup uyumu yaklaşık olarak adım sayısının ve alan uzunluklarının referansa yakınlığıyla raporlanır. Karar kuralı D9 ile aynı: eşleştirilmiş bootstrap aralığı sıfırı dışlamıyorsa basit olan (0 örnek) kalır. |
 | D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 | bu paketin kapsamı dışında |
 | D12 | Önek ısıtma | paralel çağrıları ilk çağrı öneki işleyene kadar bekletmek ve bekletmemek | ilk üretimin toplam süresi ve önek cache isabet oranı | bekletmek | **Bekletmemek.** Önek isabeti aynı (%54), süre biraz kısa, recall farkı gürültü içinde. [D12](deneyler/D12.md) |
 
@@ -301,11 +301,14 @@ Her projenin bilgisi iki katmanda tutulur: her prompt'a giren kısa bir proje ka
 - Depo Postgres ve pgvector'dür; projeler `project_id` ile ayrılır. Ayrı bir vektör veritabanı kurulmaz. İndeks bir arayüzün arkasındadır: geliştirme, test ve ölçüm bellek içi gerçeklemeyle (numpy, BM25) koşar, üretim pgvector'le (paket 7; geliştirme ortamında uzantı yok).
 - Arama hibrittir: yoğun vektör ve anahtar kelime sonuçları sıra birleştirmeyle (RRF) tek listeye iner, ilk 6–8 parça alınır.
 - Arama birimi öbektir. Sorgu üye gereksinimlerin metnidir; gereksinim başına değil öbek başına bir arama yapılır. Öbek adı sorguya girmez: girseydi yeniden adlandırma arama sonucunu ve test setini bayatlatabilirdi (paket 2'de netleşti). Adın faydası D9'da ölçülebilir.
-- Yeniden sıralayıcı (reranker) ilk sürümde yoktur; altın set ölçümü gerektirirse eklenir.
+- Yeniden sıralayıcı (reranker) ilk sürümde yoktur; altın set ölçümü gerektirirse eklenir. D9'un reranker kolu paket 11'de ölçülür (çapraz kodlayıcı, CPU, ilk 3 × `top_k` aday); karar kuralı D9 ile aynıdır: ölçülebilir fark yoksa kapalı kalır.
+- Sunucu projeye özel indeksi depo türüne göre seçer: Postgres deposunda `PgIndex` (pgvector), bellek içi depoda bellek içi indeks. Belgeler `POST /projects/{id}/kb/documents` ile yüklenir (düz metin, Markdown, metin katmanlı PDF); yükleme parçalar, embed eder ve `KbDocumentAdded` olayıyla arama düğümlerini yeniden denetletir (paket 10).
 
 ### Örnek havuzu
 
 Kullanıcının onayladığı ya da düzelttiği test durumları projeye özel örnek havuzuna yazılır. Yeni bir öbek için en benzer 2–3 örnek prompt'a eklenir. Sistem böylece ince ayar yapılmadan projenin üslubunu öğrenir.
+
+Bir öbeğe seçilen örnekler o öbeğin üyelerini kapsayan test durumlarını içermez: onlar zaten sabit test olarak prompt'tadır, örnek olarak tekrarlanmaz (paket 11). Ölçümde (D10) havuz altın setin referans testlerinden kurulur; cevap anahtarı sızmasın diye hedef öbeğin bir üyesini kapsayan ya da bir üyeyle aynı referans kaynağını (`reference_candidates`) paylaşan gereksinimin testi havuzdan çıkarılır ve koşu her öbek için örtüşmenin sıfır olduğunu doğrular.
 
 Uygulama (paket 7): örnek seçimi arama düğümüne yazılır. `RetrievalContent` parça kimliklerinin yanında `example_keys` taşır; böylece test setinin hash kuralı değişmez (parça kimlikleri ve örnek anahtarları hash'e girer, indeks ve havuz sürümü girmez). Anahtar örneğin metin özetini içerir (`<test durumu anahtarı>@<özet>`): kullanıcı bir örneği düzeltirse anahtar değişir ve set bayatlar; havuz değişse de seçilen örnekler aynıysa set bayatlamaz. Örnekler prompt'un 4. katmanında parçalardan sonra `# Project examples` bölümüyle girer; bölüm yalnızca örnek varsa yazılır, `kb.examples: 0` iken prompt değişmez. Parça kimliği de aynı nedenle metnin kısa özetini taşır (`<belge>#<sıra>@<özet>`): belge yeniden parçalanırsa aynı sıradaki farklı metin aynı kimlikle prompt'a girmez.
 
@@ -326,7 +329,7 @@ Durumun tek sahibi sunucudur: ön yüz komut gönderir, sonuçları olay akış�
 | Veritabanı | Postgres, pgvector | düğümler, sürümler, olay günlüğü, indeks |
 | Model sunucusu | vLLM (çalışma varsayımı) | metin üretimi |
 | Embedding servisi | BGE-M3 (çalışma varsayımı) | vektörler |
-| Dağıtım | Docker Compose | beş servis, tek sunucu |
+| Dağıtım | Docker Compose | dört servis (model sunucusu, embedding, Postgres, uygulama), tek sunucu; uygulama servisi API'yi ve derlenmiş ön yüzü sunar (paket 10) |
 
 ### Kod düzeni
 
@@ -357,6 +360,7 @@ Sonuçlar `WS /projects/{id}/events` üzerinden gelir: `node_created`, `node_upd
 - Ön yüz iyimser güncelleme yapar ve olayla teyit eder; çelişkide sunucu kazanır.
 - Sekme kapansa da pipeline çalışmaya devam eder.
 - İlk sürümde erişim şirket içi ağla sınırlıdır; komutun sahibi `X-User` başlığından okunur. Kullanıcı girişi ve proje bazlı yetki sonraki sürümdür (23 Kasım 2026, süre kararı; `docs/paketler/durum.md`).
+- Pilot için kullanıcı girişi (paket 10): `auth.mode` iki değer alır. `header` (varsayılan, geliştirme ve testler) `X-User` başlığını okur. `password` kullanıcı adı ve parola ister: kullanıcılar depoya girmeyen bir dosyada (`auth.users_file`) scrypt özetiyle durur ve bir komut satırı aracıyla eklenir; giriş, `.env` içindeki gizli anahtarla imzalı ve süreli bir jeton döner. REST istekleri jetonu `Authorization: Bearer` ile, WebSocket `token` sorgu parametresiyle taşır; komutun sahibi jetondaki kullanıcıdır. Proje bazlı yetki yine sonraki sürümdür: giriş yapan her kullanıcı tüm projeleri görür.
 
 ### Çok kullanıcılı çalışma
 
@@ -455,7 +459,9 @@ Aynı yöntemlerin geliştirme sürecine uygulanışı deponun `CLAUDE.md` dosya
 | 6 | API ve olay akışı: REST komutları, WebSocket, snapshot ve tekrar oynatma | Sonnet | Bağlantı kopup gelince istemci durumu sunucuyla aynı; iki kullanıcının çakışan komutu doğru reddediliyor |
 | 7 | Bilgi havuzu: parçalama, indeks, hibrit arama, proje kartı, örnek havuzu | Sonnet; kart çıkarımı ve örnek seçimi Opus | Yalıtım testi geçiyor, altın sette kalite düşmüyor |
 | 8 | Ön yüz: öbek görünümü, denetçi, aşama çubuğu, matris görünümü, fark ekranı, geri alma | Sonnet; tuval etkileşimi Opus | Kullanıcı bir seti yükleyip düzenleyerek matrisi dışa aktarabiliyor |
-| 9 | Ön yüz: 3B katman görünümü | Opus | 2.000 gereksinimde akıcı gezinme |
+| 9 | Ön yüz: 3B katman görünümü ([plan](paketler/paket-9-plan.md)) | Opus | 2.000 gereksinimde akıcı gezinme |
+| 10 | Pilot hazırlığı: sunucuda bilgi havuzu ve belge yükleme, kullanıcı girişi, uygulama servisiyle Compose ([plan](paketler/paket-10-plan.md)) | Opus | `PgIndex` ve depo testleri pgvector'lü Postgres'e karşı geçiyor; Compose ile kurulan uygulamaya karşı Playwright testi (belge yükleme ve parolalı giriş dahil) geçiyor |
+| 11 | Kalite: D10 (sızıntısız örnek havuzu) ve D9'un reranker kolu ([plan](paketler/paket-11-plan.md)) | Opus | Kollar aynı batch'te taban koluyla koşuldu, eşleştirilmiş bootstrap ile raporlandı, kararlar ayara yazıldı |
 
 Sıra bağımlılığı izler: 0 → 1 → 2 → 3 → 5 → 6 → 8 → 9. Paket 4 ve 7, paket 2 bittikten sonra paralel yürür. Paketler arası sözleşme (komutlar, olaylar, snapshot, düğüm görünümü, proje servisi arayüzü) `worker/contracts.py` içindedir ve paket 4–9 başlamadan dondurulur; paket 6 ve 8 ona göre yazılır (23 Kasım 2026).
 
