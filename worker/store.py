@@ -50,7 +50,9 @@ class UndoEntry(BaseModel):
     """The undone command's `type`."""
     expected: dict[str, int]
     """`str(NodeRef)` → version right after the command (0: absent). Undo is refused with
-    `version_conflict` when another command changed one of them since."""
+    `version_conflict` when another command changed one of them since, unless its content and
+    pin equal `contents` again (another undo restored it)."""
+    contents: dict[str, str | None] = Field(default_factory=dict)
     steps: tuple[UndoStep, ...]
 
 

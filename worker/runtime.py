@@ -71,6 +71,7 @@ from core.events import (
     TestCaseEdited,
 )
 from core.graph import ProjectState, cache_key, expected_hash, upstream, with_declared_nodes
+from core.hashing import plain_hash
 from core.invalidation import (
     Hint,
     Invalidation,
@@ -79,7 +80,6 @@ from core.invalidation import (
     mark_failed,
     mark_running,
     release,
-    settle,
     settle_many,
 )
 from core.llm import Complete
@@ -104,6 +104,7 @@ from core.settings import StageSettings
 from core.stages.base import Embed, PassageSource, ProduceContext, ProduceOutcome, Retrieve
 from core.stages.clustering import recut
 from core.stages.test_generation import BASIS_PARAM
+from core.store import OutputCache
 from worker.contracts import (
     ApproveStage,
     Command,
@@ -224,6 +225,54 @@ class _Subscription:
         self.owner._subscribers.discard(self)
 
 
+class _Tx:
+    """The core transitions behind one commit, in order. Each step writes a node at most once,
+    so persisting the steps one after the other keeps every stored version at +1."""
+
+    def __init__(self, state: ProjectState) -> None:
+        self.state = state
+        self.chain: list[ProjectState] = []
+        self.invs: list[Invalidation] = []
+        self.settled: set[NodeRef] = set()
+        self.events: list[Event] = []
+
+    def apply(self, event: Event) -> None:
+        self.state, inv = apply(self.state, event)
+        self.chain.append(self.state)
+        self.invs.append(inv)
+        self.events.append(event)
+
+    def settle(self, results: Sequence[tuple[NodeRef, Result]]):
+        out = settle_many(self.state, results)
+        if out.accepted:
+            self.state = out.state
+            self.chain.append(out.state)
+            self.invs.append(out.invalidation)
+            self.settled |= out.accepted
+        return out
+
+    def resolve(self, cache: OutputCache) -> None:
+        """Settle ready nodes whose cache key hits, round by round (ready nodes never depend on
+        each other), until nothing more hits: `core.invalidation.apply(cache=...)` in steps."""
+        while True:
+            state = self.state
+            hits = []
+            for r in analyze(state).ready:
+                cached = cache.get(state.project_id, cache_key(state, r))
+                if cached is not None:
+                    hits.append((r, cached))
+            if not hits or not self.settle(hits).accepted:
+                return
+
+
+def _fingerprint(node: Node | None) -> str | None:
+    """Content and pin of a node, for undo's conflict check."""
+    if node is None:
+        return None
+    content = node.content.model_dump(mode="json") if node.content is not None else None
+    return plain_hash({"content": content, "pinned": node.pinned})
+
+
 def _ref_of(text: str) -> NodeRef:
     kind, key = text.split(":", 1)
     return NodeRef(kind=NodeKind(kind), key=key)
@@ -330,16 +379,12 @@ class ProjectRuntime:
             if rt.state.stage_configs.get(k) != c
         ]
         if changed:
-            new, invs = rt._apply_events(rt.state, changed)
-            touched = rt._touched(rt.state, new)
-            rt._commit(
-                new,
-                invs=invs,
-                log_events=changed,
-                actor="system",
-                touched=touched,
-                approval=True,
-            )
+            tx = _Tx(rt.state)
+            for event in changed:
+                tx.apply(event)
+            tx.resolve(store)
+            touched = rt._touched(rt.state, tx.state)
+            rt._commit(tx.state, tx=tx, actor="system", touched=touched, approval=True)
         rt._schedule()
         return rt
 
@@ -541,10 +586,10 @@ class ProjectRuntime:
                 def set_mode(rec: ProjectRecord) -> None:
                     rec.stage_modes[kind] = mode
 
-                return self._applied(cmd, actor, self.state, mutate=set_mode)
+                return self._applied(cmd, actor, mutate=set_mode)
             case ApproveStage(stage=kind):
                 stages.get(kind)
-                return self._applied(cmd, actor, self.state, mutate=self._approver(kind))
+                return self._applied(cmd, actor, mutate=self._approver(kind))
             case Regenerate(node=r):
                 node = state.get(r)
                 if node is None or r.kind in SOURCE_KINDS or r.kind in CHILD_KINDS:
@@ -552,7 +597,7 @@ class ProjectRuntime:
                 if node.pinned or node.status not in (Status.STALE, Status.FAILED):
                     raise ValueError(f"{r} is {node.status.value}; nothing to produce")
                 self._forced.add(r)
-                return self._applied(cmd, actor, self.state)
+                return self._applied(cmd, actor)
             case Undo():
                 return self._undo(cmd, actor)
             case Focus(nodes=nodes):
@@ -562,10 +607,12 @@ class ProjectRuntime:
         raise ValueError(f"unknown command {cmd!r}")  # pragma: no cover
 
     def _events(self, cmd: Command, actor: str, events: list[Event]) -> CommandResult:
-        old = self.state
-        new, invs = self._apply_events(old, events)
-        entry = self._undo_entry(cmd, old, new)
-        approval = any(inv.requires_approval for inv in invs)
+        tx = _Tx(self.state)
+        for event in events:
+            tx.apply(event)
+        tx.resolve(self.store)
+        entry = self._undo_entry(cmd, self.state, tx.state)
+        approval = any(inv.requires_approval for inv in tx.invs)
 
         def push(rec: ProjectRecord) -> None:
             if entry is not None:
@@ -573,27 +620,23 @@ class ProjectRuntime:
                 stack.append(entry)
                 del stack[:-UNDO_LIMIT]
 
-        return self._applied(
-            cmd, actor, new, invs=invs, log_events=events, mutate=push, approval=approval
-        )
+        return self._applied(cmd, actor, tx, mutate=push, approval=approval)
 
     def _applied(
         self,
         cmd: Command,
         actor: str,
-        new: ProjectState,
+        tx: _Tx | None = None,
         *,
-        invs: Sequence[Invalidation] = (),
-        log_events: Sequence[Event] = (),
         mutate: Callable[[ProjectRecord], None] | None = None,
         approval: bool = False,
     ) -> CommandResult:
-        touched = self._touched(self.state, new)
+        tx = tx or _Tx(self.state)
+        touched = self._touched(self.state, tx.state)
         result = CommandResult(accepted=True, seq=0)
         seq = self._commit(
-            new,
-            invs=invs,
-            log_events=log_events,
+            tx.state,
+            tx=tx,
             actor=actor,
             mutate=mutate,
             touched=touched,
@@ -601,15 +644,6 @@ class ProjectRuntime:
             after=[_command_draft("command_applied", cmd, result, actor)],
         )
         return result.model_copy(update={"seq": seq})
-
-    def _apply_events(
-        self, state: ProjectState, events: Iterable[Event]
-    ) -> tuple[ProjectState, list[Invalidation]]:
-        invs = []
-        for event in events:
-            state, inv = apply(state, event, cache=self.store)
-            invs.append(inv)
-        return state, invs
 
     def _approver(self, kind: NodeKind) -> Callable[[ProjectRecord], None]:
         state = self.state
@@ -746,30 +780,25 @@ class ProjectRuntime:
             case _:
                 return None
         expected = {str(r): (new.nodes[r].version if r in new.nodes else 0) for r in touched}
-        return UndoEntry(command=cmd.type, expected=expected, steps=tuple(steps))
+        contents = {str(r): _fingerprint(new.nodes.get(r)) for r in touched}
+        return UndoEntry(command=cmd.type, expected=expected, contents=contents, steps=tuple(steps))
 
     def _undo(self, cmd: Undo, actor: str) -> CommandResult:
         stack = self.record.undo.get(actor) or []
         if not stack:
             raise Rejected("nothing_to_undo")
         entry = stack[-1]
-        self._check_versions(entry.expected)
-        state = self.state
-        invs: list[Invalidation] = []
-        events: list[Event] = []
+        self._check_undo(entry)
+        tx = _Tx(self.state)
         for step in entry.steps:
             if step.event is not None:
-                state, inv = apply(state, step.event, cache=self.store)
-                invs.append(inv)
-                events.append(step.event)
+                tx.apply(step.event)
             elif step.restore is not None:
                 cached = self.store.get(self.pid, step.cache_key) if step.cache_key else None
                 if cached is not None:
-                    out = settle(state, step.restore, cached)
-                    if out.accepted:
-                        state = out.state
-                        invs.append(out.invalidation)
+                    tx.settle([(step.restore, cached)])
             else:
+                state = tx.state
                 clusters = {
                     c: state.members(c)
                     for c in state.keys_of(NodeKind.CLUSTER)
@@ -778,15 +807,34 @@ class ProjectRuntime:
                 pinned = {c: _pinned_members(state, c) for c in clusters}
                 clusters.update(step.clusters or {})
                 pinned.update(step.pinned or {})
-                event = MembershipChanged(clusters=clusters, pinned=pinned)
-                state, inv = apply(state, event, cache=self.store)
-                invs.append(inv)
-                events.append(event)
+                tx.apply(MembershipChanged(clusters=clusters, pinned=pinned))
+        tx.resolve(self.store)
 
         def pop(rec: ProjectRecord) -> None:
             rec.undo[actor] = rec.undo[actor][:-1]
 
-        return self._applied(cmd, actor, state, invs=invs, log_events=events, mutate=pop)
+        return self._applied(cmd, actor, tx, mutate=pop)
+
+    def _check_undo(self, entry: UndoEntry) -> None:
+        """Each node the undo writes back must be as the command left it: same version, or the
+        same content and pin (another undo may have restored it with a newer version)."""
+        current = {}
+        for key, version in entry.expected.items():
+            node = self.state.get(_ref_of(key))
+            current[key] = node.version if node is not None else 0
+            if current[key] != version and _fingerprint(node) != entry.contents.get(key):
+                conflict = True
+                break
+        else:
+            conflict = False
+        if conflict:
+            raise Rejected(
+                "version_conflict",
+                {
+                    k: (n.version if (n := self.state.get(_ref_of(k))) else 0)
+                    for k in entry.expected
+                },
+            )
 
     # Commit -------------------------------------------------------------------------------------
 
@@ -811,8 +859,8 @@ class ProjectRuntime:
         self,
         new: ProjectState,
         *,
+        tx: _Tx | None = None,
         invs: Sequence[Invalidation] = (),
-        log_events: Sequence[Event] = (),
         actor: str = "",
         before: Sequence[_Draft] = (),
         after: Sequence[_Draft] = (),
@@ -823,8 +871,13 @@ class ProjectRuntime:
         approval: bool = False,
         settled: Iterable[NodeRef] = (),
     ) -> int:
-        """See the module docstring. Returns the number of the last published event."""
+        """See the module docstring. Returns the number of the last published event. `tx`: the
+        steps that led to `new` (each persisted in order, so every stored version is +1)."""
         old = self.state
+        chain = [*(tx.chain if tx else ()), new]
+        invs = [*(tx.invs if tx else ()), *invs]
+        settled = {*(tx.settled if tx else ()), *settled}
+        log_events = tx.events if tx else ()
         record = self.record.model_copy(deep=True)
         if mutate is not None:
             mutate(record)
@@ -862,7 +915,11 @@ class ProjectRuntime:
         record.last_seq += len(drafts)
 
         with self.store.transaction():
-            self._persist_nodes(old, new)
+            prev = old
+            for step in chain:
+                if step is not prev:
+                    self._persist_nodes(prev, step)
+                prev = step
             for event in log_events:
                 self.store.append_event(self.pid, event, actor=actor or "system")
             for res in cache_puts:
@@ -1071,8 +1128,9 @@ class ProjectRuntime:
             if cached is not None:
                 hits.append((r, cached))
         if hits:
-            out = settle_many(state, hits)
-            self._commit(out.state, invs=[out.invalidation], settled=out.accepted)
+            tx = _Tx(state)
+            out = tx.settle(hits)
+            self._commit(tx.state, tx=tx)
             refs = [r for r in self._collect(key) if r not in out.accepted]
             if not refs:
                 return
@@ -1128,8 +1186,9 @@ class ProjectRuntime:
         self._finish(job, outcome)
 
     def _finish(self, job: _Job, outcome: ProduceOutcome) -> None:
-        settled = settle_many(self.state, list(outcome.results))
-        new = settled.state
+        tx = _Tx(self.state)
+        settled = tx.settle(list(outcome.results))
+        new = tx.state
         owned = {r for r in job.refs if self._owner.get(r) == job.job_id}
         failed: dict[NodeRef, str] = {}
         for r, why in outcome.failed.items():
@@ -1157,8 +1216,7 @@ class ProjectRuntime:
         self._jobs.pop(job.job_id, None)
         self._commit(
             new,
-            invs=[settled.invalidation],
-            settled=settled.accepted,
+            tx=tx,
             cache_puts=[res for _, res in outcome.results],
             job_records=[record],
             after=[draft],
