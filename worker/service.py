@@ -13,20 +13,24 @@ Setting up:
     ...
     await service.close()
 
-Development and tests use `services.fake_llm.FakeComplete` and `FakeEmbed`.
+Development and tests use `services.fake_llm.FakeComplete` and `FakeEmbed`. The knowledge base
+(paket 7) comes in per project through `tools=lambda pid: ProjectTools(...)` built with
+`services.kb_retrieve` (`build_retrieval`, `make_select_examples`, `make_example_source`).
 """
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 
 from core.graph import ProjectState
 from core.llm import Complete
+from core.matrix_view import matrix_rows
 from core.nodes import NodeRef
 from core.stages.base import Embed, PassageSource, Retrieve
+from services.importer import build_project
 from services.settings import load_llm_settings, load_stage_settings, stage_configs
-from worker import integration
+from services.xlsx_export import matrix_xlsx
 from worker.contracts import (
     CommandRequest,
     CommandResult,
@@ -35,7 +39,7 @@ from worker.contracts import (
     Snapshot,
 )
 from worker.queue import JobQueue
-from worker.runtime import ProjectRuntime, RuntimeDeps
+from worker.runtime import ProjectRuntime, ProjectTools, RuntimeDeps
 from worker.settings import load_orchestrator_settings
 from worker.store import ProjectStore
 
@@ -57,6 +61,7 @@ class OrchestratorService:
         embed: Embed,
         retrieve: Retrieve | None = None,
         passages: PassageSource | None = None,
+        tools: Callable[[str], ProjectTools] | None = None,
         config_dir: str | Path = "config",
         model: str | None = None,
         embedding_model_version: str | None = None,
@@ -80,6 +85,7 @@ class OrchestratorService:
             embed=embed,
             retrieve=retrieve,
             passages=passages,
+            tools=tools,
         )
         return cls(store, deps)
 
@@ -110,7 +116,7 @@ class OrchestratorService:
             raise ValueError(f"project {request.key} exists")
         if self.deps.embed is None:
             raise RuntimeError("no embedding service")
-        state = await integration.build_project(
+        state = await build_project(
             request,
             data,
             filename,
@@ -133,7 +139,7 @@ class OrchestratorService:
 
     def snapshot(self, project_id: str) -> Snapshot:
         rt = self._projects[project_id]
-        return rt.snapshot(integration.matrix_rows(rt.state, self.deps.settings.test_method))
+        return rt.snapshot(matrix_rows(rt.state, self.deps.settings.test_method))
 
     def events_after(self, project_id: str, seq: int) -> list[ServerEvent] | None:
         return self._projects[project_id].events_after(seq)
@@ -146,7 +152,7 @@ class OrchestratorService:
 
     def matrix_xlsx(self, project_id: str) -> bytes:
         rt = self._projects[project_id]
-        return integration.matrix_xlsx(rt.state, self.deps.settings.test_method)
+        return matrix_xlsx(rt.state, self.deps.settings.test_method)
 
     def projects(self) -> list[tuple[str, str]]:
         return sorted((pid, rt.record.name) for pid, rt in self._projects.items())

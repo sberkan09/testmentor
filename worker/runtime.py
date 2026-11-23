@@ -102,7 +102,15 @@ from core.nodes import (
     TestSetContent,
 )
 from core.settings import StageSettings
-from core.stages.base import Embed, PassageSource, ProduceContext, ProduceOutcome, Retrieve
+from core.stages.base import (
+    Embed,
+    ExampleSource,
+    PassageSource,
+    ProduceContext,
+    ProduceOutcome,
+    Retrieve,
+    SelectExamples,
+)
 from core.stages.clustering import recut
 from core.stages.test_generation import BASIS_PARAM
 from core.store import OutputCache
@@ -159,6 +167,17 @@ def report_progress(text: str) -> None:
 
 
 @dataclass(frozen=True)
+class ProjectTools:
+    """A project's knowledge base for the producers (paket 7, `services.kb_retrieve`): passage
+    search and texts for the retrieval and test set stages, example selection and texts (D10)."""
+
+    retrieve: Retrieve | None = None
+    passages: PassageSource | None = None
+    select_examples: SelectExamples | None = None
+    example_texts: ExampleSource | None = None
+
+
+@dataclass(frozen=True)
 class RuntimeDeps:
     complete: Complete
     settings: StageSettings
@@ -170,6 +189,9 @@ class RuntimeDeps:
     retrieve: Retrieve | None = None
     """Knowledge base search (paket 7); None: no passages."""
     passages: PassageSource | None = None
+    tools: Callable[[str], ProjectTools] | None = None
+    """Per-project knowledge base (paket 7), built once per project from its id; overrides
+    `retrieve` and `passages`. None: those two for every project (tests: none)."""
     clock: Callable[[], float] = time.monotonic
     """Edit locks."""
 
@@ -330,6 +352,7 @@ class ProjectRuntime:
         self._key_refs: dict[str, NodeRef] = {}
         self._waiting: dict[NodeKind, frozenset[NodeRef]] = {}
         self._session = uuid.uuid4().hex[:8]  # job record ids stay unique across restarts
+        self._project_tools: ProjectTools | None = None
 
     # Construction -------------------------------------------------------------------------------
 
@@ -1163,6 +1186,7 @@ class ProjectRuntime:
         for r in refs:
             self._owner[r] = job_id
         hint = self._hint(refs[0]) if len(refs) == 1 else None
+        tools = self._tools()
         ctx = ProduceContext(
             state=self.state,
             refs=tuple(refs),
@@ -1170,8 +1194,10 @@ class ProjectRuntime:
             hint=hint,
             sources=self._sources(hint),
             embed=self.deps.embed,
-            retrieve=self.deps.retrieve,
-            passages=self.deps.passages,
+            retrieve=tools.retrieve,
+            passages=tools.passages,
+            select_examples=tools.select_examples,
+            example_texts=tools.example_texts,
         )
         token = _PROGRESS.set(lambda text: self._progress(job, text))
         try:
@@ -1246,6 +1272,16 @@ class ProjectRuntime:
             payload={"job": job.view().model_dump(mode="json"), "text": text},
         )
         self._publish([event], keep=False)
+
+    def _tools(self) -> ProjectTools:
+        if self._project_tools is None:
+            if self.deps.tools is not None:
+                self._project_tools = self.deps.tools(self.pid)
+            else:
+                self._project_tools = ProjectTools(
+                    retrieve=self.deps.retrieve, passages=self.deps.passages
+                )
+        return self._project_tools
 
     def _hint(self, r: NodeRef) -> Hint | None:
         return self.record.hints.get(str(r))
@@ -1340,6 +1376,7 @@ def _max_cluster_number(keys: Iterable[str]) -> int:
 
 __all__ = [
     "ProjectRuntime",
+    "ProjectTools",
     "Rejected",
     "RuntimeDeps",
     "node_view",
