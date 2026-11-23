@@ -297,7 +297,7 @@ Her projenin bilgisi iki katmanda tutulur: her prompt'a giren kısa bir proje ka
 ### İndeks
 
 - Belgeler başlık yolu korunarak 300–500 token'lık parçalara bölünür ve yüklemede bir kez embed edilir.
-- Depo Postgres ve pgvector'dür; projeler `project_id` ile ayrılır. Ayrı bir vektör veritabanı kurulmaz.
+- Depo Postgres ve pgvector'dür; projeler `project_id` ile ayrılır. Ayrı bir vektör veritabanı kurulmaz. İndeks bir arayüzün arkasındadır: geliştirme, test ve ölçüm bellek içi gerçeklemeyle (numpy, BM25) koşar, üretim pgvector'le (paket 7; geliştirme ortamında uzantı yok).
 - Arama hibrittir: yoğun vektör ve anahtar kelime sonuçları sıra birleştirmeyle (RRF) tek listeye iner, ilk 6–8 parça alınır.
 - Arama birimi öbektir. Sorgu üye gereksinimlerin metnidir; gereksinim başına değil öbek başına bir arama yapılır. Öbek adı sorguya girmez: girseydi yeniden adlandırma arama sonucunu ve test setini bayatlatabilirdi (paket 2'de netleşti). Adın faydası D9'da ölçülebilir.
 - Yeniden sıralayıcı (reranker) ilk sürümde yoktur; altın set ölçümü gerektirirse eklenir.
@@ -353,7 +353,7 @@ Sonuçlar `WS /projects/{id}/events` üzerinden gelir: `node_created`, `node_upd
 - Komut tek veritabanı işleminde işlenir: olay günlüğe yazılır, grafik güncellenir, bayatlayanlar işaretlenir, aşama otomatik moddaysa işler kuyruğa girer, olaylar yayınlanır.
 - Ön yüz iyimser güncelleme yapar ve olayla teyit eder; çelişkide sunucu kazanır.
 - Sekme kapansa da pipeline çalışmaya devam eder.
-- İlk sürümde erişim şirket içi ağ, kullanıcı girişi ve proje bazlı yetkiyle sınırlıdır.
+- İlk sürümde erişim şirket içi ağla sınırlıdır; komutun sahibi `X-User` başlığından okunur. Kullanıcı girişi ve proje bazlı yetki sonraki sürümdür (23 Kasım 2026, süre kararı; `docs/paketler/durum.md`).
 
 ### Çok kullanıcılı çalışma
 
@@ -448,13 +448,13 @@ Aynı yöntemlerin geliştirme sürecine uygulanışı deponun `CLAUDE.md` dosya
 | 2 | Çekirdek: veri modeli, hash, bağımlılık grafiği, geçersiz kılma ([plan](paketler/paket-2-plan.md)) | Opus | Bayatlama tablosundaki her satırın birim testi geçiyor |
 | 3 | Aşamalar ve prompt'lar: öbekleme, test üretimi (artımlı dahil), doğrulama yöntemi ([plan](paketler/paket-3-plan.md); ek iş [3b](paketler/paket-3b-plan.md)) | Opus | Altın sette belirlenen eşikler aşılıyor. Yorum (kullanıcı kararı, 20 Kasım 2026): yeni aşama koduyla, referans öbek ve yöntemlerle v0 ve v1'de katman 1 eşikleri geçer; check_recall paket 1 tabanından gürültüden fazla düşmez (aynı gereksinimler üzerinde yeni − taban farkının eşleştirilmiş bootstrap %95 aralığının alt sınırı ≥ −0,05; kullanıcı onayı, 21 Kasım 2026); uçtan uca koşu raporlanır ve orada kapsama tahmin edilen yöntemlere göre %100'dür |
 | 4 | İçe alma, matris görünümü, xlsx dışa aktarım | Sonnet | Örnek set uçtan uca matrise dönüşüyor |
-| 5 | Orkestratör ve kuyruk: komut işleme, öncelik, bekleme, iptal, aşama kapıları | Opus | Taşıma senaryosu iki çağrıyla bitiyor, diğer öbekler cache'ten geliyor |
+| 5 | Orkestratör ve kuyruk: komut işleme, öncelik, bekleme, iptal, aşama kapıları | Opus | Taşıma senaryosu bir artımlı test ve iki ad çağrısıyla bitiyor (çıkılan set çağrısız budanır, D8), diğer öbekler cache'ten geliyor; geri alma cache'ten dönüyor |
 | 6 | API ve olay akışı: REST komutları, WebSocket, snapshot ve tekrar oynatma | Sonnet | Bağlantı kopup gelince istemci durumu sunucuyla aynı; iki kullanıcının çakışan komutu doğru reddediliyor |
 | 7 | Bilgi havuzu: parçalama, indeks, hibrit arama, proje kartı, örnek havuzu | Sonnet; kart çıkarımı ve örnek seçimi Opus | Yalıtım testi geçiyor, altın sette kalite düşmüyor |
 | 8 | Ön yüz: öbek görünümü, denetçi, aşama çubuğu, matris görünümü, fark ekranı, geri alma | Sonnet; tuval etkileşimi Opus | Kullanıcı bir seti yükleyip düzenleyerek matrisi dışa aktarabiliyor |
 | 9 | Ön yüz: 3B katman görünümü | Opus | 2.000 gereksinimde akıcı gezinme |
 
-Sıra bağımlılığı izler: 0 → 1 → 2 → 3 → 5 → 6 → 8 → 9. Paket 4 ve 7, paket 2 bittikten sonra paralel yürür.
+Sıra bağımlılığı izler: 0 → 1 → 2 → 3 → 5 → 6 → 8 → 9. Paket 4 ve 7, paket 2 bittikten sonra paralel yürür. Paketler arası sözleşme (komutlar, olaylar, snapshot, düğüm görünümü, proje servisi arayüzü) `worker/contracts.py` içindedir ve paket 4–9 başlamadan dondurulur; paket 6 ve 8 ona göre yazılır (23 Kasım 2026).
 
 Modellerle çalışma kuralları:
 

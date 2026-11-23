@@ -61,3 +61,17 @@ thresholds:                 # karar kuralı adım 1 (paket-1-olcum.md)
   coverage_rate: 1.0
   step_structure_rate: 1.0
   no_test_violations: 0
+
+import:                     # paket 4: içe alma
+  id_prefix: REQ-           # kimliksiz gereksinime verilen önek (REQ-1, REQ-2, ...)
+  max_requirements: 2000    # tasarımın ölçek sınırı
+  encodings: [utf-8-sig, utf-8, cp1254]   # csv için sırayla denenir
+
+kb:                         # paket 7: bilgi havuzu (D9 çalışma varsayımı: 300–500 token, ilk 6–8, reranker yok)
+  chunk_tokens: 400
+  chunk_overlap_tokens: 40
+  top_k: 8
+  rrf_k: 60
+  reranker: none            # none | model adı (D9)
+  examples: 0               # D10: örnek havuzundan prompt'a giren örnek sayısı (0, 2, 4); ölçüm gelene kadar kapalı
+
