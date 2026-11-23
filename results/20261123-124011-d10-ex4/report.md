@@ -20,3 +20,9 @@
 - Süre 427.38 sn, öbek başına 10.18 sn, 360.8 çıktı token/sn, toplam 611775 token, önek cache isabeti 0.2036
 - Katman 1 eşikleri: schema_valid_rate ✓, coverage_rate ✓, step_structure_rate ✓, no_test_violations ✓
 
+## Hakem (katman 2)
+
+- check_recall: 0.5299
+- en: 0.5602
+- tr: 0.4759
+
