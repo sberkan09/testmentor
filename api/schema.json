@@ -19,6 +19,23 @@
       "title": "ApproveStage",
       "type": "object"
     },
+    "AuthConfig": {
+      "properties": {
+        "mode": {
+          "enum": [
+            "header",
+            "password"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "AuthConfig",
+      "type": "object"
+    },
     "ColumnMapping": {
       "additionalProperties": false,
       "description": "Which source columns hold what. Only `text` is required; a missing id gets `REQ-<n>`.",
@@ -492,6 +509,69 @@
       "title": "JobView",
       "type": "object"
     },
+    "KbDocumentView": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "chunks": {
+          "title": "Chunks",
+          "type": "integer"
+        },
+        "added_by": {
+          "default": "",
+          "title": "Added By",
+          "type": "string"
+        },
+        "added_at": {
+          "default": 0.0,
+          "title": "Added At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "chunks"
+      ],
+      "title": "KbDocumentView",
+      "type": "object"
+    },
+    "KbRemoveResult": {
+      "properties": {
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "seq"
+      ],
+      "title": "KbRemoveResult",
+      "type": "object"
+    },
+    "KbUploadResult": {
+      "properties": {
+        "document": {
+          "$ref": "#/$defs/KbDocumentView"
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "document",
+        "seq"
+      ],
+      "title": "KbUploadResult",
+      "type": "object"
+    },
     "KeepMine": {
       "additionalProperties": false,
       "description": "Fark ekranı \"benimkini koru\" (`core.events.NodeKept`).",
@@ -510,6 +590,47 @@
         "node"
       ],
       "title": "KeepMine",
+      "type": "object"
+    },
+    "LoginRequest": {
+      "properties": {
+        "user": {
+          "title": "User",
+          "type": "string"
+        },
+        "password": {
+          "title": "Password",
+          "type": "string"
+        }
+      },
+      "required": [
+        "user",
+        "password"
+      ],
+      "title": "LoginRequest",
+      "type": "object"
+    },
+    "LoginResult": {
+      "properties": {
+        "token": {
+          "title": "Token",
+          "type": "string"
+        },
+        "user": {
+          "title": "User",
+          "type": "string"
+        },
+        "expires_at": {
+          "title": "Expires At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "token",
+        "user",
+        "expires_at"
+      ],
+      "title": "LoginResult",
       "type": "object"
     },
     "MatrixRowView": {
@@ -1207,6 +1328,24 @@
     },
     "matrix_row": {
       "$ref": "#/$defs/MatrixRowView"
+    },
+    "kb_document": {
+      "$ref": "#/$defs/KbDocumentView"
+    },
+    "kb_upload_result": {
+      "$ref": "#/$defs/KbUploadResult"
+    },
+    "kb_remove_result": {
+      "$ref": "#/$defs/KbRemoveResult"
+    },
+    "auth_config": {
+      "$ref": "#/$defs/AuthConfig"
+    },
+    "login_request": {
+      "$ref": "#/$defs/LoginRequest"
+    },
+    "login_result": {
+      "$ref": "#/$defs/LoginResult"
     }
   },
   "required": [
@@ -1216,7 +1355,13 @@
     "snapshot",
     "server_event",
     "node_view",
-    "matrix_row"
+    "matrix_row",
+    "kb_document",
+    "kb_upload_result",
+    "kb_remove_result",
+    "auth_config",
+    "login_request",
+    "login_result"
   ],
   "title": "ApiContract",
   "type": "object"

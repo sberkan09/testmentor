@@ -119,3 +119,49 @@ def test_overrides_change_only_server_settings():
     assert sg[sg.index("--max-running-requests") + 1] == "64"
     with pytest.raises(ValueError):
         engine_argv("vllm", "qwen3.8-27b", overrides={"bogus": 1})
+
+
+def _compose() -> dict:
+    import yaml
+
+    return yaml.safe_load(render_compose())
+
+
+def test_external_profile_runs_only_postgres_and_the_app():
+    """`harici` (paket 10): the model and embedding servers are elsewhere; nothing with a GPU
+    or a model image starts."""
+    services = _compose()["services"]
+    harici = {name for name, svc in services.items() if "harici" in svc.get("profiles", [])}
+    always = {name for name, svc in services.items() if "profiles" not in svc}
+    assert always == {"postgres", "app"} and harici == set()
+    for engine in load_engines():
+        assert engine in services["embedding"]["profiles"]
+        assert services[engine]["networks"]["default"]["aliases"] == ["llm"]
+
+
+def test_app_service_reads_secrets_from_env_only(monkeypatch):
+    monkeypatch.setenv("TESTMENTOR_AUTH_SECRET", "gizli-deger-123")
+    monkeypatch.setenv("POSTGRES_PASSWORD", "pg-gizli-456")
+    text = render_compose()
+    assert "gizli-deger-123" not in text and "pg-gizli-456" not in text
+    app = _compose()["services"]["app"]
+    env = app["environment"]
+    assert env["TESTMENTOR_PG_DSN"].startswith("postgresql://testmentor:${POSTGRES_PASSWORD}@")
+    assert env["TESTMENTOR_AUTH_MODE"] == "${TESTMENTOR_AUTH_MODE:-password}"
+    assert env["LLM_HOST"] == "llm" and env["LLM_BASE_URL"] == "${LLM_BASE_URL:-}"
+    assert app["build"] == {"context": "..", "dockerfile": "infra/app.Dockerfile"}
+    assert app["depends_on"] == {"postgres": {"condition": "service_healthy"}}
+    assert "/auth/config" in " ".join(app["healthcheck"]["test"])
+    assert (ROOT / "infra" / "app.Dockerfile").exists()
+
+
+def test_llm_host_fills_the_base_url(monkeypatch):
+    monkeypatch.delenv("LLM_BASE_URL", raising=False)
+    monkeypatch.setenv("LLM_ENGINE", "vllm")
+    monkeypatch.setenv("LLM_HOST", "llm")
+    assert load_llm_settings().base_url == "http://llm:8000/v1"
+    monkeypatch.delenv("LLM_HOST")
+    assert load_llm_settings().base_url == "http://localhost:8000/v1"
+    monkeypatch.setenv("LLM_BASE_URL", "http://gpu.kurum:8000/v1")
+    monkeypatch.setenv("LLM_HOST", "llm")
+    assert load_llm_settings().base_url == "http://gpu.kurum:8000/v1"

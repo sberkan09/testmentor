@@ -61,6 +61,19 @@ class PgIndex:
                 "CREATE TABLE IF NOT EXISTS kb_versions ("
                 "project_id text PRIMARY KEY, changes integer NOT NULL)"
             )
+            # A table made earlier with another embedding model keeps its dimension
+            # (`CREATE TABLE IF NOT EXISTS`): fail here, not on the first insert.
+            cur.execute(
+                "SELECT atttypmod FROM pg_attribute "
+                "WHERE attrelid = 'kb_chunks'::regclass AND attname = 'embedding'"
+            )
+            row = cur.fetchone()
+        if row is not None and row[0] > 0 and int(row[0]) != int(self.dim):
+            raise RuntimeError(
+                f"kb_chunks.embedding has dimension {row[0]}, the embedding model gives "
+                f"{self.dim} (config/runtime.yaml embedding.dim); the table was created with "
+                "another embedding model: re-index into a new database or drop kb_chunks"
+            )
 
     def _bump(self, cur: Any, project_id: str) -> None:
         cur.execute(
@@ -115,6 +128,15 @@ class PgIndex:
             cur.execute("SELECT changes FROM kb_versions WHERE project_id = %s", (project_id,))
             row = cur.fetchone()
         return f"v{row[0] if row else 0}"
+
+    def documents(self, project_id: str) -> dict[str, int]:
+        with self._conn.cursor() as cur:
+            cur.execute(
+                "SELECT document_id, count(*) FROM kb_chunks WHERE project_id = %s "
+                "GROUP BY document_id ORDER BY document_id",
+                (project_id,),
+            )
+            return {d: int(n) for d, n in cur.fetchall()}
 
     def texts(self, project_id: str, ids: Sequence[str]) -> list[str]:
         with self._conn.cursor() as cur:

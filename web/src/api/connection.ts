@@ -20,6 +20,8 @@ export interface ConnectionOptions {
   onEvent: (ev: ServerEvent) => void;
   onSnapshot: (snap: Snapshot) => void;
   onStatus?: (status: ConnectionStatus) => void;
+  /** The server closed with 4401 (password mode, token missing or expired): no reconnect. */
+  onUnauthorized?: () => void;
   baseDelayMs?: number;
   maxDelayMs?: number;
   setTimer?: (fn: () => void, ms: number) => unknown;
@@ -83,9 +85,14 @@ export class ProjectConnection {
     };
     socket.onmessage = (m) => this.handle(m.data);
     socket.onerror = () => undefined;
-    socket.onclose = () => {
+    socket.onclose = (ev?: unknown) => {
       if (this.socket !== socket) return;
       this.socket = null;
+      if ((ev as { code?: number } | undefined)?.code === 4401) {
+        this.stop();
+        this.opts.onUnauthorized?.();
+        return;
+      }
       this.scheduleReconnect();
     };
   }
@@ -118,8 +125,9 @@ export class ProjectConnection {
   }
 }
 
-export function browserSocketUrl(projectId: string, after: number, user: string): string {
+export function browserSocketUrl(projectId: string, after: number, user: string, token: string | null = null): string {
   const proto = location.protocol === "https:" ? "wss" : "ws";
   const q = new URLSearchParams({ after: String(after), user });
+  if (token) q.set("token", token);
   return `${proto}://${location.host}/projects/${encodeURIComponent(projectId)}/events?${q.toString()}`;
 }

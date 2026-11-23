@@ -8,7 +8,7 @@ from core.hashing import plain_hash
 from core.invalidation import analyze, apply
 from core.kb.settings import KbSettings
 from core.nodes import NodeKind, NodeRef, RetrievalContent, ref
-from core.stages.test_generation import basis_of, choose_mode
+from core.stages.test_generation import basis_of, choose_mode, read_basis
 from services.settings import RETRIEVAL_VERSION, stage_configs, stage_settings_from
 from tests.stages.helpers import (
     CFG,
@@ -96,7 +96,9 @@ async def test_example_keys_without_a_source_fail_the_node():
     assert {r.kind for r in out.failed()} == {NodeKind.TEST_SET}
 
 
-async def test_changed_examples_make_the_set_stale_and_force_a_full_regeneration():
+async def test_changed_examples_make_the_set_stale_but_keep_the_incremental_form():
+    """Paket 11: examples are style guidance; a changed selection stales the set (the hash) but
+    keeps its cases (incremental, no call when the members did not change)."""
     complete = ScriptedComplete()
     s = (
         await drive(
@@ -130,8 +132,9 @@ async def test_changed_examples_make_the_set_stale_and_force_a_full_regeneration
             example_texts=example_texts,
         )
     ).state
-    assert len(complete.of(NodeKind.TEST_SET)) == n * 2  # every set regenerated
-    assert basis_of(s, "A").examples == ("TC-9@cccccccc",)
+    assert len(complete.of(NodeKind.TEST_SET)) == n  # no set regenerated from scratch
+    assert not analyze(s).stale
+    assert read_basis(s.node(ref(NodeKind.TEST_SET, "A"))).examples == ("TC-9@cccccccc",)
 
 
 async def test_pool_change_with_the_same_selection_is_cut_off_early():
@@ -161,7 +164,8 @@ def test_retrieval_stage_config_follows_the_kb_settings():
 
     base = configs()[NodeKind.RETRIEVAL]
     assert base.prompt_version == RETRIEVAL_VERSION == "r2"
-    assert base.params["top_k"] == CFG["kb"]["top_k"] and base.params["examples"] == 0
+    assert base.params["top_k"] == CFG["kb"]["top_k"]
+    assert base.params["examples"] == CFG["kb"]["examples"]
     assert configs(top_k=CFG["kb"]["top_k"] + 4)[NodeKind.RETRIEVAL] != base
     assert configs(chunk_tokens=300)[NodeKind.RETRIEVAL] != base
     assert configs(reranker="some-model")[NodeKind.RETRIEVAL] != base

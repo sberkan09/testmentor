@@ -49,6 +49,17 @@ gpu_memory:
 paths:
   hf_home: /models/hf   # ağırlıklar volume'da HF önbelleği olarak durur
 
+# Paket 10: Compose'taki uygulama servisi (API ve derlenmiş ön yüz; infra/app.Dockerfile).
+app:
+  image: testmentor-app:local
+  dockerfile: infra/app.Dockerfile
+  port: 8000                # konteyner içi
+  host_port: 8080           # APP_PORT ile değişir (8000 vLLM'in)
+  auth_mode: password       # pilot varsayılanı; TESTMENTOR_AUTH_MODE ile değişir
+  data_dir: ../data         # users.yaml burada (infra/ klasörüne göre); TESTMENTOR_DATA_DIR
+  external_profile: harici  # yalnızca Postgres ve uygulama; model ve embedding adresi .env'den
+  llm_alias: llm            # motor servislerinin ağ takma adı (LLM_HOST)
+
 postgres:
   image: pgvector/pgvector:0.8.7-pg18
   major: 18            # pod içi kurulum da aynı ana sürümü kullanır (PGDG)

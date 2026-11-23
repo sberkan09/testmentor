@@ -1,11 +1,15 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { useActions, useStudio, useView } from "../context";
 import { ClusterView } from "./ClusterView";
 import { DiffDialog } from "./DiffDialog";
+import { DocumentsView } from "./DocumentsView";
 import { Inspector } from "./Inspector";
 import { MatrixView } from "./MatrixView";
 import { StageBar } from "./StageBar";
 import { initials } from "./ui";
+
+// The 3D layer view (three.js) is a separate chunk: the 2D views never load it.
+const LayerView = lazy(() => import("../views/layers/LayerView"));
 
 const CONN_LABEL = { connecting: "Bağlanıyor", open: "Canlı", reconnecting: "Yeniden bağlanıyor", closed: "Bağlantı yok" } as const;
 
@@ -19,7 +23,8 @@ export function Studio() {
   const view = useStudio((s) => s.view);
   const status = useStudio((s) => s.status);
   const user = useStudio((s) => s.user) ?? "";
-  const { setView, closeProject, send } = useActions();
+  const passwordMode = useStudio((s) => s.authMode === "password");
+  const { setView, closeProject, send, logout } = useActions();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -49,6 +54,12 @@ export function Studio() {
           <button role="tab" aria-selected={view === "matrix"} data-testid="view-matrix" onClick={() => setView("matrix")}>
             Matris
           </button>
+          <button role="tab" aria-selected={view === "documents"} data-testid="view-documents" onClick={() => setView("documents")}>
+            Belgeler
+          </button>
+          <button role="tab" aria-selected={view === "layers"} data-testid="view-layers" onClick={() => setView("layers")}>
+            Katmanlar
+          </button>
         </div>
         <div className="spacer" />
         <span className={`conn ${status}`} data-testid="connection">
@@ -59,9 +70,26 @@ export function Studio() {
           <span className="avatar">{initials(user)}</span>
           {user}
         </span>
+        {passwordMode && (
+          <button className="btn small ghost" data-testid="logout" onClick={() => logout()}>
+            Çıkış
+          </button>
+        )}
       </header>
       <div className="workspace">
-        <main className="canvas">{view === "clusters" ? <ClusterView /> : <MatrixView />}</main>
+        <main className="canvas">
+          {view === "clusters" ? (
+            <ClusterView />
+          ) : view === "matrix" ? (
+            <MatrixView />
+          ) : view === "documents" ? (
+            <DocumentsView />
+          ) : (
+            <Suspense fallback={<div className="empty">3B katman görünümü yükleniyor…</div>}>
+              <LayerView />
+            </Suspense>
+          )}
+        </main>
         <aside className="inspector" aria-label="Denetçi" data-testid="inspector">
           <Inspector />
         </aside>

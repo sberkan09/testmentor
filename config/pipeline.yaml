@@ -6,6 +6,7 @@ generation_inputs: reference
 unit_packing: false        # D7: referans kipte küçük referans öbekleri generation.max_unit_size'a kadar birleştir
 passages: none             # D9: none | gold (altın set v1 destek parçaları, kâhin) | index (paket 7: derlemden gerçek hibrit arama)
 card: full                 # D9: full | methods_only (kart metni boş, yalnızca doğrulama yöntemi listesi kalır)
+example_pool: reference    # D10 (paket 11): null | reference (altın setin referans denetimlerinden sızıntısız proje örnek havuzu; yalnızca ölçüm). kb.examples > 0 iken gerekir
 
 methods:                    # proje kartındaki doğrulama yöntemi listesi (varsayılan)
   - name: Test
@@ -79,8 +80,9 @@ kb:                         # paket 7: bilgi havuzu (D9 çalışma varsayımı: 
   bm25_b: 0.75
   reranker: none            # none | çapraz kodlayıcı model kimliği (D9)
   rerank_candidates: 3      # reranker ilk 3 x top_k adayı görür
+  rerank_max_tokens: 512    # çapraz kodlayıcı girdi sınırı (sorgu + parça); sınırsız CPU puanlaması ~3 kat yavaş
   card_tokens: 1500         # proje kartı metni üst sınırı
   card_draft_input_tokens: 12000   # kart taslağı çağrısına giren belge alıntısı bütçesi
   card_draft_max_tokens: 4096
-  examples: 0               # D10: örnek havuzundan prompt'a giren örnek sayısı (0, 2, 4); ölçüm gelene kadar kapalı
+  examples: 4               # D10 (paket 11b): 3 tekrarla 0 örneğe göre +0,050 [+0,025, +0,074]; havuz sabitlenen testlerden dolar
 

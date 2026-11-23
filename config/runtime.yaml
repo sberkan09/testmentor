@@ -3,7 +3,7 @@
 llm:
   engine: vllm            # çalışma varsayımı (D1)
   model: qwen3.8-27b      # çalışma varsayımı (D2)
-  base_url: "http://localhost:{port}/v1"   # Runpod'da LLM_BASE_URL ya da infra/.runpod-state.json
+  base_url: "http://{host}:{port}/v1"   # host: LLM_HOST (varsayılan localhost; Compose'ta llm); Runpod'da LLM_BASE_URL ya da infra/.runpod-state.json
   api_key_env: LLM_API_KEY
   request_timeout_s: 900
   connect_timeout_s: 15
@@ -17,6 +17,19 @@ embedding:
   batch_size: 32
   api_key_env: LLM_API_KEY
   request_timeout_s: 120
+  dim: 1024                             # vektör boyutu; kb_chunks.embedding bu boyutla kurulur
+
+kb_upload:                  # paket 10: bilgi havuzuna belge yükleme (POST /projects/{id}/kb/documents)
+  max_mb: 20
+  extensions: [.txt, .md, .markdown, .pdf]   # PDF yalnızca metin katmanlıysa (taranmış PDF reddedilir)
+
+auth:                       # paket 10 (docs/tasarim.md, API → Kurallar)
+  mode: header              # header: X-User başlığı (geliştirme, testler) | password: parolalı giriş (pilot); TESTMENTOR_AUTH_MODE
+  users_file: data/users.yaml   # git dışı; python -m api.users add AD; TESTMENTOR_USERS_FILE
+  token_hours: 12           # jeton ömrü
+  secret_env: TESTMENTOR_AUTH_SECRET   # jeton imza anahtarı .env içinde (en az 32 karakter)
+  min_secret_chars: 32
+  min_password_chars: 8
 
 database:
   url_env: DATABASE_URL                 # postgresql://testmentor:...@localhost:5432/testmentor

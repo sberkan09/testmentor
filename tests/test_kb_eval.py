@@ -156,7 +156,7 @@ def test_unknown_modes_and_example_settings_are_refused(tmp_path):
     with pytest.raises(ValueError, match="card"):
         kk_pipeline(tmp_path, {"card": "bogus"})
     with pytest.raises(ValueError, match="example pool"):
-        kk_pipeline(tmp_path, {"kb": {**CFG["kb"], "examples": 2}})
+        kk_pipeline(tmp_path, {"example_pool": None, "kb": {**CFG["kb"], "examples": 2}})
 
 
 async def test_golden_v1_kdh_runs_in_index_mode_over_the_committed_documents(tmp_path, monkeypatch):

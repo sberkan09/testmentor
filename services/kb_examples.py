@@ -11,7 +11,7 @@ Per-project, like the index.
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -30,6 +30,10 @@ class ExampleEntry:
     text: str
     """Prompt text (`core.prompts.render_example`)."""
     vector: tuple[float, ...]
+    excluded_with: frozenset[str] = frozenset()
+    """Requirement ids whose clusters never get this example: the requirements the test case
+    covers (they are in that cluster's prompt as fixed tests already). The eval (D10) adds the
+    requirements that share a reference source, so the answer key cannot leak."""
 
     @property
     def example_key(self) -> str:
@@ -67,17 +71,34 @@ class ExamplePool:
         pool.entries.pop(key, None)
         pool.changes += 1
 
+    def entries(self, project_id: str) -> dict[str, ExampleEntry]:
+        """Copy of the project's entries by test case key."""
+        p = self._projects.get(project_id)
+        return dict(p.entries) if p else {}
+
     def version(self, project_id: str) -> str:
         p = self._projects.get(project_id)
         return f"e{p.changes if p else 0}"
 
-    def select(self, project_id: str, query_vector: Sequence[float], n: int) -> list[str]:
-        """Up to `n` example keys, most similar first (ties by test case key)."""
+    def select(
+        self,
+        project_id: str,
+        query_vector: Sequence[float],
+        n: int,
+        exclude: Collection[str] = (),
+    ) -> list[str]:
+        """Up to `n` example keys, most similar first (ties by test case key). Entries whose
+        `excluded_with` meets `exclude` (the cluster's member ids) are skipped."""
         p = self._projects.get(project_id)
         if p is None or n <= 0 or not p.entries:
             return []
         q = _unit(query_vector)
-        scored = [(-float(_unit(e.vector) @ q), e.key) for e in p.entries.values()]
+        skip = frozenset(exclude)
+        scored = [
+            (-float(_unit(e.vector) @ q), e.key)
+            for e in p.entries.values()
+            if not (e.excluded_with & skip)
+        ]
         scored.sort()
         return [p.entries[key].example_key for _, key in scored[:n]]
 
@@ -93,10 +114,16 @@ class ExamplePool:
 
 
 async def build_entry(
-    key: str, case: TestCaseContent, requirement_texts: Sequence[str], embed: Embed
+    key: str,
+    case: TestCaseContent,
+    requirement_texts: Sequence[str],
+    embed: Embed,
+    *,
+    excluded_with: Collection[str] = (),
 ) -> ExampleEntry:
     """Entry for one test case: the rendered text and the vector of the covered requirements'
-    texts joined."""
+    texts joined. It is never selected for a cluster holding a requirement it covers (or one in
+    `excluded_with`)."""
     joined = "\n".join(requirement_texts)
     (vector,) = await embed([joined])
     return ExampleEntry(
@@ -104,4 +131,5 @@ async def build_entry(
         requirement_text=joined,
         text=render_example(requirement_texts, case),
         vector=tuple(vector),
+        excluded_with=frozenset(case.covers) | frozenset(excluded_with),
     )

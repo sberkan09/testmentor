@@ -17,10 +17,16 @@ export interface Selection {
   key: string;
 }
 
-export type ViewName = "clusters" | "matrix";
+export type ViewName = "clusters" | "matrix" | "documents" | "layers";
+
+export type AuthMode = "header" | "password";
 
 export interface StudioState {
   user: string | null;
+  /** Login mode of the server; null until `/auth/config` answered. */
+  authMode: AuthMode | null;
+  /** Token of password login (sessionStorage); null in header mode or when logged out. */
+  token: string | null;
   projects: { id: string; name: string }[];
   projectsLoaded: boolean;
   server: ProjectState | null;
@@ -33,6 +39,11 @@ export interface StudioState {
   diffFor: string | null;
 
   setUser(name: string): void;
+  loadAuthConfig(): Promise<void>;
+  /** Password login; resolves to an error text, or null on success. */
+  login(name: string, password: string): Promise<string | null>;
+  /** Drops the token (and the open project); `expired` shows a notice. */
+  logout(expired?: boolean): void;
   loadProjects(): Promise<void>;
   importProject(meta: ImportRequest, file: File): Promise<void>;
   openProject(id: string): Promise<void>;
@@ -52,8 +63,12 @@ export interface StudioState {
 export interface StudioDeps {
   api: StudioApi;
   socketFactory?: (url: string) => SocketLike;
-  socketUrl?: (projectId: string, after: number, user: string) => string;
+  socketUrl?: (projectId: string, after: number, user: string, token: string | null) => string;
   storage?: Pick<Storage, "getItem" | "setItem">;
+  /** Where the token lives (default: sessionStorage, gone when the tab closes). */
+  tokenStorage?: Pick<Storage, "getItem" | "setItem" | "removeItem">;
+  /** Initial login mode (tests); default: unknown until `loadAuthConfig`. */
+  authMode?: AuthMode;
   /** Delay before matrix warnings are re-read after matrix-relevant events; 0 disables it. */
   warningRefreshMs?: number;
   /** Time after which an accepted command's optimistic patch is dropped even if no event came. */
@@ -62,6 +77,7 @@ export interface StudioDeps {
 }
 
 const USER_KEY = "testmentor.user";
+const TOKEN_KEY = "testmentor.token";
 
 export const REJECTIONS: Record<string, string> = {
   version_conflict: "Bu öğe başka biri tarafından değiştirildi. Güncel hali gösteriliyor, düzenlemeni yeniden yap.",
@@ -83,6 +99,7 @@ const MATRIX_KINDS = new Set(["test_case", "method", "matrix_row", "cluster"]);
 export function createStudioStore(deps: StudioDeps) {
   const now = deps.now ?? (() => Date.now());
   const storage = deps.storage ?? (typeof localStorage !== "undefined" ? localStorage : undefined);
+  const tokenStorage = deps.tokenStorage ?? (typeof sessionStorage !== "undefined" ? sessionStorage : undefined);
   let opId = 0;
   let noticeId = 0;
   let connection: ProjectConnection | null = null;
@@ -93,6 +110,22 @@ export function createStudioStore(deps: StudioDeps) {
       return storage?.getItem(USER_KEY) ?? null;
     } catch {
       return null;
+    }
+  };
+
+  const readToken = (): string | null => {
+    try {
+      return tokenStorage?.getItem(TOKEN_KEY) ?? null;
+    } catch {
+      return null;
+    }
+  };
+  const writeToken = (token: string | null) => {
+    try {
+      if (token) tokenStorage?.setItem(TOKEN_KEY, token);
+      else tokenStorage?.removeItem(TOKEN_KEY);
+    } catch {
+      /* private mode */
     }
   };
 
@@ -128,6 +161,8 @@ export function createStudioStore(deps: StudioDeps) {
 
     return {
       user: readUser(),
+      authMode: deps.authMode ?? null,
+      token: readToken(),
       projects: [],
       projectsLoaded: false,
       server: null,
@@ -147,6 +182,39 @@ export function createStudioStore(deps: StudioDeps) {
           /* private mode */
         }
         set({ user: n });
+      },
+
+      async loadAuthConfig() {
+        const { mode } = await deps.api.authConfig().catch(() => ({ mode: "header" as const }));
+        set({ authMode: mode });
+      },
+
+      async login(name, password) {
+        const n = name.trim();
+        if (!n) return "Kullanıcı adı gerekli.";
+        try {
+          const res = await deps.api.login(n, password);
+          writeToken(res.token);
+          try {
+            storage?.setItem(USER_KEY, res.user);
+          } catch {
+            /* private mode */
+          }
+          set({ token: res.token, user: res.user });
+          return null;
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 401) return "Kullanıcı adı ya da parola yanlış.";
+          return `Giriş yapılamadı: ${(e as Error).message}`;
+        }
+      },
+
+      logout(expired = false) {
+        const hadToken = get().token !== null;
+        writeToken(null);
+        connection?.stop();
+        connection = null;
+        set({ token: null, server: null, pending: [], selection: null, status: "closed", diffFor: null, projects: [], projectsLoaded: false });
+        if (expired && hadToken) get().notify("error", "Oturumun sona erdi, yeniden giriş yap.");
       },
 
       async loadProjects() {
@@ -259,15 +327,17 @@ export function createStudioStore(deps: StudioDeps) {
   function startConnection(projectId: string) {
     connection?.stop();
     const user = store.getState().user ?? "anonim";
+    const token = store.getState().token;
     const factory = deps.socketFactory ?? ((url: string) => new WebSocket(url) as unknown as SocketLike);
     const urlFor = deps.socketUrl ?? browserSocketUrl;
     connection = new ProjectConnection({
-      url: (after) => urlFor(projectId, after, user),
+      url: (after) => urlFor(projectId, after, user, token),
       socketFactory: factory,
       getAfter: () => store.getState().server?.seq ?? 0,
       onEvent: (ev) => store.getState().receiveEvent(ev),
       onSnapshot: (snap) => store.getState().receiveSnapshot(snap),
       onStatus: (status) => store.setState({ status }),
+      onUnauthorized: () => store.getState().logout(true),
     });
     connection.start();
   }

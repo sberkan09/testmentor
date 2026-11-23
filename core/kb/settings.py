@@ -24,6 +24,9 @@ class KbSettings(BaseModel):
     """`none`, or the model id of a cross-encoder (D9)."""
     rerank_candidates: int = Field(default=3, ge=1)
     """The reranker sees the first `rerank_candidates * top_k` fused candidates."""
+    rerank_max_tokens: int = Field(default=512, ge=16)
+    """Input cap of the cross-encoder per (query, passage) pair, in model tokens. Without it the
+    model's own limit (8192 for bge-reranker-v2-m3) applies and CPU scoring is ~3x slower."""
     examples: int = Field(default=0, ge=0)
     """D10: examples from the example pool that enter the prompt (0 = off)."""
     card_tokens: int = Field(default=1500, ge=1)

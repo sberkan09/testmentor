@@ -1,0 +1,22 @@
+# infra/app.Dockerfile yalnızca config, core, services, worker, api ve web'i kopyalar;
+# gerisi derleme bağlamına girmez (gizli anahtarlar, kullanıcı dosyası, büyük çıktılar).
+.env
+.env.*
+data/
+.git/
+.venv/
+.claude/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.ruff_cache/
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+results/
+eval/
+docs/
+demo/
+tests/
+infra/.runpod-state.json

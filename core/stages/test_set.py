@@ -322,6 +322,10 @@ class _SetJob:
         if d.only_removed and self.settings.prune_removals:
             self.pruned = True  # D8: no call; kept cases are the set
             return kept
+        if d.empty and not trimmed:
+            # paket 11: same members, only the example selection changed: examples guide the
+            # style of new cases, the existing ones stay; nothing to ask the model
+            return kept
         touched = set(d.changed) | set(d.removed)
         full = [c for c in kept if c.id in trimmed or touched.intersection(c.covers)]
         summary = [c for c in kept if c not in full]
