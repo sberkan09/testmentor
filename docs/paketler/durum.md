@@ -9,7 +9,7 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 3, 3b | `paket-3-plan.md`, `paket-3b-plan.md` | – | birleşti (#5) |
 | 4 | `paket-4-plan.md` | A (Sonnet) | **birleşti** (23.11): bitti testi (altın set v0 csv ve xlsx → matris → xlsx) geçti; 316 test |
 | 5 | `paket-5-plan.md` | B (Opus) | yazılıyor (23.11) |
-| 6 | `paket-6-plan.md` | B (5'ten sonra) | planlandı |
+| 6 | `paket-6-plan.md` | E (Sonnet) | **birleşti** (23.11): iki bitti testi sahte servisle geçti, 388 test; gerçek servise bağlantı (`api/main.build_service`) paket 5 birleşince |
 | 7 | `paket-7-plan.md` | C (Sonnet) | **kod birleşti** (23.11): yalıtım testi geçti, 374 test; D9 batch koşuyor (ayrı çalışma ağacından) |
 | 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; e2e yalnızca sahte API'ye karşı geçti, gerçek API ile paket 6'dan sonra |
 | 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
