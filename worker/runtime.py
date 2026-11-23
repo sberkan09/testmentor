@@ -47,6 +47,7 @@ import contextvars
 import logging
 import re
 import time
+import uuid
 from collections import deque
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -328,6 +329,7 @@ class ProjectRuntime:
         self._jobs: dict[int, _Job] = {}
         self._key_refs: dict[str, NodeRef] = {}
         self._waiting: dict[NodeKind, frozenset[NodeRef]] = {}
+        self._session = uuid.uuid4().hex[:8]  # job record ids stay unique across restarts
 
     # Construction -------------------------------------------------------------------------------
 
@@ -1143,7 +1145,7 @@ class ProjectRuntime:
             running = mark_running(running, r)
         priority = next((x.priority for x in self.queue.running() if x.job_id == job_id), "P2")
         record = JobRecord(
-            job_id=f"{self.pid}-j{job_id}",
+            job_id=f"{self.pid}-{self._session}-j{job_id}",
             stage=kind,
             nodes=list(refs),
             priority=priority,

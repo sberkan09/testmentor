@@ -6,7 +6,7 @@ PY := uv run python
 UP_ARGS := $(if $(ENGINE),--engine $(ENGINE)) $(if $(MODEL),--model $(MODEL)) $(foreach o,$(OVERRIDE),--override $(o))
 MAX_ARGS := $(if $(MAX_HOURS),--max-hours $(MAX_HOURS))
 
-.PHONY: up down smoke test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down
+.PHONY: up down smoke test pg-test lint compose volume download download-down reconfigure extend batch eval judge status balance local-up local-down
 
 up:            ## Runpod'da GPU pod'unu aç ve servisler hazır olana kadar bekle
 	$(ENV) $(PY) scripts/runpod.py up $(UP_ARGS) $(MAX_ARGS) && $(PY) scripts/runpod.py wait
@@ -19,6 +19,9 @@ smoke:         ## 16 eşzamanlı şemaya bağlı istek + önek cache ölçümü
 
 test:          ## Birim testleri (model çağrısı yok)
 	uv run pytest -q --tb=short
+
+pg-test:       ## Postgres depo testleri (geçici küme ya da TESTMENTOR_PG_DSN; sunucu yoksa atlanır)
+	uv run pytest -q --tb=short -rs tests/core/test_store_contract.py tests/worker/test_store.py
 
 lint:
 	uv run ruff check . && uv run ruff format --check .
