@@ -1,0 +1,11 @@
+# Paket 11: D10 (sızıntısız örnek havuzu) ve D9 reranker kolu (docs/paketler/paket-11-plan.md).
+# Pod sonunda her durumda silinir (eval/batch.py). Taban kolu önce koşar; kollar onunla eşleştirilir.
+# Reranker kolu sentence-transformers ister: batch'i `uv sync --group d6` yapılmış ortamda koş.
+# Model (BAAI/bge-reranker-v2-m3) yerel Hugging Face önbelleğinde olmalı (CPU'da çalışır, pod'a gitmez).
+# Kesme sırası (süre yetmezse sondan): d9-rerank, d10-ex4. Bekçi kapatılmaz (make extend HOURS=1).
+max_hours: 1.25
+steps:
+  - {experiment: d10-base}
+  - {experiment: d10-ex2}
+  - {experiment: d10-ex4}
+  - {experiment: d9-rerank}

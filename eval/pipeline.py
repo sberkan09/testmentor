@@ -56,6 +56,7 @@ from core.schemas import Requirement
 from core.stages import method as method_stage
 from core.stages.base import ProduceContext
 from core.stages.clustering import cut, initial_membership
+from eval.example_pool import build_reference_pool, leak_check
 from eval.golden import Golden, GoldenProject
 from eval.kb_corpus import ChunkVectorCache, load_corpus
 from eval.stage_driver import drive
@@ -223,9 +224,15 @@ class Pipeline:
             raise ValueError(f"unknown card mode {self.card_mode!r}")
         self.settings = stage_settings_from(cfg, examples)
         self.example_pool = example_pool
-        if self.settings.kb.examples and example_pool is None:
-            # D10: a pool built from the golden reference tests would leak the answer key
-            raise ValueError("kb.examples > 0 needs an example pool, and the eval has none")
+        # D10 (paket 11): `example_pool: reference` builds a per-project pool from the golden
+        # reference checks with the leak rule of eval.example_pool
+        self.example_pool_mode = cfg.get("example_pool")
+        if self.example_pool_mode not in (None, "reference"):
+            raise ValueError(f"unknown example_pool {self.example_pool_mode!r}")
+        if self.example_pool_mode == "reference" and self.example_pool is None:
+            self.example_pool = ExamplePool()
+        if self.settings.kb.examples and self.example_pool is None:
+            raise ValueError("kb.examples > 0 needs an example pool (example_pool: reference)")
         self.index = InMemoryIndex(self.settings.kb)
         self.kb_vectors = kb_vectors or ChunkVectorCache(
             None, embeddings.model_version, embeddings.embed
@@ -331,6 +338,16 @@ class Pipeline:
                 self.index, p.key, self._embed, self.settings.kb, self.reranker
             )
         select_examples = example_texts = None
+        if self.example_pool is not None and self.example_pool_mode == "reference":
+            self.example_pool.add(
+                p.key,
+                await build_reference_pool(
+                    p.raw,
+                    self._embed,
+                    test_type=self.settings.test_types[0],
+                    priority=self.settings.priorities[len(self.settings.priorities) // 2],
+                ),
+            )
         if self.example_pool is not None:
             select_examples = make_select_examples(
                 self.example_pool, p.key, self._embed, self.settings.kb.examples
@@ -353,6 +370,15 @@ class Pipeline:
         )
         state = driven.state
         errors |= {str(r): why for r, why in driven.errors.items()}
+        example_keys = {
+            c: list(getattr(state.node(ref(NodeKind.RETRIEVAL, c)).content, "example_keys", ()))
+            for c in state.keys_of(NodeKind.CLUSTER)
+        }
+        examples = (
+            leak_check(p.raw, clusters, example_keys)
+            if self.example_pool_mode == "reference"
+            else {}
+        )
         if self.generation_inputs != "reference":
             for rid in ids:
                 content = state.node(ref(NodeKind.METHOD, rid)).content
@@ -381,6 +407,7 @@ class Pipeline:
                     )
                     for c in state.keys_of(NodeKind.CLUSTER)
                 },
+                "examples": examples,
                 "covered_before_repair": sorted(covered),
                 "stage_stats": {
                     str(r): dict(s)

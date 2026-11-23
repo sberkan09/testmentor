@@ -6,6 +6,7 @@ generation_inputs: reference
 unit_packing: false        # D7: referans kipte küçük referans öbekleri generation.max_unit_size'a kadar birleştir
 passages: none             # D9: none | gold (altın set v1 destek parçaları, kâhin) | index (paket 7: derlemden gerçek hibrit arama)
 card: full                 # D9: full | methods_only (kart metni boş, yalnızca doğrulama yöntemi listesi kalır)
+example_pool: null         # D10 (paket 11): null | reference (altın setin referans denetimlerinden sızıntısız proje örnek havuzu; yalnızca ölçüm)
 
 methods:                    # proje kartındaki doğrulama yöntemi listesi (varsayılan)
   - name: Test
