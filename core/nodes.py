@@ -16,7 +16,8 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
+from typing_extensions import TypedDict
 
 from core.schemas import Step
 
@@ -181,12 +182,33 @@ class ClusterLabelContent(BaseModel):
     rationale: str = ""
 
 
+class _RetrievalDump(TypedDict, total=False):
+    """Serialised form of `RetrievalContent` (keeps the generated serialization schema complete)."""
+
+    kind: Literal["retrieval"]
+    passage_ids: list[str]
+    example_keys: list[str]
+
+
 class RetrievalContent(BaseModel):
-    """Passage ids in rank order. Test sets depend on these ids, not on the index version."""
+    """Passage ids in rank order. Test sets depend on these ids, not on the index version.
+
+    `example_keys` (paket 7, D10): the project examples selected for the cluster, most similar
+    first. A key carries a digest of the example text, so an edited example is a new key. Left
+    out of the serialised form when empty, so content hashes and stored JSON of a project
+    without examples are the same as before the field existed."""
 
     model_config = _FROZEN
     kind: Literal["retrieval"] = "retrieval"
     passage_ids: tuple[str, ...] = ()
+    example_keys: tuple[str, ...] = ()
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_examples(self, handler: Any) -> _RetrievalDump:
+        data: dict[str, Any] = handler(self)
+        if not data.get("example_keys"):
+            data.pop("example_keys", None)
+        return data  # type: ignore[return-value]
 
 
 class TestSetContent(BaseModel):

@@ -64,3 +64,18 @@ local-up:      ## Yerel/üretim sunucusu: docker compose (ENGINE=vllm|sglang)
 
 local-down:
 	docker compose -f infra/compose.yaml --env-file .env --profile $(or $(ENGINE),vllm) down
+
+# Paket 8: ön yüz (web/)
+.PHONY: web-install web-build web-test web-e2e
+
+web-install:   ## npm bağımlılıkları (package-lock.json ile)
+	cd web && npm ci
+
+web-build:     ## tip üretimi denetimi, tsc ve vite derlemesi (web/dist)
+	cd web && npm run build
+
+web-test:      ## vitest birim testleri + lint (arka uç gerekmez)
+	cd web && npm run lint && npm test
+
+web-e2e:       ## Playwright uçtan uca testi: TESTMENTOR_FAKE_LLM=1 API + vite önizleme (web/e2e/README.md)
+	cd web && npm run e2e

@@ -4,7 +4,8 @@
 # sınıflandırmadan ayrı ölçülür); predicted: uçtan uca (docs/tasarim.md, Deney planı kuralları).
 generation_inputs: reference
 unit_packing: false        # D7: referans kipte küçük referans öbekleri generation.max_unit_size'a kadar birleştir
-passages: none             # D9 pilotu (paket 1b): none | gold (altın set v1 destek parçaları, öbek başına)
+passages: none             # D9: none | gold (altın set v1 destek parçaları, kâhin) | index (paket 7: derlemden gerçek hibrit arama)
+card: full                 # D9: full | methods_only (kart metni boş, yalnızca doğrulama yöntemi listesi kalır)
 
 methods:                    # proje kartındaki doğrulama yöntemi listesi (varsayılan)
   - name: Test
@@ -70,8 +71,16 @@ import:                     # paket 4: içe alma
 kb:                         # paket 7: bilgi havuzu (D9 çalışma varsayımı: 300–500 token, ilk 6–8, reranker yok)
   chunk_tokens: 400
   chunk_overlap_tokens: 40
+  chars_per_token: 4        # token tahmini: karakter / 4 (çekirdekte belirteç yok)
   top_k: 8
   rrf_k: 60
-  reranker: none            # none | model adı (D9)
+  rrf_depth: 50             # yoğun ve anahtar kelime sıralamalarından her birinin birleşmeye giren uzunluğu
+  bm25_k1: 1.2
+  bm25_b: 0.75
+  reranker: none            # none | çapraz kodlayıcı model kimliği (D9)
+  rerank_candidates: 3      # reranker ilk 3 x top_k adayı görür
+  card_tokens: 1500         # proje kartı metni üst sınırı
+  card_draft_input_tokens: 12000   # kart taslağı çağrısına giren belge alıntısı bütçesi
+  card_draft_max_tokens: 4096
   examples: 0               # D10: örnek havuzundan prompt'a giren örnek sayısı (0, 2, 4); ölçüm gelene kadar kapalı
 

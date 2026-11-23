@@ -35,7 +35,15 @@ from core.nodes import (
     TestCaseContent,
 )
 from core.settings import StageSettings
-from core.stages.base import Embed, PassageSource, ProduceContext, ProduceOutcome, Retrieve
+from core.stages.base import (
+    Embed,
+    ExampleSource,
+    PassageSource,
+    ProduceContext,
+    ProduceOutcome,
+    Retrieve,
+    SelectExamples,
+)
 from tests.core.helpers import CONFIGS, fake_result
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -227,6 +235,8 @@ async def drive(
     embed: Embed | None = None,
     retrieve: Retrieve | None = None,
     passages: PassageSource | None = None,
+    select_examples: SelectExamples | None = None,
+    example_texts: ExampleSource | None = None,
     max_rounds: int = 20,
 ) -> Drive:
     real = frozenset(real)
@@ -256,6 +266,8 @@ async def drive(
                     embed=embed,
                     retrieve=retrieve,
                     passages=passages,
+                    select_examples=select_examples,
+                    example_texts=example_texts,
                 )
                 jobs.append(spec.produce(ctx, complete))
         outs = list(await asyncio.gather(*jobs))

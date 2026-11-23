@@ -242,7 +242,7 @@ async def test_runner_main_writes_outputs_metrics_report(tmp_path, monkeypatch):
         run_dir = next(out.iterdir())
         metrics = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
         report = (run_dir / "report.md").read_text(encoding="utf-8")
-        assert metrics["meta"]["prompt_versions"]["test_set"].startswith("s1.g4+")
+        assert metrics["meta"]["prompt_versions"]["test_set"].startswith("s1.g5+")
         assert "no_test_violations_raw" in metrics["runs"][0]["all"]
         projects = load_projects(run_dir)[0]
         assert projects and all(p["test_cases"] for p in projects.values())

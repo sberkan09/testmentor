@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.kb.settings import KbSettings
 from core.llm import LLMParams
 from core.nodes import NodeKind
 
@@ -27,6 +28,18 @@ class ClusteringSettings(BaseModel):
     """Cut-time limit: clusters shown in the UI are chunked to this size."""
     min_cluster_size: int = Field(default=2, ge=2)
     """HDBSCAN only."""
+
+
+class ImportSettings(BaseModel):
+    """config/pipeline.yaml `import:` (paket 4)."""
+
+    model_config = _FROZEN
+
+    id_prefix: str = "REQ-"
+    """Prefix of the id given to a requirement without one (`REQ-1`, `REQ-2`, ...)."""
+    max_requirements: int = Field(default=2000, ge=1)
+    encodings: tuple[str, ...] = ("utf-8-sig", "utf-8", "cp1254")
+    """csv: tried in this order."""
 
 
 class StageSettings(BaseModel):
@@ -56,6 +69,9 @@ class StageSettings(BaseModel):
     """D8: when members only left, drop and trim their cases without a model call (`False`: the
     incremental call, as in the design's call count)."""
     clustering: ClusteringSettings = ClusteringSettings()
+    kb: KbSettings = KbSettings()
+    """Knowledge base (paket 7). The retrieval stage's parameters come from here
+    (`KbSettings.retrieval_params`)."""
 
     @property
     def field_limits(self) -> tuple[tuple[str, int], ...]:
