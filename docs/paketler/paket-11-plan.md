@@ -26,6 +26,22 @@ Dört kol × ~7–8 dk + hazır olma ~5 dk + reranker CPU süresi: ~45 dk, ~2 US
 
 Kollar aynı batch'te taban koluyla koşuldu, `docs/deneyler/D10.md` ve D9 ek bölümü yazıldı, tasarım tablosu ve ayarlar güncellendi, pod silindi ve defter satırı yazıldı.
 
+## Tekrarlı ölçüm (paket 11b, pod açılmadan önce yazıldı)
+
+İlk batch'te (pod `2muhu5folo55ck`) 4 örnek tabana göre +0,046 [+0,009, +0,083] verdi. Ancak aynı ayarla koşan iki taban (D9 `d9-top4` 0,518 ve `d10-base` 0,484) birbirinden −0,035 [−0,064, −0,004] farklı çıktı. Getirilen parçalar 98 öbeğin 97'sinde aynı, şablonlar aynı, sıcaklık 0. Fark üretimin koşudan koşuya oynamasından (vLLM toplu işleme sayısal farkları) ve onu izleyen hakem kararlarından geliyor. Gereksinim düzeyindeki bootstrap bu oynamayı içermiyor.
+
+Bu yüzden 0 ve 4 örnek ayrıca 3'er tekrarla koşar (`d10-base-r3`, `d10-ex4-r3`, batch `paket11b`).
+
+**Karar kuralı.** 4 örnek ancak iki koşulun ikisi de sağlanırsa açılır:
+
+1. Kol ortalamaları farkı, kollar içindeki en geniş tekrar aralığından (en yüksek − en düşük tekrar) büyük olmalı.
+2. Tüm tekrarları birleştiren eşleştirilmiş bootstrap aralığı sıfırı dışlamalı.
+
+Aksi halde `kb.examples: 0` kalır. Reranker kararı (kapalı) bu ölçümü beklemez: tek koşuda bile tabana göre sıfırı kapsıyor ve aynı ayarlı eski tabana göre −0,017.
+
+Bütçe: 6 koşu × ~7 dk + hazır olma, ~45 dk, ~2 USD.
+
 ## Uygulamada netleşenler
 
-(doldurulacak)
+- Reranker CPU'da öbek başına ~13 sn (512 token sınırıyla 12 çift); 98 öbek ~19 dk. Kol batch'te ilk sırada koştu (1466 sn).
+- Sunucu sabitlenen testleri havuza hiç yazmıyordu; `services/kb_example_sync.py` eklendi (tasarım, Örnek havuzu).

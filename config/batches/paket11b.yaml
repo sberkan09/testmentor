@@ -1,0 +1,7 @@
+# Paket 11b: D10 tekrarlı ölçüm (docs/paketler/paket-11-plan.md, "Tekrarlı ölçüm").
+# İlk okumada aynı ayarlı iki taban −0,035 farklı çıktı; her kol 3 tekrar. Pod sonunda her durumda silinir.
+# Her tekrar ~7 dk; 6 koşu ~45 dk. Bekçi kapatılmaz (make extend HOURS=1).
+max_hours: 1.25
+steps:
+  - {experiment: d10-base-r3}
+  - {experiment: d10-ex4-r3}

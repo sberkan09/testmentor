@@ -1,0 +1,12 @@
+name: d10-ex4-r3
+question: "D10: öbek başına 4 örnek (sızıntısız referans havuzu); check_recall ve üslup uyumu d10-base ile karşılaştırılır (3 tekrar: koşudan koşuya oynamayı ölçmek için)"
+variable: kb.examples=4
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  example_pool: reference
+  kb:
+    examples: 4
+quality: true
+repeat: 3

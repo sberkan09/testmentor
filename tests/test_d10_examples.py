@@ -167,3 +167,15 @@ def test_style_shape_and_distance():
     ref = shape(reference_cases({"requirements": [req("R1", [])]}))
     assert ref["steps"] == 2 and ref["precondition_chars"] == len("R1 ön koşul")
     assert distance(ref, ref) == 0 and distance(gen, ref) > 0
+
+
+def test_paket11b_repeats_the_two_arms_unchanged():
+    batch = yaml.safe_load((ROOT / "config" / "batches" / "paket11b.yaml").read_text("utf-8"))
+    assert [s["experiment"] for s in batch["steps"]] == ["d10-base-r3", "d10-ex4-r3"]
+    for name in ("d10-base", "d10-ex4"):
+        once = yaml.safe_load((ROOT / "config" / "experiments" / f"{name}.yaml").read_text("utf-8"))
+        rep = yaml.safe_load(
+            (ROOT / "config" / "experiments" / f"{name}-r3.yaml").read_text("utf-8")
+        )
+        assert rep["repeat"] == 3 and rep["pipeline"] == once["pipeline"]
+        assert merged(f"{name}-r3") == merged(name)
