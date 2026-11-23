@@ -231,15 +231,20 @@ export function LayerScene({
   // Click (not drag) selects: the camera dives to the item, then the 2D view opens.
   useEffect(() => {
     const el = gl.domElement;
-    let down: { x: number; y: number } | null = null;
+    // A press is a click only if the pointer never left the slop radius: a drag that comes back
+    // to its start point is still a drag.
+    let down: { x: number; y: number; dragged: boolean } | null = null;
     const onDown = (e: PointerEvent) => {
-      down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null;
+      down = e.button === 0 ? { x: e.clientX, y: e.clientY, dragged: false } : null;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (down && !down.dragged && Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP) down.dragged = true;
     };
     const onUp = (e: PointerEvent) => {
       if (!down || dive.current) return;
-      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+      const dragged = down.dragged || Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP;
       down = null;
-      if (moved > CLICK_SLOP) return;
+      if (dragged) return;
       const hit = picker.pickAt(e.clientX, e.clientY);
       if (!hit) return;
       const y = picker.levelOf[hit.kind];
@@ -256,9 +261,11 @@ export function LayerScene({
       invalidate();
     };
     el.addEventListener("pointerdown", onDown);
+    el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp);
     return () => {
       el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerup", onUp);
     };
   }, [gl, picker, camera, controls, invalidate]);

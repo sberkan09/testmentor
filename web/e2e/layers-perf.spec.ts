@@ -125,6 +125,20 @@ test("katman görünümü: 2.000 gereksinimde akıcı yörünge, seçim 2B gör�
     expect((await page.evaluate(() => window.__testmentorLayers!.view())).tier).toBe("exact");
   });
 
+  await test.step("Başladığı yere dönen sürükleme seçim sayılmaz", async () => {
+    const box = await page.getByTestId("layers-stage").boundingBox();
+    if (!box) throw new Error("tuval yok");
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 100, y, { steps: 5 });
+    await page.mouse.move(x, y, { steps: 5 });
+    await page.mouse.up();
+    await page.waitForTimeout(800); // iniş 550 ms sürer
+    await expect(page.getByTestId("view-layers")).toHaveAttribute("aria-selected", "true");
+  });
+
   const reqKeys = SNAP.nodes.filter((n) => n.ref.kind === "requirement").map((n) => n.ref.key).slice(0, 300);
 
   await test.step("Gereksinim seçilince öbek görünümü açılır", async () => {
