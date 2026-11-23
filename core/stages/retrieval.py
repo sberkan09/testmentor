@@ -29,14 +29,18 @@ def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
 
 async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
     """`ctx.retrieve(members)`; `RetrievalContent(passage_ids)` in the returned order,
-    duplicates removed. Missing `ctx.retrieve` gives an empty list (no knowledge base)."""
+    duplicates removed. Missing `ctx.retrieve` gives an empty list (no knowledge base).
+    `ctx.select_examples(members)` (D10) fills `example_keys` the same way."""
     out = []
     for r in ctx.refs:
         ids: list[str] = []
+        examples: list[str] = []
+        members = [ctx.state.requirement(m) for m in ctx.state.members(r.key)]
         if ctx.retrieve is not None:
-            members = [ctx.state.requirement(m) for m in ctx.state.members(r.key)]
             ids = list(dict.fromkeys(await ctx.retrieve(members)))
-        content = RetrievalContent(passage_ids=tuple(ids))
+        if ctx.select_examples is not None:
+            examples = list(dict.fromkeys(await ctx.select_examples(members)))
+        content = RetrievalContent(passage_ids=tuple(ids), example_keys=tuple(examples))
         out.append((r, result(ctx.state, r, content, mode="algorithm")))
     return ProduceOutcome(results=tuple(out))
 

@@ -63,6 +63,8 @@ class Basis(BaseModel):
     """Content hash of the project card node."""
     passages: tuple[str, ...]
     """Passage ids of the cluster's retrieval, in rank order."""
+    examples: tuple[str, ...] = ()
+    """Example keys of the cluster's retrieval (paket 7, D10)."""
     members: dict[str, MemberBasis]
 
 
@@ -102,6 +104,7 @@ def basis_of(state: ProjectState, cluster: str) -> Basis:
         config=plain_hash(state.stage_configs[NodeKind.TEST_SET].model_dump(mode="json")),
         card=content_hash(card) if card is not None else "",
         passages=retrieval.passage_ids if isinstance(retrieval, RetrievalContent) else (),
+        examples=retrieval.example_keys if isinstance(retrieval, RetrievalContent) else (),
         members=members,
     )
 
@@ -138,7 +141,7 @@ def choose_mode(
 ) -> Mode:
     """- `merge` when the hint is merge and every hint source is in `sources`;
     - otherwise `incremental` when the set has content, a readable basis, the basis' config,
-      card and passages equal `basis_of(state, cluster)` (members may differ), and the cluster
+      card, passages and example keys equal `basis_of(state, cluster)` (members may differ), and the cluster
       has at most `max_unit_size` members (None: no limit);
     - `full` in every other case (no content, no basis, card / config / passages changed, a
       cluster larger than one unit). A merge hint without its sources falls through to these
@@ -161,7 +164,12 @@ def choose_mode(
     if max_unit_size is not None and len(state.members(cluster)) > max_unit_size:
         return "full"
     new = basis_of(state, cluster)
-    if (old.config, old.card, old.passages) != (new.config, new.card, new.passages):
+    if (old.config, old.card, old.passages, old.examples) != (
+        new.config,
+        new.card,
+        new.passages,
+        new.examples,
+    ):
         return "full"
     return "incremental"
 

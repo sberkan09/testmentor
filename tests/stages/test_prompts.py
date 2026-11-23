@@ -141,10 +141,11 @@ RENDER_HASHES: dict[tuple[str, str], str] = {
     ("cluster_label", "s1.l1"): "bb68f09522d0a4f1",
     ("test_set", "s1.g3"): "01a6c677cadd67e8",
     ("test_set", "s1.g4"): "b4e89455564dd93c",
+    ("test_set", "s1.g5"): "3b742fbdabf37d98",
 }
 
 
-def _render_fixture(stage: NodeKind) -> str:
+def _render_fixture(stage: NodeKind, *, examples: bool = True) -> str:
     from core.nodes import TestCaseContent
     from core.schemas import MergeDecision, Step, incremental_model, method_batch_model
 
@@ -177,6 +178,18 @@ def _render_fixture(stage: NodeKind) -> str:
             ),
             append_tail(full_messages(), prompts.schema_retry_section("bad")),
         ]
+        if examples:  # g5 (paket 7): layer 4 carries `# Project examples`
+            ex = [
+                prompts.render_example(["Sistem, kullanıcı girişini kilitlemelidir."], case),
+                prompts.render_example(["The system shall log changes.", "Log is exported."], case),
+            ]
+            parts.append(full_messages(project_examples=ex))
+            parts.append(
+                append_tail(
+                    full_messages(passages=["[D §A] metin"], project_examples=ex),
+                    prompts.pinned_section([case]),
+                )
+            )
     elif stage == NodeKind.METHOD:
         names = tuple(m.name for m in CARD_METHODS)
         parts = [
@@ -196,3 +209,21 @@ def test_rendering_snapshot_matches_version(stage):
     if key not in RENDER_HASHES:
         pytest.fail(f"add to RENDER_HASHES: {key!r}: {h!r}")
     assert RENDER_HASHES[key] == h, "rendering changed: bump the template version"
+
+
+def test_without_examples_g5_renders_byte_for_byte_as_g4():
+    """`kb.examples: 0`: no `# Project examples` section, nothing else changes. The g4 line of
+    RENDER_HASHES is the proof: the fixture without example parts still hashes to it."""
+    h = hashlib.sha256(_render_fixture(NodeKind.TEST_SET, examples=False).encode()).hexdigest()
+    assert h[:16] == RENDER_HASHES[("test_set", "s1.g4")]
+    plain = full_messages()
+    assert "Project examples" not in plain[1]["content"]
+    assert full_messages(project_examples=[]) == plain
+
+
+def test_examples_go_to_layer_4_after_the_passages_and_before_the_requirements():
+    text = full_messages(passages=["[D §A] p1"], project_examples=["E1", "E2"])[1]["content"]
+    assert text.index("# Retrieved passages") < text.index("[D §A] p1")
+    assert text.index("[D §A] p1") < text.index("# Project examples")
+    assert text.index("E1") < text.index("E2") < text.index("# Requirements")
+    assert text.count("# Project examples") == 1
