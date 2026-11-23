@@ -10,7 +10,7 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 4 | `paket-4-plan.md` | A (Sonnet) | **birleşti** (23.11): bitti testi (altın set v0 csv ve xlsx → matris → xlsx) geçti; 316 test |
 | 5 | `paket-5-plan.md` | B (Opus) | yazılıyor (23.11) |
 | 6 | `paket-6-plan.md` | B (5'ten sonra) | planlandı |
-| 7 | `paket-7-plan.md` | C (Sonnet) | kod yazılıyor (23.11); GPU ölçümü bu oturumda |
+| 7 | `paket-7-plan.md` | C (Sonnet) | **kod birleşti** (23.11): yalıtım testi geçti, 374 test; D9 batch koşuyor (ayrı çalışma ağacından) |
 | 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; e2e yalnızca sahte API'ye karşı geçti, gerçek API ile paket 6'dan sonra |
 | 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
 | Demo | – | bu oturum | gerçek model çıktılarıyla demo videosu (Playwright kaydı + ffmpeg alt yazı, MP4) |
@@ -36,4 +36,7 @@ Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC 
 | 23.11 | Hedef PoC/demo sürümüne indi; paket 9 kesildi; ön yüzde öncelik demo akışı (yükleme → öbekler → düzenleme → matris → xlsx) | kullanıcı talimatı |
 | 23.11 | Demo videosu gerçek model çıktılarıyla çekilir (kısa GPU koşusu, ~1–1,5 USD); sahte modelin metinleri demoda yapay görünür | demo inandırıcılığı |
 | 23.11 | Paket 4: `core/importing.py` ve `core/matrix_view.py` `worker.contracts` içindeki saf pydantic modelleri içe aktarıyor (katman yönü ters); PoC için kabul, sözleşme modelleri ileride `core/` altına taşınabilir | süre; dosya, HTTP ya da veritabanı bağımlılığı yok |
+| 23.11 | D9'da reranker kolu koşulmadı: tasarım ilk sürümde reranker'sız, kod hazır (`kb.reranker`), model seçimi ve CPU çapraz kodlama PoC'ye değer katmıyor | süre, kesme sırası |
+| 23.11 | D10 kesildi: örnek havuzu kodu hazır (varsayılan kapalı), ama altın setin referans testlerinden kurulan havuz cevap anahtarını sızdırır; sızıntısız havuz ayrı iş | ölçüm geçerliliği, kesme sırası |
+| 23.11 | GPU batch'leri ayrı bir çalışma ağacından (`/home/user/testmentor-batch`, sabit commit) koşar; ana dala birleştirmeler koşan batch'in kodunu değiştirmez | paralel birleştirme ile ölçümün yalıtımı |
 
