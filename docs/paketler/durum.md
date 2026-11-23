@@ -12,7 +12,9 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 6 | `paket-6-plan.md` | E (Sonnet) | **birleşti** (23.11): iki bitti testi sahte servisle geçti, 388 test; gerçek servise bağlantı (`api/main.build_service`) paket 5 birleşince |
 | 7 | `paket-7-plan.md` | C (Sonnet) | **bitti** (23.11): yalıtım testi geçti; D9: gerçek hibrit arama +0,073 [+0,035, +0,114], 400 token, ilk 4 (`kb.top_k`), kart var |
 | 8 | `paket-8-plan.md` | D (Sonnet) | **birleşti** (23.11): build, lint, 35 birim testi; **bitti testi (Playwright) gerçek API'ye karşı geçti** (sahte modelle) |
-| 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
+| 9 | `paket-9-plan.md` | F (Opus) | yeniden açıldı (kullanıcı, 23.11), sürüyor |
+| 10 | `paket-10-plan.md` | G (Opus) | pilot hazırlığı, sürüyor |
+| 11 | `paket-11-plan.md` | ana oturum | D10 ve reranker, sürüyor |
 | Demo | – | **bitti** (23.11) | `docs/demo/testmentor-demo.mp4` (76 sn, gerçek model çıktıları, bekleme bölümleri hızlandırılmış); kayıt `demo/record_real.sh`, kurgu `demo/make_video.py` |
 
 Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC ve demoya uygun sürüm**, ayrıca demo videosu. Kesme sırası: paket 9 (kesildi) → D10 → D9'un ek kolları → fark ekranı ve çok kullanıcılı ayrıntılar.
@@ -45,3 +47,6 @@ Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC 
 | 23.11 | D9: `kb.top_k` 8 → 4 (4/8/12 arasında ölçülebilir fark yok, 4 en kısa prompt); parça boyu 400 ve kart kalır | planın kuralı: fark yoksa basit ve ucuz olan |
 
 | 23.11 | Demo kaydı Playwright videosu yerine CDP ekran akışı kareleriyle; `make_video.py` bekleme aralıklarını 6 sn'ye sıkıştırır, bir çıktı karesinden kısa kareleri atar | Playwright'ın ffmpeg derlemesi ortamda yok |
+| 23.11 | Kullanıcı "2, 3 ve 4'ü yap": pilot hazırlığı (paket 10), kalite (paket 11: D10, reranker), 3B görünüm (paket 9) | kullanıcı talimatı |
+| 23.11 | Bulgu: sunucu (`api/main.py`) bilgi havuzunu hiç bağlamıyordu; demo dahil sunucuda parça getirme kapalıydı. Paket 10'un ilk işi | inceleme |
+| 23.11 | Pilot doğrulaması bu konteynerde Docker ile (daemon elle başlatıldı, `pgvector/pgvector:0.8.7-pg18` çekildi); GPU servisleri yerelde çalıştırılmaz | ortam |
