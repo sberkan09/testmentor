@@ -12,9 +12,10 @@ Başlangıç: 23 Kasım 2026. Kullanıcı talimatı: "Yarına kadar bitir, bana 
 | 6 | `paket-6-plan.md` | B (5'ten sonra) | planlandı |
 | 7 | `paket-7-plan.md` | C (Sonnet) | kod yazılıyor (23.11); GPU ölçümü bu oturumda |
 | 8 | `paket-8-plan.md` | D (Sonnet) | yazılıyor (23.11); sözleşme şemasına göre, e2e paket 6'dan sonra |
-| 9 | `paket-9-plan.md` | – | ilk kesilecek iş |
+| 9 | `paket-9-plan.md` | – | **kesildi** (PoC/demo hedefi, 23.11) |
+| Demo | – | bu oturum | gerçek model çıktılarıyla demo videosu (Playwright kaydı + ffmpeg alt yazı, MP4) |
 
-Kesme sırası (süre yetmezse): paket 9 → D10 → D9'un ek kolları.
+Hedef (kullanıcı, 23.11): yarına tam kullanıma hazır sürüm değil, **PoC ve demoya uygun sürüm**, ayrıca demo videosu. Kesme sırası: paket 9 (kesildi) → D10 → D9'un ek kolları → fark ekranı ve çok kullanıcılı ayrıntılar.
 
 ## Kullanıcı adına verilen kararlar
 
@@ -31,4 +32,7 @@ Kesme sırası (süre yetmezse): paket 9 → D10 → D9'un ek kolları.
 | 23.11 | Hiçbir alt oturum ücretli kaynak açmaz ve hakem çağırmaz; Runpod yalnızca bu oturumda, `make batch` ile | kredi koruması |
 | 23.11 | Paket 4 ve 5'in çalışma ağaçları main'deki birleştirme commit'inden açıldı (sözleşme ve planlar yoktu); ikisine de bu dalı birleştirmeleri bildirildi | alt oturum araçlarının taban commit'i |
 | 23.11 | `api/schema.json` bu oturumda üretildi (paket 6'nın parçası öne alındı), paket 8 sözleşmeye göre paralel başladı | ön yüz en uzun iş; arka uçsuz başlayabilir |
+| 23.11 | Kullanıcı Runpod'a kredi yükledi (bakiye 21,03 USD) | – |
+| 23.11 | Hedef PoC/demo sürümüne indi; paket 9 kesildi; ön yüzde öncelik demo akışı (yükleme → öbekler → düzenleme → matris → xlsx) | kullanıcı talimatı |
+| 23.11 | Demo videosu gerçek model çıktılarıyla çekilir (kısa GPU koşusu, ~1–1,5 USD); sahte modelin metinleri demoda yapay görünür | demo inandırıcılığı |
 
