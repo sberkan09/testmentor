@@ -11,7 +11,8 @@ Both pass `tests/core/test_store_contract.py` and `tests/worker/test_store.py`.
 
 from __future__ import annotations
 
-from contextlib import AbstractContextManager, nullcontext
+from collections.abc import Iterator
+from contextlib import AbstractContextManager, contextmanager, nullcontext
 from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -110,15 +111,45 @@ class ProjectStore(NodeStore, Protocol):
 
 
 class MemoryProjectStore(InMemoryStore):
-    """`InMemoryStore` plus project and job records. Transactions are not rolled back."""
+    """`InMemoryStore` plus project and job records. A transaction that raises is rolled back
+    (as in Postgres), so store failures in tests leave the store as it was."""
 
     def __init__(self) -> None:
         super().__init__()
         self._projects: dict[str, ProjectRecord] = {}
         self._jobs: dict[tuple[str, str], JobRecord] = {}
+        self._depth = 0
 
     def transaction(self) -> AbstractContextManager[object]:
-        return nullcontext()
+        if self._depth:
+            return nullcontext()  # nested: the outermost transaction rolls back
+        return self._transaction()
+
+    @contextmanager
+    def _transaction(self) -> Iterator[None]:
+        saved = (
+            dict(self._current),
+            {k: list(v) for k, v in self._history.items()},
+            dict(self._cache),
+            {k: list(v) for k, v in self._events.items()},
+            dict(self._projects),
+            dict(self._jobs),
+        )
+        self._depth += 1
+        try:
+            yield
+        except BaseException:
+            (
+                self._current,
+                self._history,
+                self._cache,
+                self._events,
+                self._projects,
+                self._jobs,
+            ) = saved
+            raise
+        finally:
+            self._depth -= 1
 
     def save_project(self, record: ProjectRecord) -> None:
         self._projects[record.project_id] = record.model_copy(deep=True)

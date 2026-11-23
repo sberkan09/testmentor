@@ -167,7 +167,10 @@ class JobQueue:
             self._wake.clear()
             self._start_due(loop.time())
             self._notify_idle()
-            waits = [p.due for p in self._pending.values()]
+            # Sleep until the next job that could start then; jobs that wait for a slot (all
+            # slots, or the P2 share, taken) are woken by `_kick` when a job ends or arrives.
+            p2_full = self._p2_running() >= self.p2_limit
+            waits = [p.due for p in self._pending.values() if not (p.priority == "P2" and p2_full)]
             timeout = None
             if waits and len(self._running) < self.concurrency:
                 timeout = max(0.0, min(waits) - loop.time())
@@ -176,8 +179,11 @@ class JobQueue:
             except TimeoutError:
                 pass
 
+    def _p2_running(self) -> int:
+        return sum(1 for r in self._running.values() if r.priority == "P2")
+
     def _start_due(self, now: float) -> None:
-        p2_running = sum(1 for r in self._running.values() if r.priority == "P2")
+        p2_running = self._p2_running()
         for job in self.pending():
             if len(self._running) >= self.concurrency:
                 return

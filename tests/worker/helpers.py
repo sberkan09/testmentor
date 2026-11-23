@@ -39,7 +39,9 @@ REQS = {
     "R6": ("en", "The system shall support 200 concurrent users."),
 }
 CLUSTERS = {"A": ("R1", "R2"), "B": ("R3", "R4"), "C": ("R5", "R6")}
-FAST = OrchestratorSettings(debounce_s=0.01, concurrency=16, p2_share=0.7, lock_s=60)
+FAST = OrchestratorSettings(
+    debounce_s=0.01, concurrency=16, p2_share=0.7, lock_s=60, store_retry_s=0.01
+)
 
 
 def project(pid: str = "P") -> ProjectState:

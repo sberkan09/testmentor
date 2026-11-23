@@ -12,7 +12,7 @@ import pytest
 
 from core.invalidation import analyze
 from core.llm import LLMRequest
-from core.nodes import NodeKind, Status, TestCaseContent
+from core.nodes import PROJECT_CARD_KEY, NodeKind, Status, TestCaseContent
 from services.fake_llm import FakeComplete
 from tests.worker import helpers
 from tests.worker.helpers import FAST, Clock, calls, hashes, produced, project, ref, service
@@ -34,6 +34,7 @@ from worker.contracts import (
     SetGranularity,
     SetStageMode,
     Undo,
+    Unpin,
 )
 from worker.store import MemoryProjectStore
 
@@ -351,11 +352,46 @@ async def test_undo_is_refused_after_another_user_changed_the_same_nodes():
     result = await svc.command("P", cmd(Undo()), "ayse")
     assert not result.accepted and result.reason == "version_conflict"
     assert set(result.current_versions) == {"cluster:A", "cluster:B"}
+    # The refused entry left Ayşe's stack (review finding 7): nothing older to undo here.
+    assert svc.runtime("P").record.undo["ayse"] == []
     assert (await svc.command("P", cmd(Undo()), "mehmet")).accepted
-    assert (await svc.command("P", cmd(Undo()), "ayse")).accepted
+    assert (await svc.command("P", cmd(Undo()), "ayse")).reason == "nothing_to_undo"
+    await svc.wait_idle()
+    state = svc.runtime("P").state
+    assert state.members("A") == ("R1",) and state.members("B") == ("R2", "R3", "R4")
+
+
+async def test_undo_is_accepted_when_the_other_user_undid_first():
+    svc = service()
+    await produced(svc)
+    await svc.command("P", cmd(MoveRequirement(requirement="R2", to_cluster="B")), "ayse")
+    await svc.command("P", cmd(MoveRequirement(requirement="R2", to_cluster="C")), "mehmet")
+    assert (await svc.command("P", cmd(Undo()), "mehmet")).accepted
+    assert (await svc.command("P", cmd(Undo()), "ayse")).accepted  # same content again
     await svc.wait_idle()
     state = svc.runtime("P").state
     assert state.members("A") == ("R1", "R2") and state.members("C") == ("R5", "R6")
+
+
+async def test_refused_undo_entry_is_dropped_so_older_commands_can_be_undone():
+    """Review finding 7: an undo refused with `version_conflict` drops its entry."""
+    svc = service()
+    await produced(svc)
+    rt = svc.runtime("P")
+    await svc.command("P", cmd(RenameCluster(cluster="A", name="Giriş")), "ayse")
+    await svc.command("P", cmd(MoveRequirement(requirement="R2", to_cluster="B")), "ayse")
+    await svc.command("P", cmd(MoveRequirement(requirement="R4", to_cluster="C")), "mehmet")
+    refused = await svc.command("P", cmd(Undo()), "ayse")  # B changed by Mehmet since
+    assert not refused.accepted and refused.reason == "version_conflict"
+    assert [e.command for e in rt.record.undo["ayse"]] == ["rename_cluster"]
+    assert svc.store.get_project("P").undo["ayse"] == rt.record.undo["ayse"]  # persisted
+    assert (await svc.command("P", cmd(Undo()), "ayse")).accepted  # the rename
+    assert not rt.state.node(ref(LABEL, "A")).pinned
+    assert rt.state.members("B") == ("R2", "R3")  # the move stays
+    assert (await svc.command("P", cmd(Undo()), "ayse")).reason == "nothing_to_undo"
+    await svc.wait_idle()
+    assert rt.state.node(ref(LABEL, "A")).origin.value == "generated"
+    await svc.close()
 
 
 async def test_undo_of_other_users_commands_is_independent():
@@ -535,3 +571,96 @@ async def test_snapshot_job_ids_are_unique():
         await asyncio.sleep(0.02)
     await svc.wait_idle()
     assert svc.runtime("P").idle()
+
+
+# Review fixes: gates, pins, events ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize("back", ["undo", "edit"])
+async def test_card_edit_taken_back_leaves_no_gate_behind(back):
+    """Review finding 2: nodes that return to fresh by the normal rule leave `needs_approval`;
+    a later move runs without approval (one incremental test call and two names)."""
+    complete = FakeComplete()
+    svc = service(complete=complete)
+    before = await produced(svc)
+    card = before.node(ref(NodeKind.PROJECT_CARD, PROJECT_CARD_KEY)).content
+    await svc.command("P", cmd(EditProjectCard(text="Project: Yeni portal (P)")), "lead")
+    await svc.wait_idle()
+    rt = svc.runtime("P")
+    assert rt.record.needs_approval
+    back_cmd = Undo() if back == "undo" else EditProjectCard(text=card.text, methods=card.methods)
+    assert (await svc.command("P", cmd(back_cmd), "lead")).accepted
+    await svc.wait_idle()
+    assert rt.record.needs_approval == [] and not analyze(rt.state).stale
+    n0 = len(complete.requests)
+    await svc.command("P", cmd(MoveRequirement(requirement="R2", to_cluster="B")), "a")
+    await svc.wait_idle()
+    assert calls(complete.requests[n0:]) == {
+        ("TestCaseDelta", "B/incremental"): 1,
+        ("ClusterLabel", "A/label"): 1,
+        ("ClusterLabel", "B/label"): 1,
+    }
+    snap = svc.snapshot("P")
+    assert not any(j.state == "waiting_approval" for j in snap.jobs)
+    assert not any(s.waiting_approval for s in snap.stages)
+    await svc.close()
+
+
+async def test_approval_of_a_node_that_returned_to_fresh_does_not_carry_over():
+    """Review finding 3: approve, undo at once (the set is fresh again), edit again: the set
+    waits for a new approval."""
+    complete = FakeComplete()
+    svc = service(complete=complete)
+    await produced(svc)
+    rt = svc.runtime("P")
+    await svc.command("P", cmd(SetStageMode(stage=SET, mode="approval")), "lead")
+    text = rt.state.requirement("R5").text
+    await svc.command("P", cmd(EditRequirement(requirement="R5", text=text + " Ek.")), "a")
+    await svc.wait_idle()
+    assert ("C", "waiting_approval") in {(j.node.key, j.state) for j in svc.snapshot("P").jobs}
+    await svc.command("P", cmd(ApproveStage(stage=SET)), "lead")
+    assert (await svc.command("P", cmd(Undo()), "a")).accepted  # before the job starts
+    assert rt.record.approved == []
+    await svc.wait_idle()
+    n0 = len(complete.requests)
+    await svc.command("P", cmd(EditRequirement(requirement="R5", text=text + " Başka.")), "a")
+    await svc.wait_idle()
+    assert ("TestCaseDelta", "C/incremental") not in calls(complete.requests[n0:])
+    jobs = {(j.node.kind, j.node.key): j.state for j in svc.snapshot("P").jobs}
+    assert jobs == {(SET, "C"): "waiting_approval"}
+    await svc.close()
+
+
+async def test_pin_of_a_pinned_node_is_refused_and_leaves_the_undo_stack_alone():
+    """Review finding 4: an idle pin/unpin is `invalid` and pushes no undo entry, so undo
+    takes back the edit (which pinned the case) without a version conflict."""
+    svc = service()
+    state = await produced(svc)
+    rt = svc.runtime("P")
+    key = state.test_cases("B")[0].key
+    case_ref = ref(NodeKind.TEST_CASE, key)
+    original = state.node(case_ref)
+    edited = original.content.model_copy(update={"title": "Düzenlendi"})
+    assert (await svc.command("P", cmd(EditTestCase(case=key, content=edited)), "ayse")).accepted
+    assert rt.state.node(case_ref).pinned
+    pin = await svc.command("P", cmd(Pin(node=case_ref)), "ayse")
+    assert not pin.accepted and pin.reason.startswith("invalid: already pinned")
+    unpin = await svc.command("P", cmd(Unpin(node=ref(LABEL, "A"))), "ayse")
+    assert not unpin.accepted and unpin.reason.startswith("invalid: already unpinned")
+    assert [e.command for e in rt.record.undo["ayse"]] == ["edit_test_case"]
+    undone = await svc.command("P", cmd(Undo()), "ayse")
+    assert undone.accepted, undone.reason
+    node = rt.state.node(case_ref)
+    assert node.content == original.content and not node.pinned
+    await svc.close()
+
+
+async def test_events_after_a_future_seq_need_a_snapshot():
+    """Review finding 8: a client ahead of the server (e.g. after a restart with a lost tail)
+    must not silently miss events."""
+    svc = service()
+    await produced(svc)
+    last = svc.snapshot("P").seq
+    assert svc.events_after("P", last) == []
+    assert svc.events_after("P", last + 50) is None
+    await svc.close()

@@ -11,7 +11,7 @@ import pytest
 from core.llm import LLMReply, LLMRequest
 from core.nodes import NodeKind
 from services.fake_llm import FakeComplete, FakeEmbed
-from tests.worker.helpers import produced, project, service
+from tests.worker.helpers import produced, project, ref, service
 from worker.contracts import (
     ColumnMapping,
     CommandRequest,
@@ -167,4 +167,89 @@ async def test_subscription_registers_at_once_and_ends_with_its_task():
     with pytest.raises(asyncio.CancelledError):
         await task
     assert sub not in rt._subscribers
+    await svc.close()
+
+
+# Review fixes: event loop thread, loading, consistent snapshots ---------------------------------
+
+
+async def test_service_refuses_calls_from_another_thread_or_loop():
+    """Review finding 1c: the service is single-threaded on one event loop; a call from a worker
+    thread (FastAPI's `def` endpoints) or from another loop fails loudly."""
+    svc = service()
+    await produced(svc)
+    r1 = ref(NodeKind.REQUIREMENT, "R1")
+    for call in (
+        lambda: svc.snapshot("P"),
+        lambda: svc.projects(),
+        lambda: svc.lock("P", r1, "ayse"),
+        lambda: svc.events_after("P", 0),
+        lambda: svc.matrix_xlsx("P"),
+    ):
+        with pytest.raises(RuntimeError, match="event loop"):
+            await asyncio.to_thread(call)
+
+    async def elsewhere() -> None:
+        svc.projects()
+
+    with pytest.raises(RuntimeError, match="event loop"):
+        await asyncio.to_thread(asyncio.run, elsewhere())
+    assert svc.runtime("P").state.node(r1)  # still usable on its own loop
+    assert svc.snapshot("P").locks == {}
+    await svc.close()
+
+
+async def test_a_project_that_fails_to_load_does_not_hide_the_others():
+    """Review finding 1b: each project loads on its own; a failed one is retried later."""
+    store = MemoryProjectStore()
+    first = service(store)
+    await produced(first, "P")
+    await produced(first, "Q")
+    await first.close()
+
+    load = store.load
+    broken = {"P"}
+
+    def flaky_load(project_id: str):
+        if project_id in broken:
+            raise ConnectionError("lost")
+        return load(project_id)
+
+    store.load = flaky_load  # type: ignore[method-assign]
+    again = service(store)
+    assert again.projects() == [("Q", "Örnek portal")]
+    with pytest.raises(KeyError):
+        again.snapshot("P")
+    broken.clear()
+    assert again.projects() == [("P", "Örnek portal"), ("Q", "Örnek portal")]
+    assert again.snapshot("P").project_id == "P"
+    await again.close()
+
+
+async def test_snapshot_agrees_with_the_events_up_to_its_seq():
+    """Review finding 1: `seq`, nodes and jobs of a snapshot come from one state; replaying the
+    live events up to a snapshot's `seq` on an earlier snapshot gives its nodes."""
+    svc = service(complete=FakeComplete(delay_s=0.01))
+    await svc.add_project(project(), "P")
+    base = svc.snapshot("P")
+    sub = svc.subscribe("P")
+    nodes = {str(n.ref): n.model_dump(mode="json") for n in base.nodes}
+    events = []
+    checked = 0
+    while not svc.runtime("P").idle() or not sub.queue.empty():
+        snap = svc.snapshot("P")
+        while not sub.queue.empty():
+            events.append(sub.queue.get_nowait())
+        for e in [e for e in events if e.seq <= snap.seq and e.type != "job_progress"]:
+            if e.type == "node_removed":
+                nodes.pop(f"{e.payload['ref']['kind']}:{e.payload['ref']['key']}", None)
+            elif e.type.startswith("node_"):
+                view = e.payload["node"]
+                nodes[f"{view['ref']['kind']}:{view['ref']['key']}"] = view
+        events = [e for e in events if e.seq > snap.seq]
+        assert nodes == {str(n.ref): n.model_dump(mode="json") for n in snap.nodes}
+        checked += 1
+        await asyncio.sleep(0.005)
+    assert checked > 3
+    await sub.aclose()
     await svc.close()

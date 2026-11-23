@@ -28,4 +28,6 @@ orchestrator:               # paket 5 (docs/tasarim.md, İş kuyruğu)
   event_buffer: 10000       # proje başına tekrar oynatılabilir olay sayısı
   lock_s: 60                # düzenleme kilidi
   undo_limit: 100           # kullanıcı başına geri alma kaydı
+  store_retry_s: 2          # depo hatasından sonra işi yeniden deneme beklemesi
+  store_retries: 2          # sonucu yazılamayan düğüm en çok bu kadar yeniden üretilir, sonra failed
 
