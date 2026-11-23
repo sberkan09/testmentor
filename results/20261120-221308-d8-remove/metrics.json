@@ -1,0 +1,1234 @@
+{
+  "meta": {
+    "run_id": "20261120-221308-d8-remove",
+    "experiment": {
+      "name": "d8-remove",
+      "question": "D8 Yeniden üretim, çıkarma: her öbekten bir Test üyesi çıkar; artımlı çağrı (tasarımın çağrı sayısı) ile modelsiz budama aynı taban üzerinde karşılaştırılır. Fark ölçülemezse daha basit olan budama seçilir.",
+      "variable": "generation.prune_removals (false | true)",
+      "server": {
+        "engine": "vllm",
+        "model": "qwen3.8-27b",
+        "overrides": {}
+      },
+      "golden": "v1",
+      "scenario": {
+        "kind": "remove",
+        "min_test_members": 3,
+        "arms": {
+          "call": {
+            "prune_removals": false
+          },
+          "prune": {
+            "prune_removals": true
+          }
+        }
+      },
+      "quality": true
+    },
+    "config_file": "config/experiments/d8-remove.yaml",
+    "pipeline_config": {
+      "generation_inputs": "reference",
+      "unit_packing": false,
+      "passages": "none",
+      "methods": [
+        {
+          "name": "Test",
+          "criterion": "Davranış sistem çalıştırılarak ve girdi verilerek gözlenebiliyorsa."
+        },
+        {
+          "name": "Analiz",
+          "criterion": "Doğrulama hesap, model, benzetim ya da istatistik gerektiriyorsa."
+        },
+        {
+          "name": "İnceleme",
+          "criterion": "Belge, kod, yapılandırma ya da fiziksel ürün gözle denetlenerek doğrulanıyorsa."
+        },
+        {
+          "name": "Gösterim",
+          "criterion": "İşlev ölçüm yapılmadan, çalıştırılıp gözlemlenerek gösteriliyorsa."
+        }
+      ],
+      "test_method": "Test",
+      "test_types": [
+        "Normal",
+        "Sınır",
+        "Hata"
+      ],
+      "priorities": [
+        "Yüksek",
+        "Orta",
+        "Düşük"
+      ],
+      "clustering": {
+        "method": "agglomerative",
+        "linkage": "average",
+        "distance_threshold": 0.35,
+        "max_cluster_size": 25
+      },
+      "classification": {
+        "batch_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 4096
+      },
+      "cluster_label": {
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 512
+      },
+      "generation": {
+        "max_unit_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 16384,
+        "repair": true,
+        "regeneration": "incremental",
+        "prune_removals": false
+      },
+      "concurrency": 16,
+      "prefix_warmup": false,
+      "examples_file": "config/prompts/examples-generation.yaml",
+      "thresholds": {
+        "schema_valid_rate": 0.99,
+        "coverage_rate": 1.0,
+        "step_structure_rate": 1.0,
+        "no_test_violations": 0
+      }
+    },
+    "golden_version": "v1",
+    "server": {
+      "pod": "j9flebx3g2ibqh",
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "overrides": {}
+    },
+    "model_spec": {
+      "repo_id": "Qwen/Qwen3.8-27B-FP8",
+      "served_name": "qwen3.8-27b",
+      "precision": "fp8",
+      "context_length": 32768,
+      "max_num_seqs": 64,
+      "engine_args": {
+        "vllm": [
+          "--reasoning-parser",
+          "qwen3",
+          "--language-model-only"
+        ],
+        "sglang": [
+          "--reasoning-parser",
+          "qwen3"
+        ]
+      },
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "gated": false,
+      "gpu_memory_utilization": null,
+      "download_ignore": [],
+      "approx_size_gb": 30.0,
+      "notes": "Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık. Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek."
+    },
+    "started_at": "2026-11-20T22:13:08Z",
+    "served_model": "qwen3.8-27b",
+    "engine_settings": {
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "base_url": "https://j9flebx3g2ibqh-8000.proxy.runpod.net/v1",
+      "served_model_name": "qwen3.8-27b",
+      "api_key_env": "LLM_API_KEY",
+      "request_timeout_s": 900.0,
+      "connect_timeout_s": 15.0,
+      "default_max_tokens": 4096,
+      "default_temperature": null,
+      "extra_body": {},
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    "prompt_versions": {
+      "embedding": "BAAI/bge-m3",
+      "clustering": "c1",
+      "method": "s1.m1+5d9f798bd379",
+      "cluster_label": "s1.l1+7f6b859095cb",
+      "retrieval": "r1",
+      "test_set": "s1.g3+18f7be32bb16",
+      "matrix_row": "x1"
+    }
+  },
+  "runs": [
+    {
+      "all": {
+        "requirements": 229,
+        "coverage_rate": 0.8816,
+        "coverage_rate_predicted": null,
+        "coverage_rate_before_repair": 0.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 428,
+        "method_exact_match": 0.0,
+        "method_jaccard": 0.0,
+        "duplicate_pairs": 42,
+        "duplicate_test_rate": 0.1332,
+        "no_test_violations_raw": 0
+      },
+      "by_language": {
+        "en": {
+          "requirements": 169,
+          "coverage_rate": 0.8869,
+          "coverage_rate_predicted": null,
+          "coverage_rate_before_repair": 0.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 328,
+          "method_exact_match": 0.0,
+          "method_jaccard": 0.0
+        },
+        "tr": {
+          "requirements": 60,
+          "coverage_rate": 0.8667,
+          "coverage_rate_predicted": null,
+          "coverage_rate_before_repair": 0.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 100,
+          "method_exact_match": 0.0,
+          "method_jaccard": 0.0
+        }
+      },
+      "traps": {
+        "requirements": 1,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": null,
+        "coverage_rate_before_repair": 0.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 3,
+        "method_exact_match": 0.0,
+        "method_jaccard": 0.0
+      },
+      "cluster_ari": null,
+      "cluster_ari_by_project": {
+        "ETC": null,
+        "KDH": null
+      },
+      "calls": {
+        "calls": 125,
+        "errors": 0,
+        "schema_valid_rate": 0.992,
+        "schema_valid_rate_generation": 0.9899,
+        "tokens_total": 353557,
+        "prompt_tokens": 201369,
+        "completion_tokens": 152188,
+        "cached_tokens": 120640,
+        "prefix_cache_hit_rate": 0.5991,
+        "wall_s": 571.82,
+        "seconds_per_cluster": null,
+        "tokens_per_second": 266.1
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": false,
+        "step_structure_rate": true,
+        "no_test_violations": true
+      },
+      "scenario": {
+        "kind": "remove",
+        "baseline_calls": 99,
+        "arms": {
+          "call": {
+            "units": 26,
+            "change_calls": 26,
+            "change_completion_tokens": 1303,
+            "change_call_s": 91.73,
+            "change_wall_s": 22.68,
+            "errors": {},
+            "rows": [
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c000",
+                "changed_requirement": "ETC-009",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 7,
+                "cases_after": 7,
+                "preserved": 7,
+                "identical": 7,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c001",
+                "changed_requirement": "ETC-094",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 12,
+                "cases_after": 12,
+                "preserved": 12,
+                "identical": 12,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c003",
+                "changed_requirement": "ETC-014",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 2,
+                "cases_after": 2,
+                "preserved": 2,
+                "identical": 2,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c004",
+                "changed_requirement": "ETC-018",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c005",
+                "changed_requirement": "ETC-022",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 6,
+                "cases_after": 6,
+                "preserved": 6,
+                "identical": 6,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c006",
+                "changed_requirement": "ETC-025",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 3,
+                "cases_after": 3,
+                "preserved": 3,
+                "identical": 3,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c008",
+                "changed_requirement": "ETC-034",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 5,
+                "cases_after": 5,
+                "preserved": 5,
+                "identical": 5,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c009",
+                "changed_requirement": "ETC-041",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 10,
+                "cases_after": 10,
+                "preserved": 10,
+                "identical": 10,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c010",
+                "changed_requirement": "ETC-044",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 10,
+                "cases_before": 12,
+                "cases_after": 12,
+                "preserved": 12,
+                "identical": 12,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c012",
+                "changed_requirement": "ETC-049",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 5,
+                "cases_after": 5,
+                "preserved": 5,
+                "identical": 5,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c014",
+                "changed_requirement": "ETC-053",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 915,
+                "cases_before": 4,
+                "cases_after": 7,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c015",
+                "changed_requirement": "ETC-057",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 2,
+                "cases_after": 2,
+                "preserved": 2,
+                "identical": 2,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c016",
+                "changed_requirement": "ETC-069",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 16,
+                "cases_after": 16,
+                "preserved": 16,
+                "identical": 16,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c017",
+                "changed_requirement": "ETC-073",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c021",
+                "changed_requirement": "ETC-084",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 7,
+                "cases_after": 7,
+                "preserved": 7,
+                "identical": 7,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c026",
+                "changed_requirement": "ETC-093",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c028",
+                "changed_requirement": "ETC-098",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 10,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "ETC",
+                "cluster": "c029",
+                "changed_requirement": "ETC-106",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 9,
+                "cases_after": 9,
+                "preserved": 9,
+                "identical": 9,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c012",
+                "changed_requirement": "KDH-101",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 17,
+                "cases_after": 17,
+                "preserved": 17,
+                "identical": 17,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c052",
+                "changed_requirement": "KDH-076",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 13,
+                "cases_after": 13,
+                "preserved": 13,
+                "identical": 13,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c053",
+                "changed_requirement": "KDH-082",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 3,
+                "cases_after": 3,
+                "preserved": 3,
+                "identical": 3,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c054",
+                "changed_requirement": "KDH-085",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 6,
+                "cases_after": 6,
+                "preserved": 6,
+                "identical": 6,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c056",
+                "changed_requirement": "KDH-090",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 3,
+                "cases_after": 3,
+                "preserved": 3,
+                "identical": 3,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c059",
+                "changed_requirement": "KDH-097",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 6,
+                "cases_after": 6,
+                "preserved": 6,
+                "identical": 6,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c061",
+                "changed_requirement": "KDH-105",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 1,
+                "cases_after": 1,
+                "preserved": 1,
+                "identical": 1,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "call",
+                "project": "KDH",
+                "cluster": "c065",
+                "changed_requirement": "KDH-120",
+                "mode": "incremental",
+                "calls": 1,
+                "completion_tokens": 16,
+                "cases_before": 18,
+                "cases_after": 18,
+                "preserved": 18,
+                "identical": 18,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              }
+            ],
+            "preservation_rate": 1.0,
+            "identical_rate": 1.0,
+            "pinned_kept_rate": 1.0,
+            "pinned_repeats": 0,
+            "changed_requirements": [
+              "ETC-009",
+              "ETC-094",
+              "ETC-014",
+              "ETC-018",
+              "ETC-022",
+              "ETC-025",
+              "ETC-034",
+              "ETC-041",
+              "ETC-044",
+              "ETC-049",
+              "ETC-053",
+              "ETC-057",
+              "ETC-069",
+              "ETC-073",
+              "ETC-084",
+              "ETC-093",
+              "ETC-098",
+              "ETC-106",
+              "KDH-101",
+              "KDH-076",
+              "KDH-082",
+              "KDH-085",
+              "KDH-090",
+              "KDH-097",
+              "KDH-105",
+              "KDH-120"
+            ]
+          },
+          "prune": {
+            "units": 26,
+            "change_calls": 0,
+            "change_completion_tokens": 0,
+            "change_call_s": 0,
+            "change_wall_s": 0.02,
+            "errors": {},
+            "rows": [
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c000",
+                "changed_requirement": "ETC-009",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 7,
+                "cases_after": 7,
+                "preserved": 7,
+                "identical": 7,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c001",
+                "changed_requirement": "ETC-094",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 12,
+                "cases_after": 12,
+                "preserved": 12,
+                "identical": 12,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c003",
+                "changed_requirement": "ETC-014",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 2,
+                "cases_after": 2,
+                "preserved": 2,
+                "identical": 2,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c004",
+                "changed_requirement": "ETC-018",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c005",
+                "changed_requirement": "ETC-022",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 6,
+                "cases_after": 6,
+                "preserved": 6,
+                "identical": 6,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c006",
+                "changed_requirement": "ETC-025",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 3,
+                "cases_after": 3,
+                "preserved": 3,
+                "identical": 3,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c008",
+                "changed_requirement": "ETC-034",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 5,
+                "cases_after": 5,
+                "preserved": 5,
+                "identical": 5,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c009",
+                "changed_requirement": "ETC-041",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 10,
+                "cases_after": 10,
+                "preserved": 10,
+                "identical": 10,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c010",
+                "changed_requirement": "ETC-044",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 12,
+                "cases_after": 12,
+                "preserved": 12,
+                "identical": 12,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c012",
+                "changed_requirement": "ETC-049",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 5,
+                "cases_after": 5,
+                "preserved": 5,
+                "identical": 5,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c014",
+                "changed_requirement": "ETC-053",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c015",
+                "changed_requirement": "ETC-057",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 2,
+                "cases_after": 2,
+                "preserved": 2,
+                "identical": 2,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c016",
+                "changed_requirement": "ETC-069",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 16,
+                "cases_after": 16,
+                "preserved": 16,
+                "identical": 16,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c017",
+                "changed_requirement": "ETC-073",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c021",
+                "changed_requirement": "ETC-084",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 7,
+                "cases_after": 7,
+                "preserved": 7,
+                "identical": 7,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c026",
+                "changed_requirement": "ETC-093",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c028",
+                "changed_requirement": "ETC-098",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 4,
+                "cases_after": 4,
+                "preserved": 4,
+                "identical": 4,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "ETC",
+                "cluster": "c029",
+                "changed_requirement": "ETC-106",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 9,
+                "cases_after": 9,
+                "preserved": 9,
+                "identical": 9,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c012",
+                "changed_requirement": "KDH-101",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 17,
+                "cases_after": 17,
+                "preserved": 17,
+                "identical": 17,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c052",
+                "changed_requirement": "KDH-076",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 13,
+                "cases_after": 13,
+                "preserved": 13,
+                "identical": 13,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c053",
+                "changed_requirement": "KDH-082",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 3,
+                "cases_after": 3,
+                "preserved": 3,
+                "identical": 3,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c054",
+                "changed_requirement": "KDH-085",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 6,
+                "cases_after": 6,
+                "preserved": 6,
+                "identical": 6,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c056",
+                "changed_requirement": "KDH-090",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 3,
+                "cases_after": 3,
+                "preserved": 3,
+                "identical": 3,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c059",
+                "changed_requirement": "KDH-097",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 6,
+                "cases_after": 6,
+                "preserved": 6,
+                "identical": 6,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c061",
+                "changed_requirement": "KDH-105",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 1,
+                "cases_after": 1,
+                "preserved": 1,
+                "identical": 1,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              },
+              {
+                "arm": "prune",
+                "project": "KDH",
+                "cluster": "c065",
+                "changed_requirement": "KDH-120",
+                "mode": "incremental",
+                "calls": 0,
+                "completion_tokens": null,
+                "cases_before": 18,
+                "cases_after": 18,
+                "preserved": 18,
+                "identical": 18,
+                "pinned_kept": true,
+                "pinned_repeats": 0
+              }
+            ],
+            "preservation_rate": 1.0,
+            "identical_rate": 1.0,
+            "pinned_kept_rate": 1.0,
+            "pinned_repeats": 0,
+            "changed_requirements": [
+              "ETC-009",
+              "ETC-094",
+              "ETC-014",
+              "ETC-018",
+              "ETC-022",
+              "ETC-025",
+              "ETC-034",
+              "ETC-041",
+              "ETC-044",
+              "ETC-049",
+              "ETC-053",
+              "ETC-057",
+              "ETC-069",
+              "ETC-073",
+              "ETC-084",
+              "ETC-093",
+              "ETC-098",
+              "ETC-106",
+              "KDH-101",
+              "KDH-076",
+              "KDH-082",
+              "KDH-085",
+              "KDH-090",
+              "KDH-097",
+              "KDH-105",
+              "KDH-120"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "throughput": null,
+  "judge_arms": {
+    "call": {
+      "by_project": {
+        "ETC": 0.3741,
+        "KDH": 0.4375
+      },
+      "by_split": {
+        "dev": 0.3966,
+        "holdout": 0.4667
+      },
+      "by_stratum": {
+        "control": 0.5405,
+        "core": 0.3937,
+        "non_testable": 0.1111
+      },
+      "checks_needing_documents": 0.3297,
+      "checks_not_needing_documents": 0.4432,
+      "check_recall": 0.4045,
+      "by_language": {
+        "en": 0.3882,
+        "tr": 0.4261
+      },
+      "traps": null,
+      "invented_per_requirement": 1.171,
+      "boundary_ok_rate": 0.1081,
+      "ambiguity_flagged_rate": 0.3153,
+      "unscored": 0,
+      "by_repeat": {
+        "0": 0.4045
+      },
+      "rubric_version": "r1",
+      "model": "claude-sonnet-5-5",
+      "stats": {
+        "cached": 2,
+        "called": 109,
+        "refused": 0
+      }
+    },
+    "prune": {
+      "by_project": {
+        "ETC": 0.3597,
+        "KDH": 0.4375
+      },
+      "by_split": {
+        "dev": 0.3966,
+        "holdout": 0.4
+      },
+      "by_stratum": {
+        "control": 0.5405,
+        "core": 0.3846,
+        "non_testable": 0.1111
+      },
+      "checks_needing_documents": 0.3077,
+      "checks_not_needing_documents": 0.4432,
+      "check_recall": 0.397,
+      "by_language": {
+        "en": 0.375,
+        "tr": 0.4261
+      },
+      "traps": null,
+      "invented_per_requirement": 1.162,
+      "boundary_ok_rate": 0.1081,
+      "ambiguity_flagged_rate": 0.3243,
+      "unscored": 0,
+      "by_repeat": {
+        "0": 0.397
+      },
+      "rubric_version": "r1",
+      "model": "claude-sonnet-5-5",
+      "stats": {
+        "cached": 109,
+        "called": 2,
+        "refused": 0
+      }
+    }
+  },
+  "judge": {
+    "by_project": {
+      "ETC": 0.3741,
+      "KDH": 0.4375
+    },
+    "by_split": {
+      "dev": 0.3966,
+      "holdout": 0.4667
+    },
+    "by_stratum": {
+      "control": 0.5405,
+      "core": 0.3937,
+      "non_testable": 0.1111
+    },
+    "checks_needing_documents": 0.3297,
+    "checks_not_needing_documents": 0.4432,
+    "check_recall": 0.4045,
+    "by_language": {
+      "en": 0.3882,
+      "tr": 0.4261
+    },
+    "traps": null,
+    "invented_per_requirement": 1.171,
+    "boundary_ok_rate": 0.1081,
+    "ambiguity_flagged_rate": 0.3153,
+    "unscored": 0,
+    "by_repeat": {
+      "0": 0.4045
+    },
+    "rubric_version": "r1",
+    "model": "claude-sonnet-5-5",
+    "stats": {
+      "cached": 2,
+      "called": 109,
+      "refused": 0
+    }
+  }
+}

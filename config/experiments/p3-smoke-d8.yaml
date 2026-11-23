@@ -1,0 +1,13 @@
+name: p3-smoke-d8
+question: "Paket 3 duman testi (pod 1): D8 ekleme senaryosu (artımlı çağrı) bir projede, gerçek modelle."
+variable: scenario add (duman)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+projects: [ETC]
+scenario:
+  kind: add
+  min_test_members: 3
+  arms:
+    incremental: {regeneration: incremental}
+    full: {regeneration: full}
+quality: true

@@ -28,6 +28,8 @@ def latest_runs(results: Path) -> dict[str, dict[str, Any]]:
     runs: dict[str, dict[str, Any]] = {}
     for d in sorted(results.glob("*/metrics.json")):
         m = json.loads(d.read_text(encoding="utf-8"))
+        if "meta" not in m:  # not an eval.run result (e.g. results/d6, eval/d6.py)
+            continue
         name = m["meta"]["experiment"]["name"]
         m["_dir"] = str(d.parent.relative_to(ROOT))
         runs[name] = m  # sorted by run id (timestamp) → last wins

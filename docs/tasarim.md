@@ -58,7 +58,9 @@ Her düğümde ortak alanlar bulunur: `input_hash`, `cache_key`, `status` (`fres
 Kurallar:
 
 - `input_hash`, düğüm tipinin, sıralı girdi içeriklerinin, prompt sürümünün, model kimliğinin ve üretim parametrelerinin SHA-256 özetidir. Düğüm tipi hash'e girer: aynı girdili ve aynı ayarlı iki aşamanın (örneğin tek üyeli öbeğin adı ile o gereksinimin yöntemi) çıktıları cache'te karışmaz. Girdiler düz JSON'dur; aşağı akış düğümleri ham içerik (örneğin vektör) yerine üst düğümün hash'ini kullanır.
-- Bağımlılık ile bağlam ayrıdır (paket 2'de netleşti). Bağımlılıklar `input_hash`'e girer ve bayatlığı belirler. Bağlam (sabitlenmiş test durumlarının içeriği, kullanıcının ek talimatı) bayatlatmaz, ama çıktı cache'inin anahtarına girer: `cache_key = H(input_hash, bağlam hash'i)`. Üretim biçimi (artımlı, baştan, birleştirme, onarım; önceki set) hiçbir anahtara girmez, `produced_by` içinde kaydedilir. Böylece test durumunu elle düzenlemek model çağırmaz, gereksinimi taşıyıp geri almak cache'ten döner.
+- Prompt sürümü aşama başınadır (paket 3'te netleşti): `prompt_version = <ortak sürüm>.<aşama sürümü>+<parmak izi>`. Ortak sürüm sistem talimatını ve proje kartı çizimini, aşama sürümü o aşamanın şablonunu sayar; ikisi de kodda şablonun yanında durur. Parmak izi, ayarla çizilmiş sabit katmanların (sistem talimatı, aşama talimatı, şema, örnekler) SHA-256 özetinin ilk 12 karakteridir; örnek ya da etiket listesi değişince sürüm kendiliğinden değişir. Ortak katman değişirse tüm model aşamaları, bir aşamanın şablonu değişirse yalnızca o aşama bayatlar. Dinamik çizim (gereksinim bloğu, kuyruk) değişince aşama sürümü elle artırılır; anlık görüntü testi bunu denetler.
+- Proje kartı düğümü yöntem listesini ve ölçütlerini yapısal olarak da taşır; kart metni bundan çizilir, yöntem şemasının değer listesi buradan gelir (paket 3).
+- Bağımlılık ile bağlam ayrıdır (paket 2'de netleşti). Bağımlılıklar `input_hash`'e girer ve bayatlığı belirler. Bağlam (sabitlenmiş test durumlarının içeriği, kullanıcının ek talimatı) bayatlatmaz, ama çıktı cache'inin anahtarına girer: `cache_key = H(input_hash, bağlam hash'i)`. Üretim biçimi (artımlı, baştan, birleştirme, onarım; önceki set) hiçbir anahtara girmez, `produced_by` içinde kaydedilir; biçimi seçen ayarlar da (D8: `generation.regeneration`, `generation.prune_removals`) girmez, çıktıyı değiştiren üretim ayarları (`generation.max_unit_size`, `generation.repair`, yöntem toplu iş boyu) girer (paket 3). Böylece test durumunu elle düzenlemek model çağırmaz, gereksinimi taşıyıp geri almak cache'ten döner.
 - Düğüm bayattır ⇔ kayıtlı `input_hash`, güncel girdilerden hesaplanan beklenen hash'ten farklıdır. Her olaydan sonra beklenen hash'ler projenin tamamı için yeniden hesaplanır. Üretim sonucu yazıldığında yalnızca yazılan düğümün aşağı akışı yeniden hesaplanır; sonucun baştan hesapla aynı olduğu testle doğrulanır. Ters bağımlılık dizini arayüz ve doğrulama listesi için tutulur.
 - Bir düğümün üstü taze değilse (bayat, çalışıyor, başarısız ya da kendisi bekliyor) düğüm, kendi girdileri değişmediyse bayat sayılmaz, doğrulanacak listesine girer: durumu `fresh` kalır, üstü taze olana kadar kuyruğa alınmaz. Üst düğüm yeniden üretilir; çıktısı aynıysa aşağısı taze kalır (erken kesme). Arama sonucu bu yolla çalışır. Embedding istisnadır: vektörler bayt düzeyinde kararlı olmadığı için aşağısı embedding'i beklenen hash'iyle görür, girdisi değişen embedding'in aşağısı (öbekleme ağacı) doğrudan bayatlar.
 - Üretim sonucu yalnızca üstündeki her düğüm taze ya da sabitlenmişken (bekleyen yokken) yazılır; aksi halde reddedilir.
@@ -88,6 +90,8 @@ Yüklenen set gereksinim kayıtlarına ayrıştırılır. Kimliği olmayan gerek
 - Arayüzdeki ayrıntı kaydırıcısı ağacı farklı seviyeden keser. Öbek sayısı model çağrısı olmadan anında değişir.
 - Kullanıcının taşıdığı gereksinim sabit atama olur. Yeniden kümeleme sabit atamaları bozmaz.
 - Öbek üyeliği somut durumdur; öbekler ağaca değil üyeliğe bağlıdır. Embedding değişince ağaç bayatlar ve arayüzde gösterilir, ama yeniden kesim yalnızca açık komutla (ayrıntı kaydırıcısı, yeniden öbekle) yapılır. Böylece tek metin değişikliği öbekleri dağıtmaz (paket 2'de netleşti).
+- İlk kesim içe almada, embedding'ler hesaplanınca vektörlerden yapılır; proje öbeklerle birlikte kurulur (paket 3).
+- Yeniden kesimde yeni öbekler eski öbeklerle kesişim büyüklüğüne göre birebir eşlenir. Eski anahtar yalnızca eski üyelerin yarısından fazlası yeni öbekteyse yeniden kullanılır, aksi halde öbek yeni kimlik alır; var olan anahtar tamamen başka üyelerle kullanılmaz. Böylece sabitlenmiş test durumları çoğunlukla kendi gereksinimleriyle aynı sette kalır (paket 3).
 - Son üyesi taşınan öbek silinir; adı, seti ve arama sonucu kaldırılır.
 - Model her öbek için 3–6 kelimelik ad ve bir cümle gerekçe yazar. Kullanıcının elle yazdığı ad sabittir.
 
@@ -95,12 +99,23 @@ Yüklenen set gereksinim kayıtlarına ayrıştırılır. Kimliği olmayan gerek
 
 - Birim öbektir: bir çağrı, öbeğin gereksinimlerini, proje kartını ve bilgi havuzundan gelen parçaları alır.
 - Çıktı şeması: `test_cases[]`, her biri `id`, `title`, `covers[req_id]`, `steps[{no, action, expected}]`, `type` (normal, sınır, hata), `priority` ve duruma göre doldurulan `preconditions`, `test_inputs`, `assumptions`.
+- Metin alanlarının model çıktı şemasında üst uzunluğu vardır (`maxLength`, `config/pipeline.yaml` `generation.field_max_chars`; gözlenen en uzun değerlerin rahatça üstünde). Uzun ya da tekrarlı girdi değerleri yazılmaz, tarif edilir ("129 karakterlik parola"). Neden: paket 3'te bir sınır testinde model bitmeyen bir girdi dizisi yazdı ve çıktı `max_tokens`'ta kesildi (KDH-030, [paket 3b](paketler/paket-3b-plan.md)). Kullanıcının düzenlediği test durumu sınırsızdır.
 - Her adımın kendi beklenen sonucu vardır; test geneli için tek bir beklenen sonuç yazılmaz.
 - Ön koşul, test girdisi ve varsayım alanları gerekmediğinde boş bırakılır; model bunları doldurmak için içerik uydurmaz. Gereksinimin tanımlamadığı bir değer seçildiyse bu, varsayım olarak yazılır.
 - Sunucu her gereksinimin en az bir `covers` listesinde geçtiğini doğrular. Eksik kalanlar için yalnızca onları isteyen ek çağrı yapılır.
 - 25'ten fazla gereksinimli öbek alt parçalara bölünerek üretilir.
 - Öbeğe gereksinim eklenince set baştan yazılmaz. Artımlı prompt mevcut test durumlarını ve yeni gereksinimi alır, yalnızca ekleme ya da güncelleme döner.
 - Sabitlenmiş test durumları prompt'a değiştirilemez olarak verilir.
+
+Paket 3'te netleşenler:
+
+- Tüm üretim biçimleri (baştan, artımlı, birleştirme, onarım, şema yeniden denemesi) prompt'un 1–5. katmanlarını bayt bayt aynı kullanır. Biçime özgü malzeme (sabit test durumları, mevcut testler, değişiklik bildirimi, biçimin çıktı şeması, onarım talimatı) prompt'un sonuna eklenir; artımlı ve onarım çağrıları böylece baştan üretimin önek cache'ini kullanır.
+- Her üretilen set `produced_by` içinde dayanağını kaydeder: aşama ayarı, kart hash'i, parça kimlikleri, üye başına metin hash'i ve yöntemler. Artımlı biçim yalnızca kart, aşama ayarı ve parça kimlikleri dayanakla aynıyken kullanılır; aksi halde set baştan üretilir. Çekirdeğin üretim ipucu (`Hint`) nedene bakmadığı için kararı üretici verir.
+- Artımlı ve birleştirme sonucu tam set olarak yazılır: değişmeyen testler aynı kimlik ve içerikle döner, düğümleri ve matris satırları taze kalır. Sabit teste gelen güncelleme yok sayılır.
+- Artımlı prompt'ta değişen ya da çıkan gereksinimi kapsayan testler tam metinle, diğerleri başlık ve kapsama özetiyle verilir (D8 ölçer). Yalnızca çıkan gereksinimi kapsayan testler kodla düşer; karışık kapsamlı testlerin kapsaması kırpılır.
+- Birleştirmede model yalnızca düşürülecek tekrarların kimliklerini döner.
+- Sunucu `covers` listesini öbeğin yöntemi Test içeren üyelerine süzer; geçersiz ya da Test olmayan kimlik atılır, boş kalan test düşer. Tek onarım çağrısından sonra da kapsanmamış kalan gereksinim düğümü `failed` yapmaz: set yazılır, gereksinim matriste kapsanmamış görünür. Şema hatasında çağrı bir kez yeniden denenir (hata sona eklenir), sonra düğüm `failed` olur.
+- İki ayrı 25 sınırı vardır: `clustering.max_cluster_size` kesimde öbekleri, `generation.max_unit_size` üretimde birimi sınırlar (kullanıcının oluşturduğu ya da birleştirdiği büyük öbekler). D7 ikincisini değiştirir.
 
 ### 4. Doğrulama yöntemi
 
@@ -193,9 +208,9 @@ Aşağıdaki kararların hiçbiri tahminle verilmez; her biri altın set üzerin
 | D3 | Düşünme modu ve örnekleme | düşünme açık ve kapalı; sıcaklık 0 ile 0,7 arası | kalite farkı ve süre | sınıflandırmada kapalı | **Düşünme kapalı, sıcaklık 0.** Düşünme açık 4,8 kat yavaş, recall 0,43. Sıcaklıklar arasında ölçülebilir fark yok (0,48 / 0,45 / 0,42–0,48). [D3](deneyler/D3.md) |
 | D4 | Ağırlık hassasiyeti | 16 bit, FP8, 4 bit (resmî 4 bit depo olmadığı için BF16'dan çalışma anında nicemleme) | kalite kaybı ve eşzamanlılık kazancı | FP8 | **FP8.** BF16 ile recall farkı yok (0,44), FP8 1,8 kat hızlı. 4 bit (çalışma anında MXFP4) bu modelde yüklenemedi. [D4](deneyler/D4.md) |
 | D5 | Eşzamanlılık ve bağlam | dizi sınırı 8 ile 64 arası; bağlam 8, 16, 32 bin token | toplam token/sn ve öncelikli işin ilk token süresi | 16–32 dizi | **64 dizi, 32 bin bağlam.** Dizi sınırı 32'de 64 istek kuyruğa giriyor (ilk token 35,8 sn); 16'da 64 istekte 3 hata (kuyrukta ~100 sn bekleyen bağlantılar koptu). 64 dizi 64 istekte 1.183 token/sn, ilk token 1,2 sn. 16 bin bağlamın hız faydası yok. [D5](deneyler/D5.md) |
-| D6 | Embedding ve kümeleme | BGE-M3 ve iki alternatif; agglomerative ve HDBSCAN | uzmanın elle öbeklemesiyle uyum, kullanıcının yapmak zorunda kaldığı taşıma sayısı | BGE-M3, agglomerative | bu paketin kapsamı dışında |
-| D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; öbek sınırı 10, 25, 50 | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | bu paketin kapsamı dışında |
-| D8 | Yeniden üretim biçimi | artımlı ve baştan | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | bu paketin kapsamı dışında |
+| D6 | Embedding ve kümeleme | BGE-M3 ve iki alternatif; agglomerative ve HDBSCAN | uzmanın elle öbeklemesiyle uyum, kullanıcının yapmak zorunda kaldığı taşıma sayısı | BGE-M3, agglomerative | **BGE-M3, agglomerative average, eşik 0,35 (değişmedi)** (paket 3). Alternatif modeller geçmedi; HDBSCAN v1'de iyi ama ağaç tutmuyor, v0'da öbekleri dağıtıyor. Eşik 0,30 v1'de taşımayı azalttı (54 → 45, 70 → 66) ama gereksinim bootstrap aralıkları sıfırı geçmiyor ve v0'da kötü: aday olarak kaldı. Referans belge bölümleri (uzman değil), iki proje: uzman öbeklemesiyle yeniden ölçülmeli. [D6](deneyler/D6.md) |
+| D7 | Üretim birimi | öbek başına tek çağrı ve gereksinim başına çağrı; birim sınırı 10 ve 25 (50 çıkarıldı: Test gereksinimi başına ~624 çıktı token'ıyla ~31 bin token eder, 32 bin bağlama sığmaz; paket 3) | kalite, tekrar eden test oranı, süre | öbek başına, sınır 25 | **Öbek başına kalır** (paket 3; kullanıcı kararı, 21 Kasım 2026). Artış test sayısından geliyor: test sayısı iki kolda aynı olan 80 gereksinimde fark +0,011, gereksinim başına kolun daha çok test yazdığı 133 gereksinimde +0,110. Daha çok kapsama istenirse öbek bağlamını koruyan prompt deneyi (gereksinim başına daha çok sınır ve hata testi) daha ucuz yoldur. Hakem recall'ı: gereksinim başına çağrı 0,495, öbek başına 0,426, 10'luk paket 0,385, 25'lik paket 0,355. Gereksinim başına çağrı öbek başınadan ölçülebilir biçimde iyi (+0,069 [+0,028, +0,110]; ikinci öbek başına koşuya göre +0,046 [+0,012, +0,082]) ama uydurma içerik %48 (1,26 → 1,87), test sayısı %57, çıktı token'ı %55 artıyor; öbekleri paketlemek ölçülebilir biçimde kötü. [D7](deneyler/D7.md) |
+| D8 | Yeniden üretim biçimi | artımlı ve baştan (ekleme), artımlı çağrı ve modelsiz budama (çıkarma), birleştirme prompt'u ve baştan (birleştirme); kollar aynı taban üzerinde | tutarlılık, kullanıcı düzeltmelerinin korunması, süre | artımlı | **Ekleme: artımlı; çıkarma: modelsiz budama; birleştirme: birleştirme prompt'u** (paket 3). Eklemede artımlı önceki testlerin %100'ünü korudu (baştan %9), düzeltmeleri tekrarlamadı (baştan 7), token'ın dörtte birini harcadı; recall farkı yok (+0,029 [−0,020, +0,079]). Çıkarmada çağrı ile budama aynı seti verdi (fark +0,008 [0, +0,024]): daha basit olan budama (`generation.prune_removals: true`). Birleştirmede prompt 100 kat az token, 8 kat kısa; recall farkı yok. [D8](deneyler/D8.md) |
 | D9 | Bilgi havuzu | parça boyu 300, 500, 800 token; ilk 4, 8, 12 parça; reranker var ve yok; proje kartı var ve yok | altın set puanı | 300–500 token, ilk 6–8, reranker yok | pilot (paket 1b): altın set v1 belgenin etkisini ölçebiliyor; kâhin parçalarla belge gerektiren denetimlerde recall 0,28 → 0,49 ([`D9`](deneyler/D9.md)). Parça boyu, sayı ve reranker paket 7'de |
 | D10 | Örnek havuzu | 0, 2, 4 örnek | uzman puanı ve üslup uyumu | 2–3 örnek | bu paketin kapsamı dışında |
 | D11 | Kuyruk ayarları | bekleme 0,5, 1,5, 3 sn; otomatik işlerin yuva payı | boşa giden çağrı oranı ve algılanan gecikme | 1,5 sn, %70 | bu paketin kapsamı dışında |
@@ -240,7 +255,7 @@ Sayılar büyük model çağrısıdır; embedding ayrı sayılır. Matris satır
 
 | Olay | Bayatlayan | Model çağrısı |
 | --- | --- | --- |
-| Gereksinim A öbeğinden B'ye taşındı | A ve B'nin test setleri ve adları | 2 artımlı test, 2 ad |
+| Gereksinim A öbeğinden B'ye taşındı | A ve B'nin test setleri ve adları | 1 artımlı test (B; A'nın seti çağrısız budanır, D8), 2 ad |
 | Öbek yeniden adlandırıldı | hiçbir şey | 0 |
 | Öbek silindi, üyeleri dağıtıldı | üye alan öbeklerin setleri ve adları | üye alan öbek başına 1 test, 1 ad |
 | İki öbek birleştirildi | yeni öbeğin seti ve adı | 1 test (iki set birleştirilir, model yalnızca tekrarları ayıklar), 1 ad |
@@ -251,6 +266,8 @@ Sayılar büyük model çağrısıdır; embedding ayrı sayılır. Matris satır
 | Doğrulama yöntemi elle değişti | öbeğin test seti | 1 |
 | Proje kartı değişti | projedeki tüm model çıktıları, kullanıcı onayıyla | toplu, arka planda |
 
+D8 (paket 3) sonrası: yalnızca üye çıkan set modelsiz budanır (`generation.prune_removals: true`): yalnızca çıkan gereksinimi kapsayan sabit olmayan testler düşer, karışık testlerin `covers` listesi kırpılır. Çekirdeğin `llm_calls` tahmini budamayı bilmez, bu seti hâlâ bir çağrı sayar (kuyruk ve tahmin paket 5).
+
 İki ayrıntı önemlidir. Test setinin hash'ine indeks sürümü değil, getirilen parçaların kimlikleri girer; belge eklemek, arama sonucu değişmeyen öbekleri bayatlatmaz. Bayatlayan sabitlenmiş düğüm kendiliğinden yeniden üretilmez, çağrı sayısına girmez, kullanıcıya uyarı olarak gösterilir.
 
 ### İş kuyruğu
@@ -259,12 +276,12 @@ Sayılar büyük model çağrısıdır; embedding ayrı sayılır. Matris satır
 - Düzenlemeden sonra 1,5 saniye beklenir; art arda gelen sürüklemeler tek işe indirgenir.
 - Aynı düğüm için bekleyen iş varsa yenisi onun yerine geçer. Çalışan işin girdisi değiştiyse akış kesilerek iptal edilir.
 - Eşzamanlılık sınırı vLLM'in dizi sınırına eşittir; P2 işleri yuvaların en çok %70'ini kullanır.
-- Şema doğrulaması başarısız olursa bir kez yeniden denenir, sonra düğüm `failed` olur.
+- Şema doğrulaması başarısız olursa bir kez yeniden denenir, sonra düğüm `failed` olur. Çıktı `max_tokens`'ta kesildiyse (`finish_reason: length`) yeniden denenmez: yeniden deneme en pahalı çağrıyı ikiye katlar ve dejenerasyonu büyük olasılıkla tekrarlar (paket 3, KDH-030: aynı prompt 5 koşunun 3'ünde kesildi, 2'sinde geçti).
 - İlk sürümde kuyruk, iş kayıtları Postgres'te duran bir asyncio işçi havuzudur. Tek GPU için Redis ya da Celery gerekmez.
 
 ### Beklenen süreler (tahmin, ölçülecek)
 
-200 gereksinim ve 20 öbek için ilk üretim yaklaşık 20 test çağrısı, 8 doğrulama çağrısı ve 20 ad çağrısıdır. Çağrı başına 1.200 çıktı token'ı ve yukarıdaki 380 token/sn ölçümüyle test üretimi 1–2 dakika sürer. Tek bir taşıma, sonucu birkaç saniyede akmaya başlayan iki artımlı çağrıdır.
+200 gereksinim ve 20 öbek için ilk üretim yaklaşık 20 test çağrısı, 8 doğrulama çağrısı ve 20 ad çağrısıdır. Çağrı başına 1.200 çıktı token'ı ve yukarıdaki 380 token/sn ölçümüyle test üretimi 1–2 dakika sürer. Tek bir taşıma, sonucu birkaç saniyede akmaya başlayan bir artımlı çağrıdır (çıkılan set çağrısız budanır, D8).
 
 ## Proje bilgi havuzu
 
@@ -429,7 +446,7 @@ Aynı yöntemlerin geliştirme sürecine uygulanışı deponun `CLAUDE.md` dosya
 | 0 | Altyapı: aday sunum motorları, embedding servisi, Postgres, Docker Compose, `LLMClient` | Sonnet | 16 eşzamanlı istek hatasız ve şemaya uygun dönüyor |
 | 1 | Altın set ve ölçüm koşucusu | Opus tasarlar, Sonnet yazar | D0–D5 deneyleri koşuldu; motor, model ve ayarlar ölçümle seçildi |
 | 2 | Çekirdek: veri modeli, hash, bağımlılık grafiği, geçersiz kılma ([plan](paketler/paket-2-plan.md)) | Opus | Bayatlama tablosundaki her satırın birim testi geçiyor |
-| 3 | Aşamalar ve prompt'lar: öbekleme, test üretimi (artımlı dahil), doğrulama yöntemi | Opus | Altın sette belirlenen eşikler aşılıyor |
+| 3 | Aşamalar ve prompt'lar: öbekleme, test üretimi (artımlı dahil), doğrulama yöntemi ([plan](paketler/paket-3-plan.md); ek iş [3b](paketler/paket-3b-plan.md)) | Opus | Altın sette belirlenen eşikler aşılıyor. Yorum (kullanıcı kararı, 20 Kasım 2026): yeni aşama koduyla, referans öbek ve yöntemlerle v0 ve v1'de katman 1 eşikleri geçer; check_recall paket 1 tabanından gürültüden fazla düşmez (aynı gereksinimler üzerinde yeni − taban farkının eşleştirilmiş bootstrap %95 aralığının alt sınırı ≥ −0,05; kullanıcı onayı, 21 Kasım 2026); uçtan uca koşu raporlanır ve orada kapsama tahmin edilen yöntemlere göre %100'dür |
 | 4 | İçe alma, matris görünümü, xlsx dışa aktarım | Sonnet | Örnek set uçtan uca matrise dönüşüyor |
 | 5 | Orkestratör ve kuyruk: komut işleme, öncelik, bekleme, iptal, aşama kapıları | Opus | Taşıma senaryosu iki çağrıyla bitiyor, diğer öbekler cache'ten geliyor |
 | 6 | API ve olay akışı: REST komutları, WebSocket, snapshot ve tekrar oynatma | Sonnet | Bağlantı kopup gelince istemci durumu sunucuyla aynı; iki kullanıcının çakışan komutu doğru reddediliyor |

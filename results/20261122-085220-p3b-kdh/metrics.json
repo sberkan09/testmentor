@@ -1,0 +1,444 @@
+{
+  "meta": {
+    "run_id": "20261122-085220-p3b-kdh",
+    "experiment": {
+      "name": "p3b-kdh",
+      "question": "Paket 3b (KDH-030): alan uzunluk sınırı ve uzun girdiyi tarif etme kuralıyla (şablon g4) KDH referans, 3 tekrar; kesilme 0, KDH-030 kapsanmış, şema ≥ 0,99.",
+      "variable": "test seti şablonu g4 (field_max_chars + kural)",
+      "server": {
+        "engine": "vllm",
+        "model": "qwen3.8-27b",
+        "overrides": {}
+      },
+      "golden": "v1",
+      "projects": [
+        "KDH"
+      ],
+      "repeat": 3,
+      "quality": true
+    },
+    "config_file": "config/experiments/p3b-kdh.yaml",
+    "pipeline_config": {
+      "generation_inputs": "reference",
+      "unit_packing": false,
+      "passages": "none",
+      "methods": [
+        {
+          "name": "Test",
+          "criterion": "Davranış sistem çalıştırılarak ve girdi verilerek gözlenebiliyorsa."
+        },
+        {
+          "name": "Analiz",
+          "criterion": "Doğrulama hesap, model, benzetim ya da istatistik gerektiriyorsa."
+        },
+        {
+          "name": "İnceleme",
+          "criterion": "Belge, kod, yapılandırma ya da fiziksel ürün gözle denetlenerek doğrulanıyorsa."
+        },
+        {
+          "name": "Gösterim",
+          "criterion": "İşlev ölçüm yapılmadan, çalıştırılıp gözlemlenerek gösteriliyorsa."
+        }
+      ],
+      "test_method": "Test",
+      "test_types": [
+        "Normal",
+        "Sınır",
+        "Hata"
+      ],
+      "priorities": [
+        "Yüksek",
+        "Orta",
+        "Düşük"
+      ],
+      "clustering": {
+        "method": "agglomerative",
+        "linkage": "average",
+        "distance_threshold": 0.35,
+        "max_cluster_size": 25
+      },
+      "classification": {
+        "batch_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 4096
+      },
+      "cluster_label": {
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 512
+      },
+      "generation": {
+        "max_unit_size": 25,
+        "thinking": false,
+        "temperature": 0.0,
+        "max_tokens": 16384,
+        "repair": true,
+        "field_max_chars": {
+          "title": 300,
+          "preconditions": 1000,
+          "test_inputs": 1000,
+          "assumptions": 4000,
+          "action": 1000,
+          "expected": 4000
+        },
+        "regeneration": "incremental",
+        "prune_removals": true
+      },
+      "concurrency": 16,
+      "prefix_warmup": false,
+      "examples_file": "config/prompts/examples-generation.yaml",
+      "thresholds": {
+        "schema_valid_rate": 0.99,
+        "coverage_rate": 1.0,
+        "step_structure_rate": 1.0,
+        "no_test_violations": 0
+      }
+    },
+    "golden_version": "v1",
+    "server": {
+      "pod": "qo96f4iin3ii3s",
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "overrides": {}
+    },
+    "model_spec": {
+      "repo_id": "Qwen/Qwen3.8-27B-FP8",
+      "served_name": "qwen3.8-27b",
+      "precision": "fp8",
+      "context_length": 32768,
+      "max_num_seqs": 64,
+      "engine_args": {
+        "vllm": [
+          "--reasoning-parser",
+          "qwen3",
+          "--language-model-only"
+        ],
+        "sglang": [
+          "--reasoning-parser",
+          "qwen3"
+        ]
+      },
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      "gated": false,
+      "gpu_memory_utilization": null,
+      "download_ignore": [],
+      "approx_size_gb": 30.0,
+      "notes": "Hibrit mimari (linear attention + görüntü kodlayıcı). Düşünme varsayılan açık. Hibrit mimarinin önek cache'ine etkisi belgelenmemiş; ölçülecek."
+    },
+    "started_at": "2026-11-22T08:52:20Z",
+    "served_model": "qwen3.8-27b",
+    "engine_settings": {
+      "engine": "vllm",
+      "model": "qwen3.8-27b",
+      "base_url": "https://qo96f4iin3ii3s-8000.proxy.runpod.net/v1",
+      "served_model_name": "qwen3.8-27b",
+      "api_key_env": "LLM_API_KEY",
+      "request_timeout_s": 900.0,
+      "connect_timeout_s": 15.0,
+      "default_max_tokens": 4096,
+      "default_temperature": null,
+      "extra_body": {},
+      "thinking_on": {
+        "chat_template_kwargs": {
+          "enable_thinking": true
+        }
+      },
+      "thinking_off": {
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    },
+    "prompt_versions": {
+      "embedding": "BAAI/bge-m3",
+      "clustering": "c1",
+      "method": "s1.m1+5d9f798bd379",
+      "cluster_label": "s1.l1+7f6b859095cb",
+      "retrieval": "r1",
+      "test_set": "s1.g4+1d644a8e20b3",
+      "matrix_row": "x1"
+    }
+  },
+  "runs": [
+    {
+      "all": {
+        "requirements": 120,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 274,
+        "method_exact_match": 0.4417,
+        "method_jaccard": 0.6667,
+        "duplicate_pairs": 15,
+        "duplicate_test_rate": 0.0876,
+        "no_test_violations_raw": 0
+      },
+      "by_language": {
+        "en": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 158,
+          "method_exact_match": 0.5667,
+          "method_jaccard": 0.75
+        },
+        "tr": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 116,
+          "method_exact_match": 0.3167,
+          "method_jaccard": 0.5833
+        }
+      },
+      "traps": {
+        "requirements": 1,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 3,
+        "method_exact_match": 1.0,
+        "method_jaccard": 1.0
+      },
+      "cluster_ari": 0.3355,
+      "cluster_ari_by_project": {
+        "KDH": 0.3355
+      },
+      "calls": {
+        "calls": 71,
+        "errors": 0,
+        "schema_valid_rate": 1.0,
+        "schema_valid_rate_generation": 1.0,
+        "tokens_total": 194796,
+        "prompt_tokens": 105364,
+        "completion_tokens": 89432,
+        "cached_tokens": 54080,
+        "prefix_cache_hit_rate": 0.5133,
+        "wall_s": 283.47,
+        "seconds_per_cluster": 12.32,
+        "tokens_per_second": 315.5
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": true,
+        "step_structure_rate": true,
+        "no_test_violations": true
+      }
+    },
+    {
+      "all": {
+        "requirements": 120,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 247,
+        "method_exact_match": 0.4417,
+        "method_jaccard": 0.6667,
+        "duplicate_pairs": 22,
+        "duplicate_test_rate": 0.1053,
+        "no_test_violations_raw": 0
+      },
+      "by_language": {
+        "en": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 156,
+          "method_exact_match": 0.5667,
+          "method_jaccard": 0.75
+        },
+        "tr": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 91,
+          "method_exact_match": 0.3167,
+          "method_jaccard": 0.5833
+        }
+      },
+      "traps": {
+        "requirements": 1,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 3,
+        "method_exact_match": 1.0,
+        "method_jaccard": 1.0
+      },
+      "cluster_ari": 0.3355,
+      "cluster_ari_by_project": {
+        "KDH": 0.3355
+      },
+      "calls": {
+        "calls": 71,
+        "errors": 0,
+        "schema_valid_rate": 1.0,
+        "schema_valid_rate_generation": 1.0,
+        "tokens_total": 187518,
+        "prompt_tokens": 105364,
+        "completion_tokens": 82154,
+        "cached_tokens": 69888,
+        "prefix_cache_hit_rate": 0.6633,
+        "wall_s": 232.69,
+        "seconds_per_cluster": 10.12,
+        "tokens_per_second": 353.1
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": true,
+        "step_structure_rate": true,
+        "no_test_violations": true
+      }
+    },
+    {
+      "all": {
+        "requirements": 120,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 258,
+        "method_exact_match": 0.4583,
+        "method_jaccard": 0.6694,
+        "duplicate_pairs": 14,
+        "duplicate_test_rate": 0.0853,
+        "no_test_violations_raw": 0
+      },
+      "by_language": {
+        "en": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 156,
+          "method_exact_match": 0.5667,
+          "method_jaccard": 0.75
+        },
+        "tr": {
+          "requirements": 60,
+          "coverage_rate": 1.0,
+          "coverage_rate_predicted": 1.0,
+          "coverage_rate_before_repair": 1.0,
+          "no_test_violations": 0,
+          "step_structure_rate": 1.0,
+          "test_cases": 102,
+          "method_exact_match": 0.35,
+          "method_jaccard": 0.5889
+        }
+      },
+      "traps": {
+        "requirements": 1,
+        "coverage_rate": 1.0,
+        "coverage_rate_predicted": 1.0,
+        "coverage_rate_before_repair": 1.0,
+        "no_test_violations": 0,
+        "step_structure_rate": 1.0,
+        "test_cases": 3,
+        "method_exact_match": 1.0,
+        "method_jaccard": 1.0
+      },
+      "cluster_ari": 0.3355,
+      "cluster_ari_by_project": {
+        "KDH": 0.3355
+      },
+      "calls": {
+        "calls": 71,
+        "errors": 0,
+        "schema_valid_rate": 1.0,
+        "schema_valid_rate_generation": 1.0,
+        "tokens_total": 191162,
+        "prompt_tokens": 105364,
+        "completion_tokens": 85798,
+        "cached_tokens": 69888,
+        "prefix_cache_hit_rate": 0.6633,
+        "wall_s": 243.35,
+        "seconds_per_cluster": 10.58,
+        "tokens_per_second": 352.6
+      },
+      "thresholds": {
+        "schema_valid_rate": true,
+        "coverage_rate": true,
+        "step_structure_rate": true,
+        "no_test_violations": true
+      }
+    }
+  ],
+  "throughput": null,
+  "repeat_differences": [
+    "all.duplicate_pairs: 15 → 22",
+    "all.duplicate_test_rate: 0.0876 → 0.1053",
+    "all.test_cases: 274 → 247",
+    "by_language.en.test_cases: 158 → 156",
+    "by_language.tr.test_cases: 116 → 91"
+  ],
+  "judge": {
+    "by_project": {
+      "KDH": 0.4611
+    },
+    "by_split": {
+      "dev": 0.4694,
+      "holdout": 0.3704
+    },
+    "by_stratum": {
+      "control": 0.5517,
+      "core": 0.4521
+    },
+    "checks_needing_documents": 0.2609,
+    "checks_not_needing_documents": 0.5415,
+    "check_recall": 0.4611,
+    "by_language": {
+      "en": 0.5448,
+      "tr": 0.4011
+    },
+    "traps": 1.0,
+    "invented_per_requirement": 1.449,
+    "boundary_ok_rate": 0.1949,
+    "ambiguity_flagged_rate": 0.5339,
+    "unscored": 0,
+    "by_repeat": {
+      "0": 0.4611,
+      "1": 0.4424,
+      "2": 0.4642
+    },
+    "rubric_version": "r1",
+    "model": "claude-sonnet-5-5",
+    "stats": {
+      "cached": 6,
+      "called": 348,
+      "refused": 0
+    }
+  }
+}

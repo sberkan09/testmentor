@@ -1,9 +1,9 @@
 # Pipeline çalışma varsayımları (docs/tasarim.md Deney planı, son sütun).
 # Deney dosyaları (config/experiments/) yalnızca değişen tek değeri burada ezer.
-prompt_version: p1
 # reference: üretim altın setin öbek ve yöntemleriyle beslenir (üretim kalitesi öbekleme ve
 # sınıflandırmadan ayrı ölçülür); predicted: uçtan uca (docs/tasarim.md, Deney planı kuralları).
 generation_inputs: reference
+unit_packing: false        # D7: referans kipte küçük referans öbekleri generation.max_unit_size'a kadar birleştir
 passages: none             # D9 pilotu (paket 1b): none | gold (altın set v1 destek parçaları, öbek başına)
 
 methods:                    # proje kartındaki doğrulama yöntemi listesi (varsayılan)
@@ -22,8 +22,8 @@ priorities: [Yüksek, Orta, Düşük]
 clustering:                 # D6: BGE-M3, agglomerative (çalışma varsayımı)
   method: agglomerative
   linkage: average
-  distance_threshold: 0.35  # kosinüs uzaklığı; D6 ayarlar
-  max_cluster_size: 25      # D7: öbek sınırı 25
+  distance_threshold: 0.35  # kosinüs uzaklığı; D6 (paket 3): 0,35 kalır, 0,30 aday (docs/deneyler/D6.md)
+  max_cluster_size: 25      # kesim sınırı (arayüzdeki öbekler); üretim birimi generation.max_unit_size
 
 classification:             # D3: sınıflandırmada düşünme kapalı
   batch_size: 25
@@ -31,11 +31,26 @@ classification:             # D3: sınıflandırmada düşünme kapalı
   temperature: 0.0
   max_tokens: 4096
 
+cluster_label:              # öbek adı (paket 3); D3: düşünme kapalı, sıcaklık 0
+  thinking: false
+  temperature: 0.0
+  max_tokens: 512
+
 generation:                 # D7: öbek başına tek çağrı
+  max_unit_size: 25         # D7: üretim birimi sınırı (kesimdeki clustering.max_cluster_size'dan ayrı)
   thinking: false           # D3 (paket 1): açık 4,8 kat yavaş, check_recall artmadı
   temperature: 0.0          # D3 (paket 1): 0 / 0,3 / 0,7 arasında ölçülebilir fark yok; daha kararlı olan
-  max_tokens: 8192
+  max_tokens: 16384         # paket 3: 8192 öbek sınırına (25) yetmiyor (Test üyesi başına ~382 token + 538; uçtan uca v1'de 24 üyeli öbek ~9,7 bin); prompt + bu < 32k bağlam
   repair: true              # kapsanmayan gereksinimler için ek çağrı
+  field_max_chars:          # paket 3b (KDH-030): çıktı şemasında maxLength; gözlenen en uzunların rahatça üstünde
+    title: 300
+    preconditions: 1000
+    test_inputs: 1000
+    assumptions: 4000
+    action: 1000
+    expected: 4000
+  regeneration: incremental # D8: incremental | full (geçerli dayanaklı bayat set nasıl yeniden üretilir)
+  prune_removals: true      # D8 (paket 3): yalnızca üye çıktığında çağrısız budama; artımlı çağrıyla aynı seti verdi
 
 concurrency: 16             # D5: 16–32 dizi
 prefix_warmup: false        # D12 (paket 1): bekletmenin ölçülebilir faydası yok; daha basit olan

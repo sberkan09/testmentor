@@ -9,18 +9,40 @@ Layer order (CLAUDE.md, prompt rules), most stable first so the engine's prefix 
 Corrections, pinned items and extra instructions are appended after layer 5, never inserted
 into the prefix. Nothing variable (dates, counters, user names, unsorted lists) goes into
 layers 1–3.
+
+Paket 3: every production mode of the test set (full, incremental, merge, repair, schema retry)
+uses layers 1–5 byte for byte as full generation does (`generation_messages`, unchanged since
+paket 1 so the paket 1 baseline stays comparable); mode material goes after layer 5 through
+`append_tail`. Versions are per stage (`prompt_version`, docs/tasarim.md Veri modeli kuralları).
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
 
-from core.schemas import Requirement
+from core.nodes import NodeKind, ProjectCardContent, TestCaseContent
+from core.schemas import ClusterLabel, Requirement, case_set_model, method_batch_model
+from core.settings import StageSettings
 
-TEMPLATE_VERSION = "t2"  # t2: test_cases has at least one item
+# Versions (paket 3) ------------------------------------------------------------------------------
+
+SHARED_VERSION = "s1"
+"""System instruction and card rendering (layers 1–2); shared by every model stage."""
+
+STAGE_VERSIONS: dict[NodeKind, str] = {
+    NodeKind.METHOD: "m1",
+    NodeKind.CLUSTER_LABEL: "l1",
+    NodeKind.TEST_SET: "g4",  # g4: describe long inputs + field maxLength (paket 3b, KDH-030)
+}
+"""Template version per model stage. Bump when the dynamic rendering (requirement block, tails)
+changes; tests/stages/test_prompts.py pins a rendering hash per version."""
+
+FINGERPRINT_LENGTH = 12
 
 SYSTEM = (
     "You are a senior test engineer working on safety- and mission-critical software. "
@@ -30,6 +52,9 @@ SYSTEM = (
     "Write every output in the language of the requirement it belongs to. "
     "Answer only with JSON that matches the given schema."
 )
+
+
+METHODS_HEADER = "Verification methods (choose only from this list):"
 
 
 @dataclass(frozen=True)
@@ -50,10 +75,51 @@ class ProjectCard:
             "# Project card",
             f"Project: {self.name} ({self.key})",
             f"Domain: {self.domain}",
-            "Verification methods (choose only from this list):",
+            METHODS_HEADER,
         ]
         lines += [f"- {m.name}: {m.criterion}" for m in self.methods]
         return "\n".join(lines)
+
+
+class RenderableCard(Protocol):
+    def render(self) -> str: ...
+
+
+@dataclass(frozen=True)
+class ContentCard:
+    """The project card node as a prompt layer (`render_card`)."""
+
+    content: ProjectCardContent
+
+    def render(self) -> str:
+        return render_card(self.content)
+
+
+def card_text(key: str, name: str, domain: str) -> str:
+    """Card body of a golden-set project: `Project: <name> (<key>)` and `Domain: <domain>` lines.
+    With it, `render_card` equals `ProjectCard(key, name, domain, methods).render()`."""
+    return f"Project: {name} ({key})\nDomain: {domain}"
+
+
+def render_card(content: ProjectCardContent) -> str:
+    """`# Project card`, the body text, then `Verification methods (choose only from this list):`
+    and one `- <name>: <criterion>` line per method in the card's order (the order is the
+    project's, kept stable). Byte-identical to `ProjectCard.render` for the same data."""
+    lines = ["# Project card", content.text, METHODS_HEADER]
+    lines += [f"- {m.name}: {m.criterion}" for m in content.methods]
+    return "\n".join(lines)
+
+
+_NUM = re.compile(r"(\d+)")
+
+
+def _id_key(case_id: str) -> tuple[Any, ...]:
+    """Natural order of case ids (`TC-2` before `TC-10`)."""
+    return tuple(int(p) if p.isdigit() else p for p in _NUM.split(case_id))
+
+
+def _by_id(cases: Sequence[TestCaseContent]) -> list[TestCaseContent]:
+    return sorted(cases, key=lambda c: _id_key(c.id))
 
 
 def _json(obj: Any) -> str:
@@ -78,6 +144,8 @@ GENERATION_INSTRUCTION = (
     "- Cover normal behaviour, boundaries and error handling where the requirement implies "
     "them; do not add tests for behaviour the requirement does not state.\n"
     "- Every step has its own action and its own expected result.\n"
+    "- Do not write out long or repeated input values (long strings, large files, many "
+    'records); describe them instead, e.g. "a 129-character password", "a 10 MB file".\n'
     "- Leave preconditions, test_inputs and assumptions as empty strings when not needed.\n"
     "- type is one of {types}; priority is one of {priorities}."
 )
@@ -89,8 +157,31 @@ CLASSIFICATION_INSTRUCTION = (
 )
 
 
+def _generation_layer3(
+    *,
+    schema: Mapping[str, Any],
+    examples: Mapping[str, Any],
+    test_method: str,
+    types: Sequence[str],
+    priorities: Sequence[str],
+) -> str:
+    stage = GENERATION_INSTRUCTION.format(
+        test_method=test_method, types=", ".join(types), priorities=", ".join(priorities)
+    )
+    ex_reqs = [
+        Requirement(**{k: r[k] for k in ("id", "text", "language")})
+        for r in examples["requirements"]
+    ]
+    ex_methods = {r["id"]: r["methods"] for r in examples["requirements"]}
+    return (
+        f"{stage}\n\n# Output schema\n{_json(schema)}\n\n# Example\n"
+        f"Requirements:\n{_requirements_block(ex_reqs, ex_methods)}\n"
+        f"Output:\n{_json(examples['output'])}"
+    )
+
+
 def generation_messages(
-    card: ProjectCard,
+    card: RenderableCard,
     reqs: Sequence[Requirement],
     methods: Mapping[str, Sequence[str]],
     *,
@@ -102,28 +193,16 @@ def generation_messages(
     passages: Sequence[str] = (),
     only_ids: Sequence[str] = (),
 ) -> list[dict[str, str]]:
-    stage = GENERATION_INSTRUCTION.format(
-        test_method=test_method, types=", ".join(types), priorities=", ".join(priorities)
-    )
-    ex_reqs = [
-        Requirement(**{k: r[k] for k in ("id", "text", "language")})
-        for r in examples["requirements"]
-    ]
-    ex_methods = {r["id"]: r["methods"] for r in examples["requirements"]}
-    layer3 = (
-        f"{stage}\n\n# Output schema\n{_json(schema)}\n\n# Example\n"
-        f"Requirements:\n{_requirements_block(ex_reqs, ex_methods)}\n"
-        f"Output:\n{_json(examples['output'])}"
+    layer3 = _generation_layer3(
+        schema=schema,
+        examples=examples,
+        test_method=test_method,
+        types=types,
+        priorities=priorities,
     )
     layer4 = "# Retrieved passages\n" + ("\n\n".join(passages) if passages else "(none)")
     layer5 = "# Requirements\n" + _requirements_block(reqs, methods)
-    tail = ""
-    if only_ids:
-        tail = (
-            "\n\n# Additional instruction\nThe requirements "
-            + ", ".join(sorted(only_ids))
-            + " are not covered yet. Write test cases only for them."
-        )
+    tail = "\n\n" + repair_section(only_ids) if only_ids else ""
     return [
         {"role": "system", "content": SYSTEM},
         {"role": "user", "content": f"{card.render()}\n\n{layer3}\n\n{layer4}\n\n{layer5}{tail}"},
@@ -131,11 +210,184 @@ def generation_messages(
 
 
 def classification_messages(
-    card: ProjectCard, reqs: Sequence[Requirement], *, schema: Mapping[str, Any]
+    card: RenderableCard, reqs: Sequence[Requirement], *, schema: Mapping[str, Any]
 ) -> list[dict[str, str]]:
     layer3 = f"{CLASSIFICATION_INSTRUCTION}\n\n# Output schema\n{_json(schema)}"
+    return _short_messages(card, layer3, reqs)
+
+
+def _short_messages(
+    card: RenderableCard, layer3: str, reqs: Sequence[Requirement]
+) -> list[dict[str, str]]:
+    """Layers 1, 2, 3 and 5 (no passages): method and cluster label calls."""
     layer5 = "# Requirements\n" + _requirements_block(reqs, {})
     return [
         {"role": "system", "content": SYSTEM},
         {"role": "user", "content": f"{card.render()}\n\n{layer3}\n\n{layer5}"},
     ]
+
+
+# Paket 3: cluster label, mode tails, versions ----------------------------------------------------
+
+LABEL_INSTRUCTION = (
+    "# Task: cluster name\n"
+    "Name the cluster formed by the requirements below.\n"
+    "- name: 3 to 6 words that say what the requirements have in common; no ids, no "
+    "punctuation at the end.\n"
+    "- rationale: one sentence on why these requirements belong together.\n"
+    "- Write both in the language most of the requirements use; on a tie, in the language of "
+    "the requirement with the smallest id."
+)
+
+PINNED_HEADER = (
+    "# Fixed test cases\n"
+    "The user wrote or approved these test cases. They are part of the set and cannot be "
+    "changed. Do not repeat them and do not write test cases that check the same thing; "
+    "write only what they do not already cover."
+)
+
+INCREMENTAL_INSTRUCTION = (
+    "# Change\n"
+    "The test cases above already exist for this cluster. Requirements were added, changed or "
+    "removed (listed below). Do not rewrite the set. Return only:\n"
+    "- add: new test cases for requirements that are not covered yet or whose new text needs "
+    "a test the set does not have;\n"
+    "- update: the complete new version of an existing test case whose content no longer "
+    "matches its requirements, with that test case's id.\n"
+    "Leave both lists empty if nothing needs to change. Answer with JSON that matches this "
+    "schema:"
+)
+
+MERGE_INSTRUCTION = (
+    "# Merge\n"
+    "Two clusters were merged; their test cases are listed above. Find test cases that check "
+    "the same behaviour as another one in the list and return their ids in drop. Keep the more "
+    "complete one of each pair. Do not drop a test case only because it is similar. Answer "
+    "with JSON that matches this schema:"
+)
+
+SCHEMA_RETRY_INSTRUCTION = (
+    "# Correction\nYour previous answer did not match the output schema. Error:"
+)
+
+
+def label_messages(
+    card: RenderableCard, reqs: Sequence[Requirement], *, schema: Mapping[str, Any]
+) -> list[dict[str, str]]:
+    """Layers 1–2 shared with every stage, layer 3 `LABEL_INSTRUCTION` and the schema, layer 5
+    the member requirements (no methods tag). No passages layer."""
+    return _short_messages(card, f"{LABEL_INSTRUCTION}\n\n# Output schema\n{_json(schema)}", reqs)
+
+
+def append_tail(messages: Sequence[dict[str, str]], *sections: str) -> list[dict[str, str]]:
+    """Copy of `messages` with each non-empty section appended to the last user message, each
+    preceded by a blank line (`"\n\n" + section`). The prefix is never touched."""
+    out = [dict(m) for m in messages]
+    last = max(i for i, m in enumerate(out) if m["role"] == "user")
+    out[last]["content"] += "".join("\n\n" + s for s in sections if s)
+    return out
+
+
+def case_summary(case: TestCaseContent) -> str:
+    """`<id> [covers: R1, R2]: <title>`; used for existing cases that a change does not touch."""
+    return f"{case.id} [covers: {', '.join(case.covers)}]: {case.title}"
+
+
+def case_block(cases: Sequence[TestCaseContent]) -> str:
+    """Full JSON of each case (one compact `_json` line per case, in the given order)."""
+    return "\n".join(_json(c.model_dump(mode="json", exclude={"kind"})) for c in cases)
+
+
+def pinned_section(cases: Sequence[TestCaseContent]) -> str:
+    """`PINNED_HEADER` and `case_block(cases)` in id order; empty string when there are none."""
+    if not cases:
+        return ""
+    return f"{PINNED_HEADER}\n{case_block(_by_id(cases))}"
+
+
+def incremental_section(
+    *,
+    full: Sequence[TestCaseContent],
+    summary: Sequence[TestCaseContent],
+    added: Sequence[str],
+    changed: Sequence[str],
+    removed: Sequence[str],
+    schema: Mapping[str, Any],
+) -> str:
+    """`# Existing test cases` with `full` as `case_block` (cases touching a changed or removed
+    requirement) and `summary` as `case_summary` lines (the rest), both in id order; then
+    `INCREMENTAL_INSTRUCTION`, the schema as `_json`, and the sorted `Added:`, `Changed:`,
+    `Removed:` id lines (a line is left out when its list is empty)."""
+    lines = ["# Existing test cases"]
+    if full:
+        lines.append(case_block(_by_id(full)))
+    lines += [case_summary(c) for c in _by_id(summary)]
+    lines += ["", INCREMENTAL_INSTRUCTION, _json(schema)]
+    for label, ids in (("Added", added), ("Changed", changed), ("Removed", removed)):
+        if ids:
+            lines.append(f"{label}: {', '.join(sorted(ids))}")
+    return "\n".join(lines)
+
+
+def merge_section(
+    sources: Mapping[str, Sequence[TestCaseContent]], *, schema: Mapping[str, Any]
+) -> str:
+    """`# Existing test cases` grouped by source cluster in key order (`## <cluster>` and
+    `case_block`), then `MERGE_INSTRUCTION` and the schema. Ids are the merged ids (collisions
+    already renamed `<cluster>.<id>`)."""
+    lines = ["# Existing test cases"]
+    for cluster in sorted(sources):
+        lines.append(f"## {cluster}")
+        if sources[cluster]:
+            lines.append(case_block(sources[cluster]))
+    lines += ["", MERGE_INSTRUCTION, _json(schema)]
+    return "\n".join(lines)
+
+
+def repair_section(ids: Sequence[str]) -> str:
+    """Exactly the paket 1 repair text (`generation_messages(..., only_ids=ids)` tail without
+    its leading blank line): `# Additional instruction` and the sorted ids."""
+    return (
+        "# Additional instruction\nThe requirements "
+        + ", ".join(sorted(ids))
+        + " are not covered yet. Write test cases only for them."
+    )
+
+
+def schema_retry_section(error: str) -> str:
+    """`SCHEMA_RETRY_INSTRUCTION`, the error (first 1.000 characters), and `Answer again.`"""
+    return f"{SCHEMA_RETRY_INSTRUCTION}\n{error[:1000]}\nAnswer again."
+
+
+def layer3(stage: NodeKind, settings: StageSettings) -> str:
+    """The stage's fixed layer 3 rendered with `settings`: test set `GENERATION_INSTRUCTION`
+    with labels, the case set schema and the examples (as in `generation_messages`); method
+    `CLASSIFICATION_INSTRUCTION` and its schema; label `LABEL_INSTRUCTION` and its schema. The
+    method enum comes from the project card (a dependency, already in `input_hash`); the
+    method schema is rendered here with the placeholder list `("<method>",)`."""
+    if stage == NodeKind.TEST_SET:
+        return _generation_layer3(
+            schema=case_set_model(
+                settings.test_types, settings.priorities, settings.field_limits
+            ).model_json_schema(),
+            examples=settings.examples,
+            test_method=settings.test_method,
+            types=settings.test_types,
+            priorities=settings.priorities,
+        )
+    if stage == NodeKind.METHOD:
+        schema = method_batch_model(("<method>",)).model_json_schema()
+        return f"{CLASSIFICATION_INSTRUCTION}\n\n# Output schema\n{_json(schema)}"
+    if stage == NodeKind.CLUSTER_LABEL:
+        return f"{LABEL_INSTRUCTION}\n\n# Output schema\n{_json(ClusterLabel.model_json_schema())}"
+    raise KeyError(stage)
+
+
+def prompt_version(stage: NodeKind, settings: StageSettings) -> str:
+    """`<SHARED_VERSION>.<STAGE_VERSIONS[stage]>+<fingerprint>`; fingerprint = first
+    `FINGERPRINT_LENGTH` hex chars of SHA-256 over `SYSTEM` and `layer3(stage, settings)`.
+    KeyError for a stage without a template (non-model stages take their version from config)."""
+    stage_version = STAGE_VERSIONS[stage]  # module globals, read at call time
+    text = f"{SYSTEM}\n\n{layer3(stage, settings)}"
+    fingerprint = hashlib.sha256(text.encode("utf-8")).hexdigest()[:FINGERPRINT_LENGTH]
+    return f"{SHARED_VERSION}.{stage_version}+{fingerprint}"

@@ -139,23 +139,19 @@ def test_passage_and_basis_texts_are_verified():
 
 
 def test_gold_passages_and_v1_judge_checks():
-    import yaml
-
     from eval.judge import reference_checks, summarize
-    from eval.pipeline import Pipeline
+    from eval.pipeline import gold_passages
 
-    root = __import__("pathlib").Path(__file__).resolve().parent.parent
-    cfg = yaml.safe_load((root / "config" / "pipeline.yaml").read_text(encoding="utf-8"))
     g = load_golden_v1()
     if not g.projects:
         return
     p = g.projects[0]
     with_refs = [r for r in p.raw["requirements"] if r.get("support_passages")]
     cluster = [r["id"] for r in with_refs[:3]]
-    assert Pipeline(None, None, cfg | {"passages": "none"}, {}).passages(p, cluster) == []
-    gold = Pipeline(None, None, cfg | {"passages": "gold"}, {}).passages(p, cluster)
+    # paket 3: `passages: none` is no retriever at all (Pipeline); gold texts come from here
+    gold = [text for _, text in gold_passages(p, cluster)]
     assert gold and len(gold) == len(set(gold))
-    assert gold == Pipeline(None, None, cfg | {"passages": "gold"}, {}).passages(p, cluster[::-1])
+    assert gold == [text for _, text in gold_passages(p, cluster[::-1])]
     assert all(s.startswith("[") and " §" in s for s in gold)
     checks = reference_checks(g)
     rid = with_refs[0]["id"]

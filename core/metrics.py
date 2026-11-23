@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import re
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from statistics import mean
@@ -31,7 +33,7 @@ class ProjectOutcome:
 
 @dataclass(frozen=True)
 class CallStat:
-    kind: str  # "classification" | "generation" | "repair"
+    kind: str  # "classification" | "label" | "generation" | "repair" | "incremental" | "merge"
     schema_valid: bool
     error: bool
     prompt_tokens: int
@@ -84,10 +86,13 @@ def requirement_metrics(
                 violations += 1
     needs_test = [rid for rid, r in selected.items() if test_method in r.methods]
     predicted = {rid: m for o in outcomes for rid, m in o.methods.items()}
+    # Bitti ölçütü 3 (paket 3): end to end, coverage is required against the predicted methods.
+    needs_pred = [rid for rid in selected if test_method in predicted.get(rid, [])]
     method_rows = [(set(predicted.get(rid, [])), r.methods) for rid, r in selected.items()]
     return {
         "requirements": len(selected),
         "coverage_rate": _rate(sum(r in covered for r in needs_test), len(needs_test)),
+        "coverage_rate_predicted": _rate(sum(r in covered for r in needs_pred), len(needs_pred)),
         "coverage_rate_before_repair": _rate(
             sum(r in covered_before for r in needs_test), len(needs_test)
         ),
@@ -101,6 +106,58 @@ def requirement_metrics(
         if method_rows
         else None,
     }
+
+
+def raw_violations(
+    outputs: Iterable[str], refs: Mapping[str, RefRequirement], test_method: str
+) -> int:
+    """Test cases in the model's own outputs (before the covers filter) that cover a requirement
+    whose reference methods lack `test_method` (paket 3). The producer drops such ids, so the
+    final set cannot show them in reference mode; this keeps the paket 1 threshold meaningful.
+    Lists read: `test_cases` (full, repair), `add` and `update` (incremental)."""
+    count = 0
+    for text in outputs:
+        try:
+            data = json.loads(text)
+        except (TypeError, ValueError):
+            continue
+        for key in ("test_cases", "add", "update"):
+            for tc in data.get(key) or []:
+                ids = [i for i in tc.get("covers", []) if i in refs]
+                if any(test_method not in refs[i].methods for i in ids):
+                    count += 1
+    return count
+
+
+_WORD = re.compile(r"\w+")
+
+
+def _step_words(tc: Mapping[str, Any]) -> set[str]:
+    text = " ".join(f"{s.get('action', '')} {s.get('expected', '')}" for s in tc.get("steps") or [])
+    return set(_WORD.findall(text.lower()))
+
+
+def duplicate_tests(outcomes: Sequence[ProjectOutcome], threshold: float = 0.8) -> dict[str, Any]:
+    """D7: pairs of test cases in the same project with the same `covers` set whose normalised
+    step words have Jaccard >= `threshold`. `duplicate_test_rate`: share of test cases that are
+    in at least one such pair."""
+    pairs = 0
+    involved = 0
+    total = 0
+    for o in outcomes:
+        groups: dict[frozenset[str], list[set[str]]] = {}
+        for tc in o.test_cases:
+            groups.setdefault(frozenset(tc.get("covers", [])), []).append(_step_words(tc))
+            total += 1
+        for words in groups.values():
+            dup = [False] * len(words)
+            for i in range(len(words)):
+                for j in range(i + 1, len(words)):
+                    if _jaccard(words[i], words[j]) >= threshold:
+                        pairs += 1
+                        dup[i] = dup[j] = True
+            involved += sum(dup)
+    return {"duplicate_pairs": pairs, "duplicate_test_rate": _rate(involved, total)}
 
 
 def cluster_ari(outcome: ProjectOutcome, refs: Mapping[str, RefRequirement]) -> float | None:
@@ -140,11 +197,18 @@ def layer1(
     calls: Sequence[CallStat],
     wall_s: float,
     test_method: str,
+    raw_outputs: Sequence[str] | None = None,
 ) -> dict[str, Any]:
+    """`raw_outputs` given (paket 3 pipeline): `all.no_test_violations_raw` is counted on them and
+    the threshold uses it; `all.no_test_violations` stays the count on the final sets."""
     langs = sorted({r.language for r in refs.values()})
     aris = [a for o in outcomes if (a := cluster_ari(o, refs)) is not None]
+    overall = requirement_metrics(outcomes, refs, test_method)
+    overall |= duplicate_tests(outcomes)
+    if raw_outputs is not None:
+        overall["no_test_violations_raw"] = raw_violations(raw_outputs, refs, test_method)
     return {
-        "all": requirement_metrics(outcomes, refs, test_method),
+        "all": overall,
         "by_language": {
             lang: requirement_metrics(
                 outcomes, refs, test_method, lambda r, lang=lang: r.language == lang
@@ -165,5 +229,6 @@ def passes_thresholds(m: Mapping[str, Any], thresholds: Mapping[str, float]) -> 
         "schema_valid_rate": (c["schema_valid_rate"] or 0) >= thresholds["schema_valid_rate"],
         "coverage_rate": (a["coverage_rate"] or 0) >= thresholds["coverage_rate"],
         "step_structure_rate": (a["step_structure_rate"] or 0) >= thresholds["step_structure_rate"],
-        "no_test_violations": a["no_test_violations"] <= thresholds["no_test_violations"],
+        "no_test_violations": a.get("no_test_violations_raw", a["no_test_violations"])
+        <= thresholds["no_test_violations"],
     }

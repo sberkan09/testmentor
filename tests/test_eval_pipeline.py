@@ -8,7 +8,7 @@ from core.metrics import layer1
 from eval.golden import load_golden
 from eval.pipeline import EmbeddingCache, Pipeline
 from eval.run import deep_merge, layer1_diff
-from services.llm_client import LLMClient
+from services.llm_client import LLMClient, LLMError
 from services.settings import LLMSettings
 
 ROOT = __import__("pathlib").Path(__file__).resolve().parent.parent
@@ -169,3 +169,131 @@ def test_synthetic_passages_differ_per_cluster_and_hit_size():
     assert a != b and a == synthetic_passages(golden, "P/c1", 2000)
     assert sum(map(len, a)) >= 8000
     assert synthetic_passages(golden, "x", 0) == []
+
+
+# Paket 3: stage pipeline ------------------------------------------------------------------------
+
+
+async def test_reference_prompt_is_generation_messages(tmp_path):
+    """The stage pipeline's full generation request is `generation_messages` over the reference
+    cluster (layers 1–5). Byte-identical to paket 1 up to template g3 (185/185 requests, paket 3
+    step 5); from g4 (paket 3b) the instruction and the schema's field limits differ."""
+    from core.prompts import Method, ProjectCard, generation_messages
+    from core.schemas import case_set_model
+
+    fake = FakeModel()
+    golden = load_golden(projects=["KK"])
+    p = golden.projects[0]
+    cache = EmbeddingCache(tmp_path / "e.json", "v", fake_embed)
+    async with LLMClient(settings(), transport=httpx.MockTransport(fake.handle)) as client:
+        await Pipeline(client, cache, CFG, EXAMPLES).run(golden)
+    cluster = p.reference_clusters()[0]
+    by_id = {r.id: r for r in p.requirements}
+    refs = {r["id"]: sorted(r["verification_methods"]) for r in p.raw["requirements"]}
+    card = ProjectCard(
+        p.key, p.name, p.domain, tuple(Method(m["name"], m["criterion"]) for m in CFG["methods"])
+    )
+    expected = generation_messages(
+        card,
+        [by_id[i] for i in cluster],
+        {i: refs[i] for i in cluster},
+        schema=case_set_model(
+            tuple(CFG["test_types"]),
+            tuple(CFG["priorities"]),
+            tuple(sorted(CFG["generation"]["field_max_chars"].items())),
+        ).model_json_schema(),
+        examples=EXAMPLES,
+        test_method=CFG["test_method"],
+        types=CFG["test_types"],
+        priorities=CFG["priorities"],
+    )
+    assert expected in [b["messages"] for b in fake.bodies]
+
+
+async def test_raw_violations_count_model_output_before_the_filter(tmp_path):
+    """Reference mode: the producer drops covers of non-Test requirements, so the final sets
+    show no violation; the raw count still sees the model writing them (threshold uses it)."""
+    from core.metrics import passes_thresholds
+
+    golden = load_golden(projects=["KMU"])  # KMU-008 has no Test method
+    no_test = [
+        r["id"]
+        for r in golden.projects[0].raw["requirements"]
+        if "Test" not in r["verification_methods"]
+    ]
+    assert no_test
+
+    class Violating(FakeModel):
+        def handle(self, request):
+            body = json.loads(request.content)
+            user = body["messages"][-1]["content"]
+            if "# Task: verification method" in user:
+                return super().handle(request)
+            rows = re.findall(r"^(\w+-\d+) \(", user[user.rindex("# Requirements") :], re.M)
+            out = {
+                "test_cases": [
+                    {
+                        "id": f"T{i}",
+                        "title": "t",
+                        "covers": [rid],
+                        "type": "Normal",
+                        "priority": "Orta",
+                        "preconditions": "",
+                        "test_inputs": "",
+                        "assumptions": "",
+                        "steps": [{"no": 1, "action": "a", "expected": "e"}],
+                    }
+                    for i, rid in enumerate(rows)  # every member, Test or not
+                ]
+            }
+            chunks = [
+                {"choices": [{"index": 0, "delta": {"content": json.dumps(out)}}]},
+                {"choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]},
+            ]
+            sse = "".join(f"data: {json.dumps(c)}\n\n" for c in chunks) + "data: [DONE]\n\n"
+            return httpx.Response(
+                200, headers={"content-type": "text/event-stream"}, content=sse.encode()
+            )
+
+    fake = Violating()
+    cache = EmbeddingCache(tmp_path / "e.json", "v", fake_embed)
+    async with LLMClient(settings(), transport=httpx.MockTransport(fake.handle)) as client:
+        res = await Pipeline(client, cache, CFG, EXAMPLES).run(golden)
+    m = layer1(
+        res.outcomes,
+        golden.refs(),
+        res.calls,
+        res.wall_s,
+        CFG["test_method"],
+        raw_outputs=res.raw_outputs,
+    )
+    assert m["all"]["no_test_violations"] == 0
+    assert m["all"]["no_test_violations_raw"] >= len(no_test)
+    assert passes_thresholds(m, CFG["thresholds"])["no_test_violations"] is False
+
+
+async def test_driver_isolates_a_failing_job():
+    """One job raising (an HTTP 400, say) fails only its own nodes; the others are produced."""
+    from core.llm import LLMReply
+    from core.nodes import NodeKind, ref
+    from eval.stage_driver import drive
+    from tests.stages.helpers import SETTINGS, project, smart_reply
+
+    async def complete(request):
+        rows = request.messages[-1]["content"]
+        if request.stage == NodeKind.TEST_SET and "R1 (tr)" in rows:
+            raise LLMError("HTTP 400: bad request")
+        out = smart_reply(request)
+        content = json.dumps(out, ensure_ascii=False)
+        return LLMReply(content=content, parsed=request.schema.model_validate_json(content))
+
+    async def embed(texts):
+        return [[float(len(t)), 1.0] for t in texts]
+
+    out = await drive(
+        project(), complete, settings=SETTINGS, skip={NodeKind.CLUSTER_LABEL}, embed=embed
+    )
+    assert set(out.errors) == {ref(NodeKind.TEST_SET, "A")}
+    assert out.errors[ref(NodeKind.TEST_SET, "A")].startswith("LLMError: HTTP 400")
+    assert out.state.node(ref(NodeKind.TEST_SET, "A")).status.value == "failed"
+    assert out.state.node(ref(NodeKind.TEST_SET, "B")).status.value == "fresh"

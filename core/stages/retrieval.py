@@ -6,11 +6,13 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING
 
-from core.nodes import KB_INDEX_KEY, NodeKind, NodeRef
-from core.stages.base import StageSpec, register
+from core.nodes import KB_INDEX_KEY, NodeKind, NodeRef, RetrievalContent
+from core.stages.base import ProduceContext, ProduceOutcome, StageSpec, register
+from core.stages.calls import result
 
 if TYPE_CHECKING:
     from core.graph import ProjectState
+    from core.llm import Complete
 
 INDEX = NodeRef(kind=NodeKind.KB_INDEX, key=KB_INDEX_KEY)
 
@@ -25,6 +27,20 @@ def dependencies(state: ProjectState, key: str) -> Sequence[NodeRef]:
     return (*(NodeRef(kind=NodeKind.REQUIREMENT, key=m) for m in state.members(key)), INDEX)
 
 
+async def produce(ctx: ProduceContext, complete: Complete) -> ProduceOutcome:
+    """`ctx.retrieve(members)`; `RetrievalContent(passage_ids)` in the returned order,
+    duplicates removed. Missing `ctx.retrieve` gives an empty list (no knowledge base)."""
+    out = []
+    for r in ctx.refs:
+        ids: list[str] = []
+        if ctx.retrieve is not None:
+            members = [ctx.state.requirement(m) for m in ctx.state.members(r.key)]
+            ids = list(dict.fromkeys(await ctx.retrieve(members)))
+        content = RetrievalContent(passage_ids=tuple(ids))
+        out.append((r, result(ctx.state, r, content, mode="algorithm")))
+    return ProduceOutcome(results=tuple(out))
+
+
 SPEC = register(
     StageSpec(
         kind=NodeKind.RETRIEVAL,
@@ -32,5 +48,7 @@ SPEC = register(
         keys=keys,
         dependencies=dependencies,
         identity_by_input=False,
+        produce=produce,
+        batched=False,
     )
 )

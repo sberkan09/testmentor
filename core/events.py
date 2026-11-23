@@ -13,7 +13,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from core.nodes import NodeKind, NodeRef, StageConfig, TestCaseContent
+from core.nodes import MethodDef, NodeKind, NodeRef, StageConfig, TestCaseContent
 
 _FROZEN = ConfigDict(frozen=True, extra="forbid")
 
@@ -115,6 +115,8 @@ class ProjectCardChanged(BaseModel):
     model_config = _FROZEN
     type: Literal["project_card_changed"] = "project_card_changed"
     text: str
+    methods: tuple[MethodDef, ...] | None = None
+    """None keeps the current method list (paket 3)."""
 
 
 class StageConfigChanged(BaseModel):

@@ -297,10 +297,12 @@ def apply(
             _update_source(
                 nodes, _ref(NodeKind.KB_INDEX, KB_INDEX_KEY), KbIndexContent(version=version)
             )
-        case ProjectCardChanged(text=text):
-            _update_source(
-                nodes, _ref(NodeKind.PROJECT_CARD, PROJECT_CARD_KEY), ProjectCardContent(text=text)
-            )
+        case ProjectCardChanged(text=text, methods=methods):
+            card = _ref(NodeKind.PROJECT_CARD, PROJECT_CARD_KEY)
+            current = state.node(card).content
+            assert isinstance(current, ProjectCardContent)
+            kept = current.methods if methods is None else methods
+            _update_source(nodes, card, ProjectCardContent(text=text, methods=kept))
         case StageConfigChanged(stage=kind, config=config):
             stages.get(kind)  # KeyError for an unknown stage
             configs = configs | {kind: config}

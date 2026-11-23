@@ -1,0 +1,6 @@
+name: p3-v0-reference
+question: "Paket 3 bitti ölçütü: yeni aşama koduyla altın set v0, referans öbek ve yöntemler; katman 1 eşikleri ve paket 1 tabanına (check_recall 0,454) göre gerileme yok."
+variable: aşama kodu (generation_inputs=reference)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+repeat: 3
+quality: true

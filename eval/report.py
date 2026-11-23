@@ -14,16 +14,27 @@ def _fmt(v: Any) -> str:
     return str(v)
 
 
+def _versions(meta: dict[str, Any]) -> str:
+    """Per-stage prompt versions (paket 3) or the single template version of paket 1 runs."""
+    if meta.get("prompt_versions"):
+        v = meta["prompt_versions"]
+        return ", ".join(f"{k} {v[k]}" for k in ("method", "test_set") if k in v)
+    return str(meta.get("template_version", "–"))
+
+
 def _req_table(m: dict[str, Any]) -> list[str]:
     cols = [
         "requirements",
         "coverage_rate",
+        "coverage_rate_predicted",
         "coverage_rate_before_repair",
         "no_test_violations",
+        "no_test_violations_raw",
         "step_structure_rate",
         "test_cases",
         "method_exact_match",
         "method_jaccard",
+        "duplicate_test_rate",
     ]
     rows = (
         [("tümü", m["all"])]
@@ -43,7 +54,8 @@ def render(metrics: dict[str, Any]) -> str:
         "",
         f"- Soru: {exp.get('question', '')}",
         f"- Değişken: {exp.get('variable', '')}",
-        f"- Koşu: `{meta['run_id']}`, ayar `{meta['config_file']}`, şablon `{meta['template_version']}`, "
+        f"- Koşu: `{meta['run_id']}`, ayar `{meta['config_file']}`, prompt "
+        f"`{_versions(meta)}`, "
         f"altın set `{meta['golden_version']}`",
         f"- Sunucu: {meta['server'].get('engine')} / {meta['server'].get('model')} "
         f"(sunulan ad `{meta.get('served_model')}`, pod `{meta['server'].get('pod')}`)",
@@ -84,6 +96,28 @@ def render(metrics: dict[str, Any]) -> str:
             + ", ".join(f"{k} {'✓' if v else '✗'}" for k, v in m["thresholds"].items()),
             "",
         ]
+        if m.get("scenario"):
+            sc = m["scenario"]
+            arms = sc.get("arms") or {}
+            keys = [
+                k
+                for k in dict.fromkeys(k for a in arms.values() for k in a)
+                if k not in ("rows", "changed_requirements", "errors")
+            ]
+            lines += [
+                f"### Senaryo ({sc['kind']}, D8; taban çağrısı {sc.get('baseline_calls')})",
+                "",
+                "| kol | " + " | ".join(keys) + " |",
+                "|" + " --- |" * (len(keys) + 1),
+            ]
+            lines += [
+                f"| {name} | " + " | ".join(_fmt(a.get(k)) for k in keys) + " |"
+                for name, a in arms.items()
+            ]
+            for name, a in arms.items():
+                if a.get("errors"):
+                    lines.append(f"- {name} hataları: {a['errors']}")
+            lines.append("")
     if "repeat_differences" in metrics:
         diffs = metrics["repeat_differences"]
         lines += ["## Tekrar karşılaştırması (katman 1)", ""]

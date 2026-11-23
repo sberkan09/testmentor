@@ -1,0 +1,11 @@
+name: d7-unit10
+question: "D7 Üretim birimi: referans öbekler 10 gereksinime kadar birleştirilir (büyükler bölünür); check_recall, tekrar eden test oranı, süre ve çıktı token'ı d7-cluster ile karşılaştırılır."
+variable: generation.max_unit_size=10 (unit_packing açık)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  unit_packing: true
+  generation:
+    max_unit_size: 10
+    max_tokens: 20480     # 25 Test üyesi: ortalama ~10,1 bin, en kötü gözlenen oranla ~16,2 bin çıktı token'ı; prompt + bu < 32k
+quality: true

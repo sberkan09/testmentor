@@ -33,6 +33,7 @@ from core.nodes import (
     SOURCE_KINDS,
     ClusterContent,
     KbIndexContent,
+    MethodDef,
     Node,
     NodeKind,
     NodeRef,
@@ -174,6 +175,7 @@ def new_project(
     card: str,
     index_version: str,
     stage_configs: Mapping[NodeKind, StageConfig],
+    methods: Sequence[MethodDef] = (),
 ) -> ProjectState:
     """Source nodes from an import, plus a stale placeholder for every derived node the stages
     declare. Every requirement must be in exactly one cluster; every derived kind needs a stage
@@ -199,7 +201,8 @@ def new_project(
         add(NodeKind.REQUIREMENT, req.id, req)
     for key, members in clusters.items():
         add(NodeKind.CLUSTER, key, ClusterContent(members=tuple(members)))
-    add(NodeKind.PROJECT_CARD, PROJECT_CARD_KEY, ProjectCardContent(text=card))
+    card_content = ProjectCardContent(text=card, methods=tuple(methods))
+    add(NodeKind.PROJECT_CARD, PROJECT_CARD_KEY, card_content)
     add(NodeKind.KB_INDEX, KB_INDEX_KEY, KbIndexContent(version=index_version))
     state = ProjectState(project_id=project_id, nodes=nodes, stage_configs=dict(stage_configs))
     return with_declared_nodes(state)

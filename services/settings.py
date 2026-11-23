@@ -18,6 +18,10 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
+from core.llm import LLMParams
+from core.nodes import NodeKind, StageConfig
+from core.settings import ClusteringSettings, StageSettings
+
 
 class ModelSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -135,3 +139,99 @@ def load_embedding_settings(config_dir: str | Path = "config") -> EmbeddingSetti
     if url := os.environ.get("EMBEDDING_BASE_URL"):
         raw["base_url"] = url
     return EmbeddingSettings.model_validate(raw)
+
+
+def load_stage_settings(config_dir: str | Path = "config") -> StageSettings:
+    """`core.settings.StageSettings` from config/pipeline.yaml (labels, `generation`,
+    `classification`, `cluster_label`, `clustering`, `generation.max_unit_size`) and the examples
+    file it names (paket 3)."""
+    config_dir = Path(config_dir)
+    cfg = _read(config_dir, "pipeline.yaml")
+    examples_path = Path(cfg["examples_file"])
+    if not examples_path.is_absolute():
+        # Repo-relative (`config/prompts/...`): resolved against the parent of `config_dir`.
+        examples_path = config_dir.resolve().parent / examples_path
+    return stage_settings_from(cfg, yaml.safe_load(examples_path.read_text(encoding="utf-8")))
+
+
+def stage_settings_from(cfg: dict[str, Any], examples: dict[str, Any]) -> StageSettings:
+    """`StageSettings` from an already merged pipeline config (eval merges experiment files over
+    config/pipeline.yaml) and the loaded examples."""
+
+    def params(section: str) -> LLMParams:
+        raw = cfg.get(section) or {}
+        return LLMParams(**{k: raw[k] for k in LLM_PARAM_KEYS if k in raw})
+
+    generation = cfg.get("generation") or {}
+    return StageSettings(
+        test_method=cfg["test_method"],
+        test_types=tuple(cfg["test_types"]),
+        priorities=tuple(cfg["priorities"]),
+        examples=examples,
+        llm={
+            NodeKind.METHOD: params("classification"),
+            NodeKind.CLUSTER_LABEL: params("cluster_label"),
+            NodeKind.TEST_SET: params("generation"),
+        },
+        method_batch_size=(cfg.get("classification") or {}).get("batch_size", 25),
+        max_unit_size=generation.get("max_unit_size", 25),
+        repair=generation.get("repair", True),
+        regeneration=generation.get("regeneration", "incremental"),
+        prune_removals=generation.get("prune_removals", False),
+        field_max_chars=dict(generation.get("field_max_chars") or {}),
+        clustering=ClusteringSettings(**(cfg.get("clustering") or {})),
+    )
+
+
+LLM_PARAM_KEYS = ("temperature", "thinking", "max_tokens")
+
+
+def stage_configs(
+    settings: StageSettings,
+    *,
+    model: str,
+    embedding_model_version: str,
+) -> dict[NodeKind, StageConfig]:
+    """One `StageConfig` per registered stage. Model stages: `prompt_version(stage, settings)`,
+    `model`, params = `settings.llm[stage]` as plain JSON, plus the settings that change the
+    stage's output without changing its prompt: `batch_size` for the method stage,
+    `max_unit_size` (D7) and `repair` for the test set (core/settings.py: everything that changes
+    an output reaches `input_hash`). `regeneration` and `prune_removals` (D8) choose the
+    production mode and stay out, like the mode itself (core/stages/base.py).
+    Embedding: version = the embedding model version. Clustering: version `c1`, params =
+    `settings.clustering` as plain JSON. Retrieval and matrix: fixed versions `r1` and `x1`
+    (paket 7 and 4 change them)."""
+    from core import stages
+    from core.prompts import prompt_version
+
+    def llm_stage(kind: NodeKind, **extra: Any) -> StageConfig:
+        return StageConfig(
+            prompt_version=prompt_version(kind, settings),
+            model=model,
+            params={**settings.llm[kind].model_dump(mode="json"), **extra},
+        )
+
+    out = {
+        NodeKind.EMBEDDING: StageConfig(prompt_version=embedding_model_version),
+        NodeKind.CLUSTERING: StageConfig(
+            prompt_version=CLUSTERING_VERSION, params=settings.clustering.model_dump(mode="json")
+        ),
+        NodeKind.METHOD: llm_stage(NodeKind.METHOD, batch_size=settings.method_batch_size),
+        NodeKind.CLUSTER_LABEL: llm_stage(NodeKind.CLUSTER_LABEL),
+        NodeKind.RETRIEVAL: StageConfig(prompt_version=RETRIEVAL_VERSION),
+        NodeKind.TEST_SET: llm_stage(
+            NodeKind.TEST_SET,
+            max_unit_size=settings.max_unit_size,
+            repair=settings.repair,
+        ),
+        NodeKind.MATRIX_ROW: StageConfig(prompt_version=MATRIX_VERSION),
+    }
+    missing = {s.kind for s in stages.all_specs()} - set(out)
+    if missing:
+        raise KeyError(f"no stage config for {sorted(missing)}")
+    return out
+
+
+CLUSTERING_VERSION = "c1"
+RETRIEVAL_VERSION = "r1"  # paket 7 changes it
+MATRIX_VERSION = "x1"  # paket 4 changes it

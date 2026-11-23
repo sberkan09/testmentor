@@ -1,0 +1,8 @@
+name: p3b-kdh
+question: "Paket 3b (KDH-030): alan uzunluk sınırı ve uzun girdiyi tarif etme kuralıyla (şablon g4) KDH referans, 3 tekrar; kesilme 0, KDH-030 kapsanmış, şema ≥ 0,99."
+variable: test seti şablonu g4 (field_max_chars + kural)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+projects: [KDH]
+repeat: 3
+quality: true

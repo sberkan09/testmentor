@@ -34,3 +34,13 @@ Stüdyoda projelere tasarım dokümanları, standartlar ve proje yönetim planı
 
 Altın set v1 (ERTMS 109, kamu dijital hizmeti 120 gereksinim; 519 resmî kökenli ya da Claude denetimi) üzerinde Qwen3.8-27B ile parçasız ve altın parçalı (kâhin getirme) üretim. Belge gerektiren denetimlerde recall 0,280 → 0,488 (+0,21, %95 aralık [+0,13, +0,28]); belge gerektirmeyenlerde 0,530 → 0,556 (aralık sıfırı içeriyor). Set, D9'u ölçebiliyor. Kâhin parçalarla bile belge gerektiren denetimlerin yarısı karşılanmıyor; uydurma içerik 1,27 → 1,53. Ayrıntı: [D9.md](D9.md).
 
+
+## Paket 3 kararları (20 Kasım 2026)
+
+| No | Karar | Gerekçe | Ayar |
+| --- | --- | --- | --- |
+| D6 | BGE-M3, agglomerative average, eşik 0,35 (değişmedi) | Alternatif embedding'ler geçmedi; HDBSCAN ağaç tutmuyor. Eşik 0,30 v1'de iyi ama bootstrap aralığı sıfırı geçmiyor, v0'da kötü: aday. [D6](D6.md) | değişiklik yok |
+| D7 | Öbek başına kalır (kullanıcı kararı, 21 Kasım) | Gereksinim başına çağrı recall +0,069 [+0,028, +0,110] (`d7-cluster`'a göre), +0,046 [+0,012, +0,082] (`p3-v1-reference`'a göre) ama artış test sayısından geliyor (test sayısı aynı olan gereksinimlerde +0,011); uydurma %48, token %55 fazla; paketleme iki tabana göre de kötü. [D7](D7.md) | değişiklik yok |
+| D8 | Ekleme artımlı; çıkarma budama; birleştirme prompt'u | Artımlı düzeltmeleri ve önceki testleri koruyor, 4 kat ucuz; çıkarmada çağrı ile budama aynı set; birleştirme prompt'u 100 kat ucuz, recall farkı yok. [D8](D8.md) | `config/pipeline.yaml` `generation.prune_removals: true` |
+
+KDH-030: sınır testinde model uzun bir girdi dizisini bitirmeden yazıyordu (5 koşunun 3'ünde `max_tokens`'ta kesildi). Paket 3b'de kapandı: şablon g4 (uzun girdiyi tarif etme kuralı, alan uzunluk sınırı) ile 4 koşuda kesilme 0; v1 recall farkı −0,017 [−0,048, +0,012] ([3b planı](../paketler/paket-3b-plan.md)).

@@ -7,6 +7,8 @@ Experiment file keys:
     name, question, variable           report metadata
     server: {engine, model}            what the running pod must serve (checked)
     pipeline: {...}                    deep-merged over config/pipeline.yaml
+    golden: v0|v1, projects: [...]     golden set and project subset
+    scenario: {kind: add|remove|merge} D8 scenario run (eval/scenarios.py) instead of the pipeline
     quality: true|false                run the golden-set pipeline
     repeat: N                          quality runs; layer 1 differences are reported
     throughput: {concurrency: [1, 8, 16, 32], requests_per_level: 32}
@@ -32,12 +34,13 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from core.metrics import layer1, passes_thresholds  # noqa: E402
-from core.prompts import TEMPLATE_VERSION, Method, ProjectCard, generation_messages  # noqa: E402
+from core.prompts import Method, ProjectCard, generation_messages  # noqa: E402
 from core.schemas import case_set_model  # noqa: E402
 from eval.golden import load_golden  # noqa: E402
 from eval.golden_v1 import load_golden_v1  # noqa: E402
 from eval.pipeline import EmbeddingCache, Pipeline  # noqa: E402
 from eval.report import write_report  # noqa: E402
+from eval.scenarios import ScenarioPipeline  # noqa: E402
 from scripts.runpod_state import base_urls_from_state, read_state  # noqa: E402
 from services.embedder import Embedder  # noqa: E402
 from services.llm_client import LLMClient, LLMError  # noqa: E402
@@ -125,7 +128,8 @@ def synthetic_passages(golden, seed: str, tokens: int) -> list[str]:
 
 async def throughput(client: LLMClient, cfg: dict[str, Any], spec: dict[str, Any], golden) -> list:
     """Load at fixed concurrency levels with generation requests over the reference clusters."""
-    model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]))
+    limits = tuple(sorted((cfg["generation"].get("field_max_chars") or {}).items()))
+    model = case_set_model(tuple(cfg["test_types"]), tuple(cfg["priorities"]), limits)
     schema = model.model_json_schema()
     examples = yaml.safe_load((ROOT / cfg["examples_file"]).read_text(encoding="utf-8"))
     stage = cfg["generation"]
@@ -250,7 +254,6 @@ async def main() -> int:
         "experiment": exp,
         "config_file": str(exp_path),
         "pipeline_config": cfg,
-        "template_version": TEMPLATE_VERSION,
         "golden_version": golden.version,
         "server": server_info,
         "model_spec": load_models()[os.environ.get("LLM_MODEL", "")].model_dump()
@@ -280,20 +283,36 @@ async def main() -> int:
             if exp.get("quality", True):
                 repeats = args.repeat or int(exp.get("repeat", 1))
                 for rep in range(repeats):
-                    pipe = Pipeline(client, cache, cfg, examples)
+                    if exp.get("scenario"):  # D8 (eval/scenarios.py)
+                        pipe = ScenarioPipeline(
+                            client, cache, cfg, examples, scenario=exp["scenario"]
+                        )
+                    else:
+                        pipe = Pipeline(client, cache, cfg, examples)
+                    meta["prompt_versions"] = pipe.prompt_versions()
                     res = await pipe.run(golden)
-                    m = layer1(
-                        res.outcomes, golden.refs(), res.calls, res.wall_s, cfg["test_method"]
-                    )
-                    m["thresholds"] = passes_thresholds(m, cfg["thresholds"])
-                    runs.append(m)
+                    # Outputs first: a failure in metrics or the report must not lose a paid run.
                     for rec in res.records:
                         fh.write(json.dumps({"repeat": rep} | rec, ensure_ascii=False) + "\n")
+                    fh.flush()
+                    m = layer1(
+                        res.outcomes,
+                        golden.refs(),
+                        res.calls,
+                        res.wall_s,
+                        cfg["test_method"],
+                        raw_outputs=res.raw_outputs,
+                    )
+                    m["thresholds"] = passes_thresholds(m, cfg["thresholds"])
+                    if res.extra:
+                        m["scenario"] = res.extra
+                    runs.append(m)
                     c, a = m["calls"], m["all"]
                     print(
                         f"  tekrar {rep + 1}/{repeats}: kapsama {a['coverage_rate']}, şema "
                         f"{c['schema_valid_rate']}, yöntem {a['method_exact_match']}, ihlal "
-                        f"{a['no_test_violations']}, {c['wall_s']} sn, {c['tokens_per_second']} tok/sn, "
+                        f"{a.get('no_test_violations_raw', a['no_test_violations'])}, "
+                        f"{c['wall_s']} sn, {c['tokens_per_second']} tok/sn, "
                         f"hata {c['errors']}",
                         flush=True,
                     )

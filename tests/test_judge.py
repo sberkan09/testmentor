@@ -84,3 +84,26 @@ def test_rubric_version_selects_text():
 
     assert set(RUBRICS) >= {"r1", "r2"} and RUBRICS["r2"].startswith(RUBRICS["r1"])
     assert "train" not in RUBRICS["r2"].lower()  # domain-neutral example
+
+
+def test_paired_bootstrap(tmp_path):
+    """eval.paired: requirements scored in both runs, repeats pooled, difference with interval."""
+    import json
+
+    from eval.paired import load, paired
+
+    def write(d, rows):
+        d.mkdir()
+        (d / "judge.jsonl").write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+
+    def row(rid, m, rep=0):
+        return {"requirement": rid, "matched": m, "checks": 4, "repeat": rep, "unscored": None}
+
+    write(
+        tmp_path / "a", [row("R1", 4), row("R2", 2), row("R1", 2, 1), row("R2", 2, 1), row("R3", 1)]
+    )
+    write(tmp_path / "b", [row("R1", 2), row("R2", 2)])
+    out = paired(load(tmp_path / "a"), load(tmp_path / "b"), samples=200)
+    assert out["requirements"] == 2  # R3 only in a
+    assert out["new"] == 0.625 and out["baseline"] == 0.5 and out["difference"] == 0.125
+    assert out["low"] <= out["difference"] <= out["high"]

@@ -164,3 +164,18 @@ def test_empty_test_case_set_rejected():
     with pytest.raises(ValidationError):
         model.model_validate({"test_cases": []})
     assert model.model_json_schema()["properties"]["test_cases"]["minItems"] == 1
+
+
+def test_coverage_against_predicted_methods():
+    """Bitti ölçütü 3 (paket 3): end to end, coverage counts the requirements whose predicted
+    methods include Test."""
+    from core.metrics import ProjectOutcome, RefRequirement, requirement_metrics
+
+    refs = {
+        "R1": RefRequirement("R1", "P", "tr", frozenset({"Test"}), "a"),
+        "R2": RefRequirement("R2", "P", "tr", frozenset({"Test"}), "a"),
+    }
+    tc = {"covers": ["R1"], "steps": [{"no": 1, "action": "a", "expected": "e"}]}
+    o = ProjectOutcome("P", [], {"R1": ["Test"], "R2": ["İnceleme"]}, [tc])
+    m = requirement_metrics([o], refs, "Test")
+    assert m["coverage_rate"] == 0.5 and m["coverage_rate_predicted"] == 1.0
