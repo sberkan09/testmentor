@@ -10,8 +10,13 @@ driver (`eval.stage_driver`) with the real producers; every model call goes thro
   (`MethodEdited`: pinned and fresh), so test generation is measured apart from classification.
 - `generation_inputs: predicted`: clusters from the first cut over the embeddings
   (`initial_membership`), methods from the model (end to end).
-- `passages: none | gold`: no knowledge base, or the support passages of golden set v1 for the
-  cluster's requirements (oracle retrieval, D9 pilot); same text and order as in paket 1.
+- `passages: none | gold | index`: no knowledge base; the support passages of golden set v1 for
+  the cluster's requirements (oracle retrieval, D9 pilot; same text and order as in paket 1); or
+  (paket 7) real hybrid search over the project's writer-visible corpus documents, chunked and
+  embedded per the `kb:` settings and loaded into an `InMemoryIndex` (`eval/kb_corpus.py`). The
+  corpus cache must exist: a missing one aborts the run before any model call.
+- `card: full | methods_only`: the card as before, or without its text (D9 arm "card off": the
+  eval card is only the project name and domain, plus the method list the method schema needs).
 
 Cluster names (`cluster_label`) are not produced: nothing measured depends on them.
 """
@@ -33,6 +38,7 @@ from core.events import MethodEdited
 from core.graph import ProjectState, new_project
 from core.hashing import input_hash
 from core.invalidation import apply
+from core.kb.chunking import chunk_document
 from core.llm import Complete, LLMReply, LLMRequest
 from core.metrics import CallStat, ProjectOutcome
 from core.nodes import (
@@ -51,7 +57,12 @@ from core.stages import method as method_stage
 from core.stages.base import ProduceContext
 from core.stages.clustering import cut, initial_membership
 from eval.golden import Golden, GoldenProject
+from eval.kb_corpus import ChunkVectorCache, load_corpus
 from eval.stage_driver import drive
+from services.kb_examples import ExamplePool
+from services.kb_index import InMemoryIndex
+from services.kb_rerank import make_reranker
+from services.kb_retrieve import build_retrieval, make_example_source, make_select_examples
 from services.llm_client import LLMClient, LLMError
 from services.settings import stage_configs, stage_settings_from
 from services.stage_llm import ClientComplete
@@ -197,15 +208,29 @@ class Pipeline:
         examples: dict[str, Any],
         *,
         complete: Complete | None = None,
+        kb_vectors: ChunkVectorCache | None = None,
+        example_pool: ExamplePool | None = None,
     ) -> None:
         self.embeddings, self.cfg = embeddings, cfg
         # reference: generation gets the golden clusters and methods, so its quality is measured
         # apart from clustering (D6) and classification; predicted: end to end.
         self.generation_inputs = cfg.get("generation_inputs", "reference")
         self.passage_mode = cfg.get("passages", "none")
-        if self.passage_mode not in ("none", "gold"):
+        if self.passage_mode not in ("none", "gold", "index"):
             raise ValueError(f"unknown passages mode {self.passage_mode!r}")
+        self.card_mode = cfg.get("card", "full")
+        if self.card_mode not in ("full", "methods_only"):
+            raise ValueError(f"unknown card mode {self.card_mode!r}")
         self.settings = stage_settings_from(cfg, examples)
+        self.example_pool = example_pool
+        if self.settings.kb.examples and example_pool is None:
+            # D10: a pool built from the golden reference tests would leak the answer key
+            raise ValueError("kb.examples > 0 needs an example pool, and the eval has none")
+        self.index = InMemoryIndex(self.settings.kb)
+        self.kb_vectors = kb_vectors or ChunkVectorCache(
+            None, embeddings.model_version, embeddings.embed
+        )
+        self.reranker = make_reranker(self.settings.kb.reranker)
         self.model = llm.settings.served_model_name if llm is not None else "model"
         self.configs = stage_configs(
             self.settings, model=self.model, embedding_model_version=embeddings.model_version
@@ -236,7 +261,7 @@ class Pipeline:
                 for r in p.requirements
             ],
             clusters=clusters,
-            card=card_text(p.key, p.name, p.domain),
+            card="" if self.card_mode == "methods_only" else card_text(p.key, p.name, p.domain),
             index_version="v1",
             stage_configs=self.configs,
             methods=self.card_methods,
@@ -255,6 +280,26 @@ class Pipeline:
             return [texts[i] for i in ids]
 
         return retrieve, source
+
+    async def load_kb(self, p: GoldenProject) -> int:
+        """`passages: index`: chunk the project's corpus documents, embed the chunks (cached on
+        disk) and add them to the index under the project's key. Returns the chunk count."""
+        kb = self.settings.kb
+        chunks = []
+        for doc_id, text in load_corpus(p.key):
+            chunks += chunk_document(
+                doc_id,
+                text,
+                chunk_tokens=kb.chunk_tokens,
+                overlap_tokens=kb.chunk_overlap_tokens,
+                chars_per_token=kb.chars_per_token,
+            )
+        vectors = await self.kb_vectors.get(p.key, chunks)
+        self.index.add(p.key, chunks, vectors)
+        return len(chunks)
+
+    async def _embed(self, texts: Sequence[str]) -> list[list[float]]:
+        return await self.embeddings.get(texts)
 
     # Whole run ------------------------------------------------------------------------------
 
@@ -278,7 +323,19 @@ class Pipeline:
         errors: dict[str, str] = {}
         if self.generation_inputs == "reference":
             state, predicted, errors = await self._reference_methods(p, state, complete)
-        retrieve, passages = self.gold_passages(p) if self.passage_mode == "gold" else (None, None)
+        retrieve, passages = None, None
+        if self.passage_mode == "gold":
+            retrieve, passages = self.gold_passages(p)
+        elif self.passage_mode == "index":
+            retrieve, passages = build_retrieval(
+                self.index, p.key, self._embed, self.settings.kb, self.reranker
+            )
+        select_examples = example_texts = None
+        if self.example_pool is not None:
+            select_examples = make_select_examples(
+                self.example_pool, p.key, self._embed, self.settings.kb.examples
+            )
+            example_texts = make_example_source(self.example_pool, p.key)
 
         async def embed(texts: Sequence[str]) -> list[list[float]]:
             return await self.embeddings.get(texts)
@@ -291,6 +348,8 @@ class Pipeline:
             embed=embed,
             retrieve=retrieve,
             passages=passages,
+            select_examples=select_examples,
+            example_texts=example_texts,
         )
         state = driven.state
         errors |= {str(r): why for r, why in driven.errors.items()}
@@ -316,6 +375,12 @@ class Pipeline:
                 "generation_inputs": self.generation_inputs,
                 "generation_clusters": [list(m) for m in clusters.values()],
                 "test_cases": tests,
+                "retrieval": {
+                    c: list(
+                        getattr(state.node(ref(NodeKind.RETRIEVAL, c)).content, "passage_ids", ())
+                    )
+                    for c in state.keys_of(NodeKind.CLUSTER)
+                },
                 "covered_before_repair": sorted(covered),
                 "stage_stats": {
                     str(r): dict(s)
@@ -368,6 +433,10 @@ class Pipeline:
 
     async def run(self, golden: Golden) -> PipelineResult:
         started = time.perf_counter()
+        if self.passage_mode == "index":
+            for p in golden.projects:  # fail on a missing corpus before the first model call
+                n = await self.load_kb(p)
+                self.records.append({"type": "kb", "project": p.key, "chunks": n})
         outcomes = await asyncio.gather(*(self.run_project(p) for p in golden.projects))
         return PipelineResult(
             list(outcomes),

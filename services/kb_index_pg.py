@@ -49,7 +49,8 @@ class PgIndex:
                     PRIMARY KEY (project_id, passage_id))"""
             )
             cur.execute(
-                "CREATE INDEX IF NOT EXISTS kb_chunks_document ON kb_chunks (project_id, document_id)"
+                "CREATE INDEX IF NOT EXISTS kb_chunks_document "
+                "ON kb_chunks (project_id, document_id)"
             )
             cur.execute("CREATE INDEX IF NOT EXISTS kb_chunks_tsv ON kb_chunks USING gin (tsv)")
             cur.execute(

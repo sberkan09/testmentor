@@ -81,7 +81,9 @@ async def draft_card(
         unit="card/draft",
         messages=messages,
         schema=schema,
-        params=LLMParams(temperature=0.0, thinking=False, max_tokens=settings.card_draft_max_tokens),
+        params=LLMParams(
+            temperature=0.0, thinking=False, max_tokens=settings.card_draft_max_tokens
+        ),
     )
     methods: dict[str, MethodDef] = {}
     for m in out["methods"]:

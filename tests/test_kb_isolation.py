@@ -41,10 +41,10 @@ def documents(marker: str) -> dict[str, str]:
     return {
         "SPEC": (
             "# Kimlik doğrulama\n\n"
-            f"Kullanıcı girişi 3 başarısız denemeden sonra 15 dakika kilitlenir. {marker} kuralı.\n\n"
-            f"Parola sıfırlama bağlantısı 30 dakika geçerlidir. {marker} kuralı.\n\n"
+            f"Kullanıcı girişi 3 başarısız denemeden sonra 15 dakika kilitlenir. {marker}.\n\n"
+            f"Parola sıfırlama bağlantısı 30 dakika geçerlidir. {marker}.\n\n"
             "# Günlükleme\n\n"
-            f"Her yapılandırma değişikliği kullanıcı ve zaman damgasıyla günlüğe yazılır. {marker}.\n\n"
+            f"Her yapılandırma değişikliği kullanıcı ve zaman damgasıyla yazılır. {marker}.\n\n"
             f"Denetim günlüğü CSV olarak dışa aktarılır. {marker}.\n"
         ),
         "GUIDE": (
@@ -112,7 +112,7 @@ async def exercise(index: KbIndex, pool: ExamplePool) -> dict[str, dict]:
         case = _case(marker)
         entry = await build_entry(f"{pid}:TC-1", case, [REQS["R1"][1]], embed)
         pool.add(pid, [entry])
-    for pid, marker in MARKERS.items():
+    for pid in MARKERS:
         retrieve, passages = build_retrieval(index, pid, embed, KB)
         complete = ScriptedComplete()
         run = await drive(
@@ -125,9 +125,7 @@ async def exercise(index: KbIndex, pool: ExamplePool) -> dict[str, dict]:
             example_texts=make_example_source(pool, pid),
         )
         assert not run.failed(), run.failed()
-        retrieval = {
-            c: run.state.node(ref(NodeKind.RETRIEVAL, c)).content for c in CLUSTERS
-        }
+        retrieval = {c: run.state.node(ref(NodeKind.RETRIEVAL, c)).content for c in CLUSTERS}
         out[pid] = {
             "retrieval": retrieval,
             "chunks": own[pid],

@@ -146,12 +146,17 @@ async def test_reranker_reorders_the_candidates():
 
 
 def entry(key: str, text: str, vector, rendered: str | None = None) -> ExampleEntry:
-    return ExampleEntry(key=key, requirement_text=text, text=rendered or f"örnek {key}", vector=tuple(vector))
+    return ExampleEntry(
+        key=key, requirement_text=text, text=rendered or f"örnek {key}", vector=tuple(vector)
+    )
 
 
 def test_pool_selects_most_similar_and_keys_follow_the_text():
     pool = ExamplePool()
-    pool.add("P", [entry("TC-1", "a", [1, 0]), entry("TC-2", "b", [0, 1]), entry("TC-3", "c", [0.6, 0.8])])
+    pool.add(
+        "P",
+        [entry("TC-1", "a", [1, 0]), entry("TC-2", "b", [0, 1]), entry("TC-3", "c", [0.6, 0.8])],
+    )
     keys = pool.select("P", [1.0, 0.1], 2)
     assert [k.split("@")[0] for k in keys] == ["TC-1", "TC-3"]
     assert pool.select("P", [1.0, 0.1], 0) == []

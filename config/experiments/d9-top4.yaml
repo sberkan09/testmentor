@@ -1,0 +1,10 @@
+name: d9-top4
+question: "D9 parça sayısı: ilk 4 parça (taban 8); belge gerektiren denetimlerde check_recall ve uydurma içerik d9-index-base ile karşılaştırılır."
+variable: kb.top_k=4
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  kb:
+    top_k: 4
+quality: true

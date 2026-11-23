@@ -39,7 +39,10 @@ async def test_text_over_the_token_limit_is_a_schema_error_with_one_retry():
     complete = ScriptedComplete(handler)
     with pytest.raises(CallFailed):
         await draft_card(complete, [("A", "metin")], CARD_METHODS, KB)
-    assert len(complete.requests) == 2 and "# Correction" in complete.requests[1].messages[-1]["content"]
+    assert (
+        len(complete.requests) == 2
+        and "# Correction" in complete.requests[1].messages[-1]["content"]
+    )
 
 
 async def test_duplicate_method_names_are_merged():

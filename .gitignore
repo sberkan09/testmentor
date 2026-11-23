@@ -7,3 +7,4 @@ __pycache__/
 results/smoke/
 infra/.runpod-state.json
 eval/corpus/cache/
+eval/cache/kb/

@@ -60,7 +60,10 @@ async def test_passages_and_examples_reach_layer_4_in_rank_order():
     assert not out.failed()
     ret = out.state.node(ref(NodeKind.RETRIEVAL, "A")).content
     assert isinstance(ret, RetrievalContent)
-    assert ret.passage_ids == ("p2", "p1") and ret.example_keys == ("TC-9@aaaaaaaa", "TC-3@bbbbbbbb")
+    assert ret.passage_ids == ("p2", "p1") and ret.example_keys == (
+        "TC-9@aaaaaaaa",
+        "TC-3@bbbbbbbb",
+    )
     for p in prompts(complete):
         text = layer4(p)
         assert text.index("metin p2") < text.index("metin p1") < text.index("# Project examples")
@@ -69,9 +72,7 @@ async def test_passages_and_examples_reach_layer_4_in_rank_order():
 
 async def test_without_examples_the_prompt_is_the_paket_3_prompt():
     complete = ScriptedComplete()
-    out = await drive(
-        project(), complete, real=REAL, retrieve=passages_for, passages=source
-    )
+    out = await drive(project(), complete, real=REAL, retrieve=passages_for, passages=source)
     ret = out.state.node(ref(NodeKind.RETRIEVAL, "A")).content
     assert isinstance(ret, RetrievalContent) and ret.example_keys == ()
     assert all("# Project examples" not in p for p in prompts(complete))
@@ -84,7 +85,10 @@ def test_empty_example_keys_do_not_change_the_content_hash_or_the_stored_form():
     new = RetrievalContent(passage_ids=("a", "b"), example_keys=("k@1",))
     assert content_hash(new) != content_hash(old)
     assert RetrievalContent.model_validate(new.model_dump(mode="json")) == new
-    assert RetrievalContent.model_validate({"kind": "retrieval", "passage_ids": ["a"]}).example_keys == ()
+    assert (
+        RetrievalContent.model_validate({"kind": "retrieval", "passage_ids": ["a"]}).example_keys
+        == ()
+    )
 
 
 async def test_example_keys_without_a_source_fail_the_node():

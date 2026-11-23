@@ -21,9 +21,7 @@ from services.kb_index import KbIndex
 
 
 class Reranker(Protocol):
-    async def rerank(
-        self, query: str, candidates: Sequence[tuple[str, str]], k: int
-    ) -> list[str]:
+    async def rerank(self, query: str, candidates: Sequence[tuple[str, str]], k: int) -> list[str]:
         """`candidates` are (passage id, prompt text); returns the best `k` ids, best first."""
 
 

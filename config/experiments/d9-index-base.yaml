@@ -1,0 +1,8 @@
+name: d9-index-base
+question: "D9 karşılaştırma tabanı (paket 7): altın set v1, gerçek hibrit arama (parça 400 token, ilk 8, reranker yok, kart var). Diğer d9-* kolları bunun tek değişkenli sapmalarıdır; d9-pilot-none ve d9-pilot-gold ile de karşılaştırılır (belge gerektiren denetimlerde recall)."
+variable: passages=index (kb varsayılanları)
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+quality: true

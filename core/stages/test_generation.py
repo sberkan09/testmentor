@@ -141,8 +141,8 @@ def choose_mode(
 ) -> Mode:
     """- `merge` when the hint is merge and every hint source is in `sources`;
     - otherwise `incremental` when the set has content, a readable basis, the basis' config,
-      card, passages and example keys equal `basis_of(state, cluster)` (members may differ), and the cluster
-      has at most `max_unit_size` members (None: no limit);
+      card, passages and example keys equal `basis_of(state, cluster)` (members may differ), and
+      the cluster has at most `max_unit_size` members (None: no limit);
     - `full` in every other case (no content, no basis, card / config / passages changed, a
       cluster larger than one unit). A merge hint without its sources falls through to these
       rules. The hint's `incremental` alone never decides: paket 2 gives it to every stale set

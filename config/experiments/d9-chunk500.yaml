@@ -1,0 +1,10 @@
+name: d9-chunk500
+question: "D9 parça boyu: 500 token (taban 400); belge gerektiren denetimlerde check_recall d9-index-base ile karşılaştırılır."
+variable: kb.chunk_tokens=500
+server: {engine: vllm, model: qwen3.8-27b, overrides: {}}
+golden: v1
+pipeline:
+  passages: index
+  kb:
+    chunk_tokens: 500
+quality: true
