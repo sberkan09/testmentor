@@ -11,6 +11,7 @@ Ekranın altında Türkçe açıklama şeridi çizilir; model üretimi süren b�
 cd web && DEMO=1 DEMO_FRAMES=/tmp/demo/frames DEMO_MARKS=/tmp/demo/marks.json \
   npx playwright test e2e/demo.spec.ts --trace off
 cd .. && uv run python demo/make_video.py /tmp/demo/frames /tmp/demo/marks.json demo.mp4
+# Hazır kayıt (gerçek model, 23.11): docs/demo/testmentor-demo.mp4
 ```
 
 Playwright yapılandırması API'yi `TESTMENTOR_FAKE_LLM=1` ile açar (8000 portunda çalışan bir API
