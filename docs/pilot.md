@@ -107,7 +107,7 @@ C="docker compose -f infra/compose.yaml --env-file .env --profile harici"
 $C exec -T postgres pg_dump -U testmentor -d testmentor -Fc > yedek-$(date +%F).dump
 cp data/users.yaml yedek-users-$(date +%F).yaml
 
-# Geri yükleme (uygulama durdurulur, veritabanı boş olmalı)
+# Geri yükleme (uygulama durdurulur; --clean mevcut tabloları yedektekilerle değiştirir)
 $C stop app
 $C exec -T postgres pg_restore -U testmentor -d testmentor --clean --if-exists < yedek-2026-11-23.dump
 $C start app
@@ -145,9 +145,11 @@ Günlükler: `docker compose -f infra/compose.yaml --env-file .env --profile <pr
 - Uygulama şirket içi ağa açılır. HTTPS gerekiyorsa önüne kurumun ters vekili (nginx, Caddy) konur; uygulama `--proxy-headers` ile çalışır.
 - Postgres portunu dışarı açmayın; yedek için `docker compose exec` yeterlidir.
 - `.env` ve `data/users.yaml` depoya girmez (`.gitignore`, `.dockerignore`).
+- Silinen kullanıcının elindeki jeton süresi dolana kadar (`auth.token_hours`) geçerli kalır; jeton doğrulanırken kullanıcı dosyası okunmaz. Hemen kesmek için `TESTMENTOR_AUTH_SECRET` değiştirilip uygulama yeniden başlatılır (herkes yeniden giriş yapar).
+- WebSocket ve xlsx indirme bağlantısı jetonu adres satırında (`?token=`) taşır; bu yüzden jeton uvicorn'un ve varsa ters vekilin erişim günlüğüne yazılır. Günlükleri jeton ömrü boyunca gizli tutun ya da vekilde sorgu dizgesini günlükten çıkarın.
 - Uygulama kapsayıcısı root kullanıcısıyla çalışır (bağlanan `data/` klasörüne kullanıcı ekleme aracının yazabilmesi için); kurum politikası gerektirirse `user:` ile değiştirilip klasör sahipliği ayarlanır.
 - `harici` profili bir Runpod pod'una da bağlanabilir, ama yalnızca sentetik veri ve altın setle test için: kurum verisi Runpod'a girmez.
 
 ## Doğrulama durumu (23 Kasım 2026)
 
-Bu depoda (GPU'suz geliştirme ortamı) doğrulanan: `harici` profili sahte modelle (`TESTMENTOR_FAKE_LLM=1`) ve pgvector'lü Postgres'le kuruldu; Playwright testleri (yükleme, öbekler, düzenleme, matris ve xlsx, iki kullanıcı ve kilit, belge yükleme ve arama düğümü, parolalı giriş) derlenmiş uygulamaya karşı geçti; uygulama yeniden başlatıldıktan sonra projeler ve belge listesi Postgres'ten geldi. Doğrulanamayan: `vllm`, `sglang` ve `embedding` servisleri (GPU yok, imajlar çok büyük); tek sunucu biçimi ve gerçek modelle `harici` biçimi pilot sunucusunda ilk kurulumda denenmelidir: `make local-up`, `make users-add`, küçük bir gereksinim seti ve bir belge.
+Bu depoda (GPU'suz geliştirme ortamı) doğrulanan: `harici` profili sahte modelle (`TESTMENTOR_FAKE_LLM=1`) ve pgvector'lü Postgres'le kuruldu; Playwright testleri (yükleme, öbekler, düzenleme, matris ve xlsx, iki kullanıcı ve kilit, belge yükleme ve arama düğümü, parolalı giriş) derlenmiş uygulamaya karşı geçti; uygulama yeniden başlatıldıktan sonra projeler ve belge listesi Postgres'ten geldi; `pg_dump` yedeği alındı ve `pg_restore --clean --if-exists` ile geri yüklendi. `make local-up`, `make app-image` ve `make users-add` hedefleri yalnızca kuru koşuyla (`make -n`) denetlendi; aynı komutlar elle çalıştırıldı. Doğrulanamayan: `vllm`, `sglang` ve `embedding` servisleri (GPU yok, imajlar çok büyük); tek sunucu biçimi ve gerçek modelle `harici` biçimi pilot sunucusunda ilk kurulumda denenmelidir: `make local-up`, `make users-add`, küçük bir gereksinim seti ve bir belge.
