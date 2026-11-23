@@ -13,10 +13,18 @@ from core.invalidation import analyze
 from core.nodes import NodeKind, Status
 from services.fake_llm import FakeComplete
 from tests.worker.helpers import FAST, calls, produced, ref, service
-from worker.contracts import CommandRequest, CreateCluster, EditRequirement, MoveRequirement
+from worker.contracts import (
+    ApproveStage,
+    CommandRequest,
+    CreateCluster,
+    EditRequirement,
+    MoveRequirement,
+    SetStageMode,
+)
 from worker.store import JobRecord, MemoryProjectStore
 
 LABEL = NodeKind.CLUSTER_LABEL
+SET = NodeKind.TEST_SET
 
 
 class FailingStore(MemoryProjectStore):
@@ -155,4 +163,90 @@ async def test_lock_and_cluster_key_change_nothing_when_the_commit_fails():
     created = await svc.command("P", CommandRequest(command=CreateCluster(members=("R3",))), "ayse")
     assert created.accepted
     assert f"C{counter + 1:03d}" in rt.state.keys_of(NodeKind.CLUSTER)
+    await svc.close()
+
+
+async def test_when_the_failure_cannot_be_recorded_either_memory_releases_alone():
+    """The result commit and the failure record both fail: the release happens in memory
+    only, the job is retried, and the next writes bring the store back in line."""
+    store = FailingStore()
+    complete = FakeComplete()
+    svc = service(store, complete=complete)
+    await produced(svc)
+    n0 = len(complete.requests)
+    seq0 = svc.snapshot("P").seq
+    store.job_fails = lambda job: job.state in ("done", "failed") and ref(LABEL, "A") in job.nodes
+    store.times = 2
+    await svc.command(
+        "P", CommandRequest(command=MoveRequirement(requirement="R2", to_cluster="B")), "a"
+    )
+    await asyncio.wait_for(svc.wait_idle(), 5)
+    rt = svc.runtime("P")
+    assert store.times == 0  # "done" failed, then "failed" failed: memory-only release
+    assert running_nodes(svc) == [] and not rt._jobs and rt.idle()
+    assert rt.state.node(ref(LABEL, "A")).status == Status.FRESH
+    assert calls(complete.requests[n0:])[("ClusterLabel", "A/label")] == 2
+    assert_store_mirrors_memory(svc)
+    seqs = [e.seq for e in svc.events_after("P", seq0)]
+    assert seqs == list(range(seq0 + 1, svc.snapshot("P").seq + 1))  # no gap from the failures
+    await svc.close()
+
+
+async def _approved_set_c(svc, complete: FakeComplete) -> str:
+    """Approval mode on test sets, R5 edited, set C approved; returns R5's original text."""
+    rt = svc.runtime("P")
+    await svc.command("P", CommandRequest(command=SetStageMode(stage=SET, mode="approval")), "lead")
+    text = rt.state.requirement("R5").text
+    edit = EditRequirement(requirement="R5", text=text + " Ek.")
+    await svc.command("P", CommandRequest(command=edit), "a")
+    await svc.wait_idle()
+    assert ("C", "waiting_approval") in {(j.node.key, j.state) for j in svc.snapshot("P").jobs}
+    await svc.command("P", CommandRequest(command=ApproveStage(stage=SET)), "lead")
+    assert rt.record.approved == [ref(SET, "C")]
+    return text
+
+
+async def test_approved_node_whose_job_is_cancelled_needs_a_new_approval():
+    """Gate rule (review findings 2/3): a running approved node keeps its approval, but when
+    its job is cancelled because its input changed, the approval goes."""
+    complete = FakeComplete()
+    svc = service(complete=complete)
+    await produced(svc)
+    rt = svc.runtime("P")
+    text = await _approved_set_c(svc, complete)
+    complete.delay_s = 0.3
+    loop = asyncio.get_running_loop()
+    end = loop.time() + 3
+    while rt.state.node(ref(SET, "C")).status != Status.RUNNING:
+        assert loop.time() < end
+        await asyncio.sleep(0.005)
+    assert rt.record.approved == [ref(SET, "C")]  # running keeps it
+    complete.delay_s = 0.0
+    again = EditRequirement(requirement="R5", text=text + " Başka.")
+    await svc.command("P", CommandRequest(command=again), "a")  # cancels C's job
+    assert rt.record.approved == []
+    await asyncio.wait_for(svc.wait_idle(), 5)
+    jobs = {(j.node.kind, j.node.key): j.state for j in svc.snapshot("P").jobs}
+    assert jobs == {(SET, "C"): "waiting_approval"}
+    assert any(j.state == "cancelled" and j.stage == SET for j in svc.store.jobs("P"))
+    await svc.close()
+
+
+async def test_approved_node_retried_after_a_store_failure_needs_no_new_approval():
+    """Gate rule: a job released without a result because the store failed keeps the
+    approval; the retry produces the set without asking again."""
+    store = FailingStore()
+    complete = FakeComplete()
+    svc = service(store, complete=complete)
+    await produced(svc)
+    rt = svc.runtime("P")
+    store.job_fails = lambda job: job.state == "done" and ref(SET, "C") in job.nodes
+    store.times = 1
+    n0 = len(complete.requests)
+    await _approved_set_c(svc, complete)
+    await asyncio.wait_for(svc.wait_idle(), 5)
+    assert store.times == 0
+    assert rt.state.node(ref(SET, "C")).status == Status.FRESH
+    assert calls(complete.requests[n0:])[("TestCaseDelta", "C/incremental")] == 2
+    assert rt.record.approved == [] and not svc.snapshot("P").jobs
     await svc.close()

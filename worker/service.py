@@ -142,6 +142,9 @@ class OrchestratorService:
                 self._projects[pid] = ProjectRuntime.load(record, self.store, self.queue, self.deps)
             except Exception as exc:  # noqa: BLE001 - the other projects stay available
                 failed = True
+                for p in self.queue.pending():  # jobs the half-loaded runtime queued
+                    if p.key.startswith(f"{pid}|"):
+                        self.queue.drop(p.key)
                 if pid not in self._load_errors:
                     log.exception("project %s could not be loaded; retrying on the next call", pid)
                 self._load_errors[pid] = f"{type(exc).__name__}: {exc}"
