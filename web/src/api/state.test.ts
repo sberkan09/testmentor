@@ -43,6 +43,18 @@ describe("applyEvent", () => {
     expect(s.jobs["j1"]).toBeUndefined();
   });
 
+  it("başlayan ve biten iş, snapshot'taki aynı düğümün sıradaki kaydını da siler", () => {
+    const s0 = base();
+    const queued = { id: "q:test_set:A", node: { kind: "test_set", key: "A" }, priority: "P2", state: "queued" };
+    const withQueued = { ...s0, jobs: { ...s0.jobs, [queued.id]: queued } } as typeof s0;
+    const job = { id: "job-7", node: { kind: "test_set", key: "A" }, priority: "P2", state: "running" };
+    let s = applyEvent(withQueued, ev(6, "job_started", { job, nodes: ["test_set:A"] }));
+    expect(s.jobs["q:test_set:A"]).toBeUndefined();
+    expect(s.jobs["job-7"]?.state).toBe("running");
+    s = applyEvent({ ...s, jobs: { ...s.jobs, [queued.id]: queued } } as typeof s, ev(7, "job_done", { job, nodes: ["test_set:A"] }));
+    expect(Object.keys(s.jobs)).toEqual([]);
+  });
+
   it("lock_changed kilidi koyar ve kaldırır", () => {
     let s = applyEvent(base(), ev(6, "lock_changed", { ref: "test_case:A:TC-1", user: "ali" }));
     expect(s.locks["test_case:A:TC-1"]).toBe("ali");

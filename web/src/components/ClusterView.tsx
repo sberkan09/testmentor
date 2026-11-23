@@ -303,7 +303,9 @@ export function ClusterView() {
   const selection = useStudio((s) => s.selection);
   const { send } = useActions();
   const [zoom, setZoom] = useState<Zoom | null>(null);
-  const [granularity, setGranularity] = useState(0.8);
+  // Starts at the first cut's distance threshold (config/pipeline.yaml clustering.distance_threshold;
+  // D6: 0.35); the snapshot does not carry it.
+  const [granularity, setGranularity] = useState(0.35);
   const [marks, setMarks] = useState<Set<string>>(new Set());
   const [markedClusters, setMarkedClusters] = useState<Set<string>>(new Set());
   const [dragging, setDragging] = useState<string | null>(null);

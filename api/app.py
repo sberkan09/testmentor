@@ -7,6 +7,8 @@ the reason: `version_conflict` and `nothing_to_undo` 409, `locked` 423, `invalid
 
 from __future__ import annotations
 
+from urllib.parse import unquote
+
 import asyncio
 import contextlib
 import json
@@ -80,9 +82,12 @@ def create_app(
             raise HTTPException(404, f"unknown project {project_id}")
 
     def actor_of(x_user: str | None) -> str:
-        if not x_user or not x_user.strip():
+        """The `X-User` header is percent-encoded UTF-8 (HTTP headers carry Latin-1 only, and
+        user names like "Ayşe" do not fit); a plain ASCII name decodes to itself."""
+        name = unquote(x_user or "").strip()
+        if not name:
             raise HTTPException(400, "X-User header is required")
-        return x_user.strip()
+        return name
 
     @app.get("/projects")
     def list_projects() -> list[dict[str, str]]:

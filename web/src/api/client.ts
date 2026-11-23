@@ -29,7 +29,8 @@ async function detail(res: Response): Promise<string> {
 }
 
 export function createRestApi(getUser: () => string, fetchFn: typeof fetch = (...a) => fetch(...a)): StudioApi {
-  const headers = (extra: Record<string, string> = {}) => ({ "X-User": getUser(), ...extra });
+  // HTTP headers carry Latin-1 only; the server decodes the percent-encoded UTF-8 name ("Ayşe").
+  const headers = (extra: Record<string, string> = {}) => ({ "X-User": encodeURIComponent(getUser()), ...extra });
 
   async function json<T>(res: Response): Promise<T> {
     if (!res.ok) throw new ApiError(await detail(res), res.status);

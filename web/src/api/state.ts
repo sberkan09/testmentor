@@ -60,6 +60,24 @@ export function fromSnapshot(snap: Snapshot, prev?: ProjectState): ProjectState 
   };
 }
 
+/** Node keys a job event covers: `payload.nodes` (strings like "test_set:C001") or the job's node. */
+function jobNodes(job: JobView, payload: Record<string, unknown>): Set<string> {
+  const nodes = payload["nodes"];
+  const keys = new Set<string>([refKey(job.node)]);
+  if (Array.isArray(nodes)) for (const n of nodes) if (typeof n === "string") keys.add(n);
+  return keys;
+}
+
+/** Jobs other than queued or waiting entries of the given nodes. */
+function withoutJobsOf(jobs: Record<string, JobView>, nodes: Set<string>): Record<string, JobView> {
+  const out: Record<string, JobView> = {};
+  for (const [id, j] of Object.entries(jobs)) {
+    if (j.state !== "running" && nodes.has(refKey(j.node))) continue;
+    out[id] = j;
+  }
+  return out;
+}
+
 function withoutKey<T>(rec: Record<string, T>, key: string): Record<string, T> {
   if (!(key in rec)) return rec;
   const next = { ...rec };
@@ -147,14 +165,20 @@ export function applyEvent(state: ProjectState, ev: ServerEvent): ProjectState {
     }
     case "job_started": {
       const job = jobOf(payload);
-      if (job) next = { ...next, jobs: { ...next.jobs, [job.id]: { ...job, state: "running" } } };
+      if (job) {
+        const jobs = withoutJobsOf(next.jobs, jobNodes(job, payload));
+        next = { ...next, jobs: { ...jobs, [job.id]: { ...job, state: "running" } } };
+      }
       break;
     }
     case "job_done":
     case "job_failed": {
       const job = jobOf(payload);
       if (job) {
-        next = { ...next, jobs: withoutKey(next.jobs, job.id), progress: withoutKey(next.progress, refKey(job.node)) };
+        // Also drop queued entries of the same nodes: the snapshot lists queued work as `q:<key>`
+        // (or `w:<key>` waiting for approval), a running job carries its own id.
+        const jobs = withoutJobsOf(withoutKey(next.jobs, job.id), jobNodes(job, payload));
+        next = { ...next, jobs, progress: withoutKey(next.progress, refKey(job.node)) };
       }
       break;
     }

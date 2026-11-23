@@ -83,3 +83,15 @@ def test_static_files_with_spa_fallback(service: FakeProjectService, tmp_path: P
         assert c.get("/a.js").text == "1"
         assert "uygulama" in c.get("/projeler/DEN").text  # client-side route
         assert c.get("/projects").status_code == 200  # API routes win over the static mount
+
+
+def test_non_latin1_user_name_is_percent_encoded(client, project):
+    """The browser cannot put "Ayşe" in a header; the client sends `X-User: Ay%C5%9Fe` and the
+    server records the actor "Ayşe" (here: the lock holder)."""
+    from tests.api.test_conflict import PID, first_case
+
+    ref = first_case(project)["ref"]
+    r = client.post(f"/projects/{PID}/locks", json={"ref": ref}, headers={"X-User": "Ay%C5%9Fe"})
+    assert r.status_code == 200
+    snap = client.get(f"/projects/{PID}/snapshot").json()
+    assert snap["locks"] == {f"test_case:{ref['key']}": "Ayşe"}
