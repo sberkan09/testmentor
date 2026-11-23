@@ -63,4 +63,21 @@ GPU servislerine `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, `VLLM_NO_USAGE_ST
 
 ## Uygulamada netleşenler
 
-(doldurulacak)
+- **Paketi üretme:** `make offline-bundle OUT=dizin` (`infra/offline/build.sh`). Derleme makinesinde yalnızca Docker gerekir; Python adımları uygulama imajının içinde koşar.
+- **Model sürümleri** `config/` içinde sabit (`revision`): Qwen/Qwen3.8-27B-FP8 `c3a462cc…`, BAAI/bge-m3 `5617a9f6…`. İkisi de onay istemiyor. bge-m3'ün ONNX kopyası pakete girmez.
+- **Ağırlıklar tek tar dosyası (`models.tar`):** Hugging Face önbelleği sembolik bağlantılarla çalışır ve FAT/exFAT diskler bunları taşıyamaz. Kurulum dosyayı açar.
+- **Kurum vekili:** TLS'i yeniden imzalayan bir vekil varsa kök sertifika `EXTRA_CA` ile verilir. Model indirmede `requests` kütüphanesi için `REQUESTS_CA_BUNDLE` da gerekir; bu ortamda bulundu.
+- **Model sunucusunun boyut bayrakları** Compose'ta `.env` değişkenleridir: `LLM_MAX_MODEL_LEN`, `LLM_MAX_NUM_SEQS`, `LLM_GPU_MEMORY_UTILIZATION`, `EMBEDDING_GPU_MEMORY_UTILIZATION`.
+
+### Doğrulama
+
+- **Burada:** paket üretildi (uygulama ve Postgres imajları, bge-m3; vLLM imajı ve Qwen hariç). Ardından:
+  - Boş veri köklü Docker'da ve kapsayıcıların dışarı yeni bağlantısı iptables ile kapalıyken (`DOCKER-USER`) paket başka bir dizinden kuruldu.
+  - `STAGE=1 bash install.sh` geçti: sağlama, `docker load`, `.env`, ön denetim, sahte modelle küçük proje Postgres'e yazıldı.
+  - Pilot ayarıyla (parolalı giriş) Playwright 3/3 geçti.
+  - `verify.sh egress`: dışarıya erişim yok. Kontrol koşusunda engel kaldırılınca düz HTTP ile erişim görüldü; yani denetim gerçek.
+- **Runpod'da çevrimdışı prova yapılamadı.**
+  - 1. deneme: pod açıldı ama makine network volume'u bağlayamadı ve kapsayıcı hiç oluşmadı (0,50 saat, ~1,35 USD). Bu olay kredi korumasında bir açık gösterdi: `wait` artık zaman aşımında pod'u siliyor.
+  - 2. deneme: EU-RO-1'de stok yoktu, pod oluşmadı, ücret doğmadı.
+  - Prova araçları hazır: `make up OFFLINE=1` ile model ve embedding süreçlerinin çıkışı ölü vekile gider, bekçi bunun dışında kalır.
+- **Kalan risk:** vLLM'in çevrimdışı ilk açılışı (çekirdek dosyası ya da telemetri indirmeye çalışıp çalışmadığı) yalnızca kurum makinesinde 2. aşamada, `verify.sh full` ile doğrulanacak. Compose GPU servisleri de orada ilk kez koşacak. Kurulum aşamalı olduğu için uygulama tarafı ondan önce doğrulanmış olur.
