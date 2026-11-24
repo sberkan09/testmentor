@@ -63,6 +63,8 @@ embedding_server:
   image: vllm/vllm-openai:v0.34.0
   port: 8001
   model: BAAI/bge-m3
+  revision: 5617a9f61b028005a4858fdac845db406aefb181  # internetsiz paket bu sürümü taşır (paket 12)
+  download_ignore: ["onnx/*", "imgs/*"]   # vLLM PyTorch ağırlığını kullanır; ONNX kopyası pakete girmez
   served_name: bge-m3
   command:
     - vllm

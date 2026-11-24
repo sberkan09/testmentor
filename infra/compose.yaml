@@ -12,11 +12,15 @@ services:
     - /bin/sh
     - -c
     command:
-    - exec python3 -m sglang.launch_server --model-path Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 30000 --context-length 32768 --max-running-requests 64 --mem-fraction-static 0.8 --enable-cache-report --grammar-backend xgrammar --api-key "$$LLM_API_KEY" --reasoning-parser qwen3
+    - exec python3 -m sglang.launch_server --model-path Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 30000 --context-length ${LLM_MAX_MODEL_LEN:-32768} --max-running-requests ${LLM_MAX_NUM_SEQS:-64} --mem-fraction-static ${LLM_GPU_MEMORY_UTILIZATION:-0.8} --enable-cache-report --grammar-backend xgrammar --api-key "$$LLM_API_KEY" --reasoning-parser qwen3
     environment:
       LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY .env dosyasında tanımlı olmalı}
       HF_HOME: /models/hf
       HF_HUB_OFFLINE: ${HF_HUB_OFFLINE:-1}
+      TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-1}
+      HF_DATASETS_OFFLINE: ${HF_DATASETS_OFFLINE:-1}
+      VLLM_NO_USAGE_STATS: ${VLLM_NO_USAGE_STATS:-1}
+      DO_NOT_TRACK: ${DO_NOT_TRACK:-1}
     volumes:
     - ${MODELS_DIR:-./models}:/models
     ports:
@@ -53,11 +57,15 @@ services:
     - /bin/sh
     - -c
     command:
-    - exec vllm serve Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 8000 --max-model-len 32768 --max-num-seqs 64 --gpu-memory-utilization 0.8 --enable-prefix-caching --enable-prompt-tokens-details --api-key "$$LLM_API_KEY" --reasoning-parser qwen3 --language-model-only
+    - exec vllm serve Qwen/Qwen3.8-27B-FP8 --served-model-name qwen3.8-27b --host 0.0.0.0 --port 8000 --max-model-len ${LLM_MAX_MODEL_LEN:-32768} --max-num-seqs ${LLM_MAX_NUM_SEQS:-64} --gpu-memory-utilization ${LLM_GPU_MEMORY_UTILIZATION:-0.8} --enable-prefix-caching --enable-prompt-tokens-details --api-key "$$LLM_API_KEY" --reasoning-parser qwen3 --language-model-only
     environment:
       LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY .env dosyasında tanımlı olmalı}
       HF_HOME: /models/hf
       HF_HUB_OFFLINE: ${HF_HUB_OFFLINE:-1}
+      TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-1}
+      HF_DATASETS_OFFLINE: ${HF_DATASETS_OFFLINE:-1}
+      VLLM_NO_USAGE_STATS: ${VLLM_NO_USAGE_STATS:-1}
+      DO_NOT_TRACK: ${DO_NOT_TRACK:-1}
     volumes:
     - ${MODELS_DIR:-./models}:/models
     ports:
@@ -87,11 +95,15 @@ services:
     - /bin/sh
     - -c
     command:
-    - exec vllm serve BAAI/bge-m3 --served-model-name bge-m3 --runner pooling --convert embed --host 0.0.0.0 --port 8001 --gpu-memory-utilization 0.08 --api-key "$$LLM_API_KEY"
+    - exec vllm serve BAAI/bge-m3 --served-model-name bge-m3 --runner pooling --convert embed --host 0.0.0.0 --port 8001 --gpu-memory-utilization ${EMBEDDING_GPU_MEMORY_UTILIZATION:-0.08} --api-key "$$LLM_API_KEY"
     environment:
       LLM_API_KEY: ${LLM_API_KEY:?LLM_API_KEY .env dosyasında tanımlı olmalı}
       HF_HOME: /models/hf
       HF_HUB_OFFLINE: ${HF_HUB_OFFLINE:-1}
+      TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-1}
+      HF_DATASETS_OFFLINE: ${HF_DATASETS_OFFLINE:-1}
+      VLLM_NO_USAGE_STATS: ${VLLM_NO_USAGE_STATS:-1}
+      DO_NOT_TRACK: ${DO_NOT_TRACK:-1}
     volumes:
     - ${MODELS_DIR:-./models}:/models
     ports:
