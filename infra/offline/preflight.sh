@@ -38,6 +38,13 @@ elif command -v nvidia-smi >/dev/null; then
   if docker image inspect "$ENGINE_IMAGE" >/dev/null 2>&1; then
     if docker run --rm --gpus all --entrypoint nvidia-smi "$ENGINE_IMAGE" -L >/dev/null 2>&1; then
       ok "kapsayıcı GPU'yu görüyor ($ENGINE_IMAGE, --gpus all)"
+      # nvidia-smi alone does not prove the CUDA runtime of the image works with this driver
+      if NAME=$(docker run --rm --gpus all --entrypoint python3 "$ENGINE_IMAGE" -c \
+          "import torch; torch.zeros(1).cuda(); print(torch.cuda.get_device_name(0))" 2>/dev/null); then
+        ok "imajın CUDA'sı bu sürücüyle açılıyor: $NAME"
+      else
+        bad "imajın CUDA'sı açılamadı (sürücü imajın istediği CUDA sürümünü desteklemiyor olabilir; manifest.env ve KURULUM.md)"
+      fi
     else
       bad "kapsayıcı GPU'yu göremiyor: NVIDIA Container Toolkit kurulu ve Docker'a tanıtılmış mı? (nvidia-ctk runtime configure)"
     fi
