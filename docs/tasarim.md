@@ -329,7 +329,7 @@ Durumun tek sahibi sunucudur: ön yüz komut gönderir, sonuçları olay akış�
 | Ön yüz | React, TypeScript, three.js (react-three-fiber) | tuval, paneller, olay dinleme |
 | API ve orkestratör | Python, FastAPI, asyncio | komutlar, bağımlılık grafiği, kuyruk, olay yayını |
 | Veritabanı | Postgres, pgvector | düğümler, sürümler, olay günlüğü, indeks |
-| Model sunucusu | vLLM (çalışma varsayımı) | metin üretimi |
+| Model sunucusu | vLLM (çalışma varsayımı) | metin üretimi. Ollama dış motor olarak da kullanılabilir (Compose başlatmaz, adresi `.env`'den): OpenAI uyumlu uç noktası `chat_template_kwargs`'ı yok saydığı için düşünme kipi motor ayarıyla (`reasoning_effort`) kapatılır; motorun düşünme alanları ve model adı modelinkinin önüne geçer (issue #11) |
 | Embedding servisi | BGE-M3 (çalışma varsayımı) | vektörler |
 | Dağıtım | Docker Compose | dört servis (model sunucusu, embedding, Postgres, uygulama), tek sunucu; uygulama servisi API'yi ve derlenmiş ön yüzü sunar (paket 10). Kurum sunucusu internetsizdir: imajlar, sürümü sabitlenmiş model ağırlıkları, Compose dosyası ve kurulum betikleri internete bağlı bir makinede tek pakette toplanır, sunucuda yalnızca yerel dosyalardan kurulur; GPU servisleri çevrimdışı kipte çalışır (paket 12) |
 
