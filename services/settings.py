@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from core.kb.settings import KbSettings
 from core.llm import LLMParams
@@ -51,14 +51,29 @@ class ModelSpec(BaseModel):
 class EngineSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    image: str
+    image: str = ""
     port: int
     # Launch command; placeholders are filled by `infra` tooling (see scripts/engine_cmd.py).
-    command: list[str]
+    command: list[str] = Field(default_factory=list)
     health_path: str = "/health"
     # Request fields every call to this engine carries.
     extra_body: dict[str, Any] = Field(default_factory=dict)
     env: dict[str, str] = Field(default_factory=dict)
+    # An engine this project does not launch (no Compose service, no pod): its address comes from
+    # LLM_BASE_URL. Issue #11: Ollama.
+    external: bool = False
+    # How this engine switches thinking, when it differs from the model's own fields (Ollama's
+    # OpenAI endpoint ignores chat_template_kwargs and reads reasoning_effort). None: the model's.
+    thinking_on: dict[str, Any] | None = None
+    thinking_off: dict[str, Any] | None = None
+    # Model key -> the name this engine serves it under, when not the model's served_name.
+    served_names: dict[str, str] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _launchable(self) -> EngineSpec:
+        if not self.external and not (self.image and self.command):
+            raise ValueError("an engine this project launches needs image and command")
+        return self
 
 
 class LLMSettings(BaseModel):
@@ -130,15 +145,15 @@ def load_llm_settings(config_dir: str | Path = "config") -> LLMSettings:
         engine=engine_key,
         model=model_key,
         base_url=base_url,
-        served_model_name=model.served_name,
+        served_model_name=engine.served_names.get(model_key, model.served_name),
         api_key_env=runtime.get("api_key_env"),
         request_timeout_s=runtime.get("request_timeout_s", 600.0),
         connect_timeout_s=runtime.get("connect_timeout_s", 10.0),
         default_max_tokens=runtime.get("default_max_tokens", 4096),
         default_temperature=runtime.get("default_temperature"),
         extra_body=engine.extra_body,
-        thinking_on=model.thinking_on,
-        thinking_off=model.thinking_off,
+        thinking_on=engine.thinking_on if engine.thinking_on is not None else model.thinking_on,
+        thinking_off=engine.thinking_off if engine.thinking_off is not None else model.thinking_off,
     )
 
 

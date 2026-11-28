@@ -59,6 +59,8 @@ def engine_argv(
     if unknown:
         raise ValueError(f"unknown overrides: {sorted(unknown)}")
     engine = load_engines(config_dir)[engine_key]
+    if engine.external:
+        raise ValueError(f"{engine_key} is an external engine: this project does not launch it")
     model = load_models(config_dir)[model_key]
     infra = load_infra(config_dir)
     values = {
@@ -179,7 +181,7 @@ def render_compose(config_dir: Path = ROOT / "config", bundle: dict[str, str] | 
         "gpu_memory_utilization": model.gpu_memory_utilization or infra["gpu_memory"]["llm"],
     }
     markers = {k: f"@@{k}@@" for k in names}
-    for key in sorted(engines):
+    for key in sorted(k for k in engines if not engines[k].external):
         e = engines[key]
         svc = gpu_service(
             e.image,
@@ -191,7 +193,7 @@ def render_compose(config_dir: Path = ROOT / "config", bundle: dict[str, str] | 
         svc["profiles"] = [key]
         services[key] = svc
     app = infra["app"]
-    for key in sorted(engines):
+    for key in sorted(k for k in engines if not engines[k].external):
         services[key]["networks"] = {"default": {"aliases": [app["llm_alias"]]}}
     services["embedding"] = gpu_service(
         emb["image"],
@@ -204,7 +206,7 @@ def render_compose(config_dir: Path = ROOT / "config", bundle: dict[str, str] | 
         ),
     )
     # Every engine profile, not the external one: there the embedding server is elsewhere.
-    services["embedding"]["profiles"] = sorted(engines)
+    services["embedding"]["profiles"] = sorted(k for k in engines if not engines[k].external)
     services["postgres"] = {
         "image": pg["image"],
         "environment": {
@@ -231,7 +233,7 @@ def render_compose(config_dir: Path = ROOT / "config", bundle: dict[str, str] | 
         for svc in services.values():
             svc["pull_policy"] = "never"  # the offline machine has only the loaded images
     doc = {"name": "testmentor", "services": services, "volumes": {"pgdata": {}}}
-    profiles = " | ".join(sorted(engines))
+    profiles = " | ".join(sorted(k for k in engines if not engines[k].external))
     if bundle is not None:
         header = (
             "# İnternetsiz kurulum paketinin Compose dosyası (paket 12). Üretildi: make offline-bundle\n"

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import time
 import uuid
@@ -23,6 +24,8 @@ import httpx
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from services.settings import LLMSettings, load_llm_settings
+
+log = logging.getLogger(__name__)
 
 Message = Mapping[str, Any]
 Schema = type[BaseModel] | Mapping[str, Any]
@@ -108,6 +111,7 @@ class LLMClient:
             transport=transport,
         )
         self._active: dict[str, asyncio.Task[None]] = {}
+        self._warned_thinking = False
 
     @classmethod
     def from_config(
@@ -202,6 +206,8 @@ class LLMClient:
                     item = getter.result()
                 if isinstance(item, BaseException):
                     raise item
+                if isinstance(item, ChatResult) and thinking is False and item.reasoning:
+                    self._warn_thinking_ignored(len(item.reasoning))
                 yield item
                 if isinstance(item, ChatResult):
                     return
@@ -210,6 +216,23 @@ class LLMClient:
                 task.cancel()
                 await asyncio.gather(task, return_exceptions=True)
             self._active.pop(request_id, None)
+
+    def _warn_thinking_ignored(self, chars: int) -> None:
+        """Thinking was switched off but the engine still reasoned (issue #11: Ollama ignored
+        chat_template_kwargs). Its tokens come out of max_tokens: schema-bound calls with small
+        budgets get truncated. Logged once per client."""
+        if self._warned_thinking:
+            return
+        self._warned_thinking = True
+        s = self._settings
+        log.warning(
+            "thinking was switched off but engine %r returned %d characters of reasoning; "
+            "its tokens use the max_tokens budget. Check thinking_off for this engine in "
+            "config/engines.yaml (sent: %s)",
+            s.engine,
+            chars,
+            s.thinking_off,
+        )
 
     def cancel(self, request_id: str) -> bool:
         """Abort a running request. Returns False when no such request is running."""

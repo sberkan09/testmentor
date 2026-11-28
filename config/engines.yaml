@@ -58,6 +58,21 @@ engines:
       - "$LLM_API_KEY"
     extra_body: {}
 
+  # Dış motor (issue #11): Compose ve pod başlatmaz; adresi LLM_BASE_URL'den gelir (harici profil,
+  # LLM_ENGINE=ollama). Ollama'nın OpenAI uyumlu uç noktası chat_template_kwargs'ı yok sayar,
+  # düşünmeyi reasoning_effort ile açıp kapatır ("none" -> think=false). Ollama 0.40.19 ile
+  # doğrulandı (27 Kasım 2026, qwen3:0.6b): chat_template_kwargs ile 608 karakter düşünme,
+  # reasoning_effort "none" ile 0. Model Ollama'da kendi etiketiyle sunulur (served_names).
+  ollama:
+    external: true
+    port: 11434
+    health_path: /api/version
+    extra_body: {}
+    thinking_on: {reasoning_effort: high}
+    thinking_off: {reasoning_effort: none}
+    served_names:
+      qwen3.8-27b: "qwen3.8:27b"
+
 # Embedding servisi motordan bağımsızdır; vLLM imajında pooling kipinde çalışır.
 embedding_server:
   image: vllm/vllm-openai:v0.34.0

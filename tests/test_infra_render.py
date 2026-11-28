@@ -22,7 +22,7 @@ def test_committed_compose_is_up_to_date():
     assert COMPOSE_PATH.read_text(encoding="utf-8") == render_compose(), "make compose çalıştır"
 
 
-@pytest.mark.parametrize("engine", sorted(load_engines()))
+@pytest.mark.parametrize("engine", sorted(k for k, e in load_engines().items() if not e.external))
 @pytest.mark.parametrize("model", sorted(load_models()))
 def test_every_engine_model_pair_renders(engine, model):
     argv = engine_argv(engine, model)
@@ -135,7 +135,10 @@ def test_external_profile_runs_only_postgres_and_the_app():
     harici = {name for name, svc in services.items() if "harici" in svc.get("profiles", [])}
     always = {name for name, svc in services.items() if "profiles" not in svc}
     assert always == {"postgres", "app"} and harici == set()
-    for engine in load_engines():
+    for engine, spec in load_engines().items():
+        if spec.external:  # e.g. Ollama: never a Compose service (issue #11)
+            assert engine not in services
+            continue
         assert engine in services["embedding"]["profiles"]
         assert services[engine]["networks"]["default"]["aliases"] == ["llm"]
 

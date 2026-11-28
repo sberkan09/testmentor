@@ -157,3 +157,21 @@ Bu depoda (GPU'suz geliştirme ortamı) doğrulanan: `harici` profili sahte mode
 ## Bilgi havuzu kapasitesi
 
 Ölçek testi: [docs/deneyler/pgindex-olcek.md](deneyler/pgindex-olcek.md). 120.000 parçalık bir tabloda öbek araması 2.000 parçalık projede p50 94 ms, 20.000 parçalık projede p50 541 ms (p95 1,2 sn). Belge yükleme saniyede ~900 parça. 400 token'lık bir parça kabaca yarım sayfadır; 20.000 parça yaklaşık 10.000 sayfa eder.
+
+## Model sunucusu olarak Ollama (issue #11)
+
+Ollama, Compose'un başlattığı bir servis değildir; dış motor olarak bağlanır (`harici` profili). `.env` içinde:
+
+```bash
+LLM_ENGINE=ollama
+LLM_BASE_URL=http://<ollama-sunucusu>:11434/v1
+EMBEDDING_BASE_URL=http://<embedding-sunucusu>:8001/v1
+```
+
+Model Ollama'daki etiketiyle istenir: `config/engines.yaml` → `ollama.served_names` (varsayılan `qwen3.8:27b`). Başka bir etiket kullanılıyorsa burası değiştirilir.
+
+Düşünme kipi: Ollama'nın OpenAI uyumlu uç noktası `chat_template_kwargs` alanını yok sayar. Bu yüzden `ollama` motoru düşünmeyi `reasoning_effort` ile açıp kapatır (`"none"` düşünmeyi kapatır). Ollama 0.40.19 ile doğrulandı. Daha eski bir Ollama bu alanı tanımıyorsa model yine düşünür. Uygulama bunu günlüğe tek seferlik bir uyarıyla yazar: `thinking was switched off but engine 'ollama' returned ... characters of reasoning`. Bu uyarı görülürse Ollama güncellenmelidir.
+
+Issue #11'deki geçici çözüm (`cluster_label.max_tokens` 512 → 2048) bu ayarla gereksizdir; `config/pipeline.yaml` depodaki değerine (512) döndürülebilir.
+
+Not: Ollama GGUF nicemlemeli modeller sunar. Ölçümler (D2–D10) vLLM ve FP8 ile yapıldı; Ollama ile kalite ve hız ayrıca ölçülmedi.

@@ -27,6 +27,10 @@ def manifest(engine_key: str | None = None, model_key: str | None = None) -> dic
     engine_key = engine_key or runtime["engine"]
     model_key = model_key or runtime["model"]
     engine = load_engines()[engine_key]
+    if engine.external:
+        raise SystemExit(
+            f"{engine_key} dış motor: paket yalnızca projenin başlattığı motorları taşır"
+        )
     model = load_models()[model_key]
     emb = load_embedding_server()
     infra = load_infra()
